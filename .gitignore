@@ -35,3 +35,10 @@
 # (Arduino libraries that aren't my own source code)
 libraries/DS3231_Simple/
 libraries/TM1637-1.2.0/
+
+# Visual Studio binaries
+gui/KTaNE_Console/KTaNE_Console/obj
+gui/KTaNE_Console/KTaNE_Console/bin
+
+# Visual Studio preferences
+gui/KTaNE_Console/.vs
