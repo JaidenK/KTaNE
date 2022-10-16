@@ -48,6 +48,9 @@ namespace KTaNE_Console.ViewModel
 
         internal void PollSerial()
         {
+            if (port.BytesToRead == 0)
+                return;
+
             StringBuilder sb = new StringBuilder(256);
             while(port.BytesToRead > 0)
             {

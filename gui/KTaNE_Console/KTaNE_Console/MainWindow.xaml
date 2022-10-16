@@ -18,7 +18,7 @@
                       ItemsSource="{Binding Ports}" 
                       SelectedValue="{Binding PortName}" 
                       SelectionChanged="ComboBox_SelectionChanged"/> <!-- Todo: Bind to a command or something idk -->
-            <TextBox Text="{Binding ConsoleText}"/>
+            <TextBox Text="{Binding ConsoleText}" TextChanged="TextBox_TextChanged"/>
         </DockPanel>
     </Grid>
 </Window>
