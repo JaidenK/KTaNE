@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Directories
+# (Arduino libraries that aren't my own source code)
+DS23231_Simple
