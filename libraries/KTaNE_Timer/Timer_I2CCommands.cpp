@@ -27,8 +27,6 @@ void ServiceI2CRequest(I2C_CommandPacket *pkt)
 
 void ReceiveI2CCommand(I2C_CommandPacket *pkt)
 {
-    ES_PostAll((ES_Event){I2C_CMD_RECEIVED,0});
-
     Serial.print(F("I2C: "));
     Serial.println(pkt->CommandID,HEX);
     // Adding address and command ID to the event param is more thread-safe than

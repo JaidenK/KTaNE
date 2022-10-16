@@ -33,4 +33,5 @@
 
 # Directories
 # (Arduino libraries that aren't my own source code)
-DS23231_Simple
+DS23231_Simple/
+TM1637-1.2.0/

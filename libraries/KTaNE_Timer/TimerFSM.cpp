@@ -164,12 +164,6 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
     case Idle:
         switch (ThisEvent.EventType)
         {
-        case ES_TIMEOUT:
-        case ES_ENTRY:
-            StartPseudoTimer(0, 3000);
-            ScanForModules();
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
         case I2C_CMD_RECEIVED:
             if(LastCommand.CommandID == SOLVED)
             {
@@ -182,6 +176,12 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             {
                 Serial.print(F("Unhandled I2C command."));
             }
+            break;
+        case ES_TIMEOUT:
+        case ES_ENTRY:
+            StartPseudoTimer(0, 3000);
+            ScanForModules();
+            ThisEvent.EventType = ES_NO_EVENT;
             break;
         default:
             break;
