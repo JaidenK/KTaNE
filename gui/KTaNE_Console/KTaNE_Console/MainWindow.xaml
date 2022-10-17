@@ -12,13 +12,26 @@
     </Window.DataContext>
     <Grid Margin="10">
         <DockPanel>
-            <ComboBox DockPanel.Dock="Top"
+            <DockPanel Width="300">
+                <Grid DockPanel.Dock="Top">
+                    <ComboBox 
                       HorizontalAlignment="Left"
                       Width="200" 
                       ItemsSource="{Binding Ports}" 
                       SelectedValue="{Binding PortName}" 
-                      SelectionChanged="ComboBox_SelectionChanged"/> <!-- Todo: Bind to a command or something idk -->
-            <TextBox Text="{Binding ConsoleText}" TextChanged="TextBox_TextChanged"/>
+                      SelectionChanged="ComboBox_SelectionChanged"/>
+                    <Button Content="Clear" 
+                            HorizontalAlignment="Right"
+                            Padding="5,0,5,0"
+                            Command="{Binding ClearConsoleCmd}"/>
+                </Grid>
+                <!-- Todo: Bind to a command or something idk -->
+                <TextBox Text="{Binding ConsoleText}" TextChanged="TextBox_TextChanged" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
+            </DockPanel>
+            <StackPanel>
+                <TextBlock Text="Packets received"/>
+                <TextBlock Text="{Binding nPacketsReceived}"/>
+            </StackPanel>
         </DockPanel>
     </Grid>
 </Window>

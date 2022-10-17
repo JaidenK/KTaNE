@@ -10,14 +10,47 @@ namespace KTaNE_Console.ViewModel
 {
     public class MainViewModel : ObservableObject
     {
-        private SerialPort port { get; set; }
+        public Serial serial;
 
         public List<string> Ports => SerialPort.GetPortNames().ToList();
+
+        public string ConsoleText { get; set; }
         public string PortName { get; set; } = "COM3";
         public int Baud { get; set; } = 9600;
-        public string ConsoleText { get; set; }
 
-        public string PortString => $"{port?.PortName ?? "NULL"}@{port?.BaudRate ?? 0}";
+        public int nPacketsReceived { get; set; } = 0;
+
+        public string PortString => serial.PortString;
+
+        public RelayCommand ClearConsoleCmd { get; set; }
+
+        public MainViewModel()
+        {
+            serial = new Serial();
+            serial.TextReceived += Serial_TextReceived;
+            serial.PacketReceived += Serial_PacketReceived;
+
+            ClearConsoleCmd = new RelayCommand((o) =>
+            {
+                ConsoleText = "";
+                OnPropertyChanged("ConsoleText");
+            });
+        }
+
+        private void Serial_PacketReceived(object sender, SerialPacketReceivedEventArgs e)
+        {
+            // Require length 3 for sync, sync, length
+            if (e.packet.Length < 3)
+                return; 
+            nPacketsReceived++;
+            OnPropertyChanged("nPacketsReceived");
+            Console.WriteLine(e.packet[e.packet.Length-1].ToString());
+        }
+
+        private void Serial_TextReceived(object sender, SerialTextReceivedEventArgs e)
+        {
+            ConsoleWrite(e.text);
+        }
 
         public void ConsoleWrite(string s)
         {
@@ -27,36 +60,20 @@ namespace KTaNE_Console.ViewModel
 
         public void Connect()
         {
-            port?.Close();
-            port = new SerialPort(PortName, Baud);
-
-            ConsoleWrite($"Connecting to {PortString}... ");
-
-            try
-            {
-                port.Open();
-            }
-            catch(Exception ex)
-            {
-                ConsoleWrite($"Failed to open {PortString}:\n");
-                ConsoleWrite(ex.ToString() + "\n");
-                return;
-            }
-            
-            ConsoleWrite($"Connected!\n");
+            serial.Connect(PortName, Baud);
         }
 
-        internal void PollSerial()
-        {
-            if (port.BytesToRead == 0)
-                return;
+        //internal void PollSerial()
+        //{
+        //    if (port.BytesToRead == 0)
+        //        return;
 
-            StringBuilder sb = new StringBuilder(256);
-            while(port.BytesToRead > 0)
-            {
-                sb.Append((char)port.ReadChar());
-            }
-            ConsoleWrite(sb.ToString());
-        }
+        //    StringBuilder sb = new StringBuilder(256);
+        //    while(port.BytesToRead > 0)
+        //    {
+        //        sb.Append((char)port.ReadChar());
+        //    }
+        //    ConsoleWrite(sb.ToString());
+        //}
     }
 }

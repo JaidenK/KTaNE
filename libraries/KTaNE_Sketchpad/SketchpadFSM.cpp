@@ -140,11 +140,6 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
             Serial.print("State: ");
             Serial.println(state);
             
-    Wire.beginTransmission(0x67);
-    Wire.write(0x34);
-    Wire.write(0x12); // Signal to a potential device that we want the sync word.
-    Wire.endTransmission();
-
             digitalWrite(DISARM_PIN,state);
             //digitalWrite(STRIKE_PIN,state);
         }

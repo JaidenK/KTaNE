@@ -41,6 +41,12 @@ typedef enum
     SET_INDICATOR,              // Inform a module of an indicator that is installed, and its state. State of -1 means clear list.
     SET_PORT,                   // Inform a module of a port that is installed. -1 means clear list   
 
+    // UART commands
+    ACK = 0x60,                 // Parameter may include response bytes 
+    NACK,
+    MODULE_ADDED,               // Parameter = model ID
+    MODULE_REMOVED,             // 
+
     // Reserved command IDs
     CUSTOM_COMMANDS = 0x70, 
 }

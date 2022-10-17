@@ -45,7 +45,7 @@ void BOARD_Init()
     digitalWrite(DISARM_PIN,1);
 
     // Clear Screen
-    Serial.print(F("\u001b[1;1H\u001b[0J"));
+    //Serial.print(F("\u001b[1;1H\u001b[0J"));
     //PrintHeader();
 
 }

@@ -94,6 +94,33 @@ static uint8_t moduleI2Crequest = 0;
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
 
+void TestUARTCommand()
+{
+    // Sync
+    Serial.write(0xA5);
+    Serial.write(0xA5);
+    // Length
+    Serial.write(14);
+    // Sequence Counts
+    Serial.write(0x00);
+    Serial.write(0x00);
+    // Reserved
+    Serial.write(0x01);
+    Serial.write(0x02);
+    Serial.write(0x03);
+    Serial.write(0x04);
+    // Response length
+    Serial.write(0x00);
+    // Destination/Sender 
+    Serial.write(0x00);
+    // Command
+    Serial.write(0x12);
+    // CRC
+    Serial.write(0x34);
+    Serial.write(0x56);
+
+}
+
 uint8_t InitTimerFSM(uint8_t Priority)
 {
     MyPriority = Priority;
@@ -179,6 +206,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             break;
         case ES_TIMEOUT:
         case ES_ENTRY:
+            TestUARTCommand();
             StartPseudoTimer(0, 3000);
             ScanForModules();
             ThisEvent.EventType = ES_NO_EVENT;

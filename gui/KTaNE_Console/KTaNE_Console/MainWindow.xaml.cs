@@ -43,7 +43,7 @@ namespace KTaNE_Console
 
         private void SerialTimer_Tick(object sender, EventArgs e)
         {
-            vm.PollSerial();
+            //vm.PollSerial();
         }
 
         private void Window_ContentRendered(object sender, EventArgs e)
