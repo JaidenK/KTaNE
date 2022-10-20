@@ -23,8 +23,8 @@ Constants used between all modules for KTaNE.
 #define EEPROM_CONFIGURED_ADDRESS 0x01 // Location in EEPROM where the bit stating whether the module has been configured or not is stored.
 #define SERIAL_BAUD_RATE 9600
 
-#define TIMER_I2C_ADDRESS 0x00 // Fixed address of the timer module
-#define PROGRAMMER_I2C_ADDRESS 0x7F // Fixed address of the programmer
+#define GENERAL_CALL_I2C_ADDRESS 0x00
+#define TIMER_I2C_ADDRESS 0x01 // Fixed address of the timer module
 
 #define SERIAL_NO_LENGTH 6
 
