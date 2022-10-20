@@ -86,7 +86,7 @@ static uint8_t moduleI2Crequest = 0;
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
-
+ 
 uint8_t InitSketchpadFSM(uint8_t Priority)
 {
     MyPriority = Priority;
@@ -135,13 +135,25 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
         {            
             Serial.print("Param: ");
             Serial.println(ThisEvent.EventParam,HEX);
-            I2C_SendPacket(TIMER_I2C_ADDRESS, SOLVED);
-            uint8_t state = (ThisEvent.EventParam & 0x00FF)>1;
+            uint8_t strikeState = (ThisEvent.EventParam & 0x0001);
+            uint8_t disarmState = (ThisEvent.EventParam & 0x0002);
             Serial.print("State: ");
-            Serial.println(state);
+            Serial.println(strikeState);
+            Serial.println(disarmState);
             
-            digitalWrite(DISARM_PIN,state);
-            //digitalWrite(STRIKE_PIN,state);
+            // Buttons are active low, LEDs are active high
+            digitalWrite(DISARM_PIN,!disarmState);
+            digitalWrite(STRIKE_PIN,!strikeState);
+
+            // check which button changed AND its state
+            if((ThisEvent.EventParam & 0x0101) == 0x0100)
+            {
+                I2C_SendPacket(TIMER_I2C_ADDRESS, STRIKE);
+            }
+            else if((ThisEvent.EventParam & 0x0202) == 0x0200)
+            {
+                I2C_SendPacket(TIMER_I2C_ADDRESS, SOLVED);
+            }
         }
         break;
     default: // all unhandled states fall into here
@@ -149,11 +161,11 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
     } // end switch on Current State
 
     // Clear the serial buffer if it's still there
-    while(Serial.available())
-    {
-        Serial.readString();
-        Serial.println(F("..."));
-    }
+    // while(Serial.available())
+    // {
+    //     Serial.readString();
+    //     Serial.println(F("..."));
+    // }
 
     if (makeTransition == TRUE) { // making a state transition, send EXIT and ENTRY
         // recursively call the current state with an exit event

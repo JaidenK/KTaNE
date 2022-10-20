@@ -25,6 +25,7 @@ uint8_t CheckButtons(void)
         {
             StrikeButtonCurrentState = 0;
             eventParam |= (1 << 8);
+            returnVal = 1;
         }
     }
     else
@@ -32,7 +33,8 @@ uint8_t CheckButtons(void)
         if(StrikeBtnStates == 0xFF)
         {
             StrikeButtonCurrentState = 1;
-            eventParam |= (1 << 8) + (1 << 0);
+            eventParam |= (1 << 8);
+            returnVal = 1;
         }
     }
     
@@ -42,6 +44,7 @@ uint8_t CheckButtons(void)
         {
             DisarmButtonCurrentState = 0;
             eventParam |= (1 << 9);
+            returnVal = 1;
         }
     }
     else
@@ -49,13 +52,18 @@ uint8_t CheckButtons(void)
         if(DisarmBtnStates == 0xFF)
         {
             DisarmButtonCurrentState = 1;
-            eventParam |= (1 << 9) + (1 << 1);
+            eventParam |= (1 << 9);
+            returnVal = 1;
         }
     }
 
     if(eventParam)
     {
         returnVal = 1;
+        if(StrikeButtonCurrentState)
+            eventParam |= (1 << 0);
+        if(DisarmButtonCurrentState)
+            eventParam |= (1 << 1);
         ES_PostAll((ES_Event){BUTTON_EVENT,eventParam});
     }
 
