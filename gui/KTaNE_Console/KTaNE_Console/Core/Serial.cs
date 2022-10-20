@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO.Ports;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -24,7 +23,7 @@ namespace KTaNE_Console.Core
                 return _instance;
             }
         }
-        
+
         private readonly object _lock = new object();
         private SerialPort _port { get; set; }
         public string PortString => $"{_port?.PortName ?? "NULL"}@{_port?.BaudRate ?? 0}";
@@ -55,100 +54,124 @@ namespace KTaNE_Console.Core
             _thread.Start();
         }
 
+        private enum RxPacketState
+        {
+            SearchingForSync1,
+            SearchingForSync2,
+            ReadingLength,
+            AcquiringDataBytes
+        }
+
         private void SerialThread()
         {
             byte[] buf = new byte[1024];
             byte[] packetBuf = new byte[256]; // only needs to be enough to hold 1 packet
-            int ibuf = 0;
+            const int MaxPacketSize = 100;
+            int iPacketBuf = 0;
+            int nBytesRead = 0;
             int iSync = -1;
             string newChars = "";
+            byte packetLength = 0;
+            RxPacketState state = RxPacketState.SearchingForSync1;
 
-            while(true)
+
+            while (true)
             {
-                if(!_port.IsOpen)
+                if (!_port.IsOpen)
                 {
                     Thread.Sleep(100);
                     continue;
                 }
 
-                if(_port.BytesToRead == 0)
+                if (_port.BytesToRead == 0)
                 {
                     Thread.Sleep(100);
                     continue;
                 }
 
-                lock(_lock)
+                lock (_lock)
                 {
-                    ibuf += _port.Read(buf, ibuf, buf.Length - ibuf);
-                    //newChars = _port.ReadExisting();
+                    nBytesRead = _port.Read(buf, 0, buf.Length);
                 }
 
-                //Write(newChars);
-
-                // Copy incoming characters to the buffer
-                //Array.Copy(newChars.ToCharArray(), 0, buf, ibuf, newChars.Length);
-                //ibuf += newChars.Length;
-
-                // If the buffer doesn't contain the sync, clear it.
-                // This could fail if we get one byte before the next.
+                // Using string builder and writing the result should
+                // be less CPU intense then writing one character at a time.
                 StringBuilder sb = new StringBuilder(128);
-                for(int i = 0; i < buf.Length-1 && iSync < 0; i++)
+                for (int i = 0; i < nBytesRead; i++)
                 {
-                    if(buf[i] == SYNC_BYTE && buf[i+1] == SYNC_BYTE)
+                    byte newByte = buf[i];
+                    switch (state)
                     {
-                        iSync = i;
-                        break; // Break not necessary because of the iSync < 0
+                        case RxPacketState.SearchingForSync1:
+                            {
+                                iPacketBuf = 0;
+                                if (newByte == SYNC_BYTE)
+                                {
+                                    state = RxPacketState.SearchingForSync2;
+                                }
+                                else
+                                {
+                                    sb.Append((char)newByte);
+                                }
+                                break;
+                            }
+                        case RxPacketState.SearchingForSync2:
+                            {
+                                if (newByte == SYNC_BYTE)
+                                {
+                                    state = RxPacketState.ReadingLength;
+                                }
+                                else
+                                {
+                                    sb.Append((char)newByte);
+                                    state = RxPacketState.SearchingForSync1;
+                                }
+                                break;
+                            }
+                        case RxPacketState.ReadingLength:
+                            {
+                                packetLength = newByte;
+                                state = RxPacketState.AcquiringDataBytes;
+                                break;
+                            }
+                        case RxPacketState.AcquiringDataBytes:
+                            {
+                                // Do nothing (byte is always put in buf)
+                                break;
+                            }
+                        default:
+                            throw new Exception("Unhandled RxPacketState: " + state.ToString());
+                            break;
                     }
-                    else
-                    {
-                        sb.Append((char)buf[i]);
-                    }
-                }
-                if (sb.Length > 0)
-                    Write(sb.ToString());
 
-                // Clear the array if we didn't find the sync. But also
-                // check that the last byte isn't potentially the sync just
-                // in case it came in on the edge.
-                if(iSync < 0 && buf[ibuf-1] != SYNC_BYTE)
-                {
-                    // We're probably fine just setting the index. Actually
-                    // clearing the array probably isn't necessary.
-                    Array.Clear(buf, 0, buf.Length);
-                    ibuf = 0;
-                }
-                else if(iSync >= 0)
-                {
-                    // Check if we've received a whole packet.
-                    // packet length is stored at byte 2
-                    byte packetLength = (byte)buf[iSync + PACKET_LENGTH_OFFSET];
-                    if(ibuf - iSync >= packetLength)
+                    // Store the date
+                    packetBuf[iPacketBuf++] = newByte;
+
+                    if (((byte)iPacketBuf == packetLength) && (state == RxPacketState.AcquiringDataBytes))
                     {
+                        state = RxPacketState.SearchingForSync1;
+                        // Check CRC
+                        //crc.EvaluateCRC()
+
                         // We have a packet. Put it in the packet array
                         var args = new SerialPacketReceivedEventArgs
                         {
                             packet = new byte[packetLength]
                         };
-                        Array.Copy(buf, iSync, args.packet, 0, packetLength);
+                        Array.Copy(packetBuf, 0, args.packet, 0, packetLength);
                         PacketReceived.Invoke(this, args);
-
-                        // Shift over all the leftover data in the buffer. 
-                        int nExtraBytes = ibuf - (iSync + packetLength);
-                        Array.Copy(buf, iSync+packetLength, buf, 0, nExtraBytes);
-                        ibuf = nExtraBytes;
-                        iSync = -1;
                     }
                 }
-
-
-                
-
+                if (sb.Length > 0)
+                {
+                    Write(sb.ToString());
+                }
             }
         }
 
         private void _port_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
         {
-            Write($"Serial Error:\n"+e.EventType.ToString()+"\n");
+            Write($"Serial Error:\n" + e.EventType.ToString() + "\n");
         }
 
         public void Connect(string PortName, int BaudRate)
