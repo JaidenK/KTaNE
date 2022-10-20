@@ -199,6 +199,13 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
                 Serial.println();
                 ThisEvent.EventType = ES_NO_EVENT;
             }
+            else if(LastCommand.CommandID == STRIKE)
+            {
+                Serial.print(F("STRIKE signal received from address "));
+                print2digithex(LastCommand.SenderAddress);
+                Serial.println();
+                ThisEvent.EventType = ES_NO_EVENT;
+            }
             else
             {
                 Serial.print(F("Unhandled I2C command."));
