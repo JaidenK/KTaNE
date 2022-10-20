@@ -41,5 +41,6 @@ extern I2C_CommandPacket LastCommand;
 void ServiceI2CRequest(I2C_CommandPacket *pkt); 
 void ReceiveI2CCommand(I2C_CommandPacket *pkt); 
 uint8_t I2C_SendPacket(uint8_t address, uint8_t command);
+uint8_t I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length);
 
 #endif

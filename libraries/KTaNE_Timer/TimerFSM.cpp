@@ -42,6 +42,7 @@
 #include "TimerFSM.h"
 #include "KTaNE.h"
 #include "ClockEventChecker.h"
+#include "SerialManager.h"
 
 #include "frequencies.h"
 
@@ -226,11 +227,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         break;
     } // end switch on Current State
 
-    // Clear the serial buffer if it's still there
-    while(Serial.available())
-    {
-        Serial.readString();
-    }
+    ServiceSerial();
 
     if(ThisEvent.EventType != ES_NO_EVENT)
     {

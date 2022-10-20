@@ -19,10 +19,12 @@ namespace KTaNE_Console.ViewModel
         public int Baud { get; set; } = 9600;
 
         public int nPacketsReceived { get; set; } = 0;
+        public string tbText { get; set; }
 
         public string PortString => serial.PortString;
 
         public RelayCommand ClearConsoleCmd { get; set; }
+        public RelayCommand TestCmd { get; set; }
 
         public MainViewModel()
         {
@@ -34,6 +36,11 @@ namespace KTaNE_Console.ViewModel
             {
                 ConsoleText = "";
                 OnPropertyChanged("ConsoleText");
+            });
+            TestCmd = new RelayCommand((o) =>
+            {
+                int foo = int.Parse(tbText);
+                // SendCommand();
             });
         }
 

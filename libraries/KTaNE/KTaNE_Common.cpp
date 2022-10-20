@@ -79,6 +79,15 @@ uint8_t I2C_SendPacket(uint8_t address, uint8_t command)
 {
     Wire.beginTransmission(address);
     Wire.write(i2c_address);
-    Wire.write(command); // Signal to a potential device that we want the sync word.
+    Wire.write(command); 
+    return Wire.endTransmission();
+}
+
+uint8_t I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length)
+{
+    Wire.beginTransmission(address);
+    Wire.write(i2c_address);
+    for(uint8_t i = 0; i < length; i++)
+        Wire.write(command[i]); 
     return Wire.endTransmission();
 }

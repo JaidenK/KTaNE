@@ -31,6 +31,8 @@
             <StackPanel>
                 <TextBlock Text="Packets received"/>
                 <TextBlock Text="{Binding nPacketsReceived}"/>
+                <Button Command="{Binding TestCmd}" Content="Test" HorizontalAlignment="Left"/>
+                <TextBox Text="{Binding tbText}"/>
             </StackPanel>
         </DockPanel>
     </Grid>
