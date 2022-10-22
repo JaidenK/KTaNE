@@ -55,7 +55,7 @@ namespace KTaNE_Console
             vm.Connect();
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBox_ScrollToEnd(object sender, TextChangedEventArgs e)
         {
             (sender as TextBox).ScrollToEnd();
         }

@@ -59,10 +59,10 @@
 
 uint8_t CheckKeyboard(void) {
     uint8_t returnVal = FALSE;
-    if(Serial.available() > 0)
-    {
-        returnVal = TRUE;
-        ES_PostAll((ES_Event){ES_KEYINPUT,0x0000});
-    }
+    // if(Serial.available() > 0)
+    // {
+    //     returnVal = TRUE;
+    //     ES_PostAll((ES_Event){ES_KEYINPUT,0x0000});
+    // }
     return (returnVal);
 }

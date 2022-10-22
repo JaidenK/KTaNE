@@ -47,6 +47,7 @@ uint8_t CheckKeyboard(void);
 uint8_t CheckClock(void);
 uint8_t CheckLight(void);
 uint8_t CheckButtons(void);
+uint8_t CheckSerial(void);
 
 
 

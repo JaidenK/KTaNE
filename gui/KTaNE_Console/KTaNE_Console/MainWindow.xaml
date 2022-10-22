@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:KTaNE_Console"
         xmlns:ViewModel="clr-namespace:KTaNE_Console.ViewModel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" ContentRendered="Window_ContentRendered">
+        Title="MainWindow" Height="874" Width="1094" ContentRendered="Window_ContentRendered">
     <Window.DataContext>
         <ViewModel:MainViewModel/>
     </Window.DataContext>
@@ -26,13 +26,20 @@
                             Command="{Binding ClearConsoleCmd}"/>
                 </Grid>
                 <!-- Todo: Bind to a command or something idk -->
-                <TextBox Text="{Binding ConsoleText}" TextChanged="TextBox_TextChanged" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
+                <TextBox Text="{Binding ConsoleText}" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
             </DockPanel>
             <StackPanel>
+                <Grid Height="500">
+
+                </Grid>
                 <TextBlock Text="Packets received"/>
                 <TextBlock Text="{Binding nPacketsReceived}"/>
                 <Button Command="{Binding TestCmd}" Content="Test" HorizontalAlignment="Left"/>
                 <TextBox Text="{Binding tbText}"/>
+                <TextBlock Text="Tx Packets:"/>
+                <TextBox Text="{Binding TxPacketsText}" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="100"/>
+                <TextBlock Text="Rx Packets:"/>
+                <TextBox Text="{Binding RxPacketsText}" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="100"/>
             </StackPanel>
         </DockPanel>
     </Grid>

@@ -46,6 +46,7 @@ typedef enum
     NACK,
     MODULE_ADDED,               // Parameter = Address, model ID
     MODULE_REMOVED,             // 
+    REQUEST_MODULE_LIST,        // Triggers the Timer to list out all the currently connected modules (as sequential serial packets)
 
     // Reserved command IDs
     CUSTOM_COMMANDS = 0x70, 

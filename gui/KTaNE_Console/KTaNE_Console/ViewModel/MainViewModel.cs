@@ -1,10 +1,14 @@
 ﻿using KTaNE_Console.Core;
+using KTaNE_Console.Model;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace KTaNE_Console.ViewModel
 {
@@ -19,12 +23,31 @@ namespace KTaNE_Console.ViewModel
         public int Baud { get; set; } = 9600;
 
         public int nPacketsReceived { get; set; } = 0;
-        public string tbText { get; set; }
+        public string tbText { get; set; } = "23";
 
         public string PortString => serial.PortString;
 
         public RelayCommand ClearConsoleCmd { get; set; }
         public RelayCommand TestCmd { get; set; }
+
+        public List<UartPacket> ReceivedPackets { get; set; } = new List<UartPacket>();
+        public List<UartPacket> SentPackets { get; set; } = new List<UartPacket>();
+
+        private string _rxPacketsText;
+        public string RxPacketsText
+        {
+            get { return _rxPacketsText; }
+            set { _rxPacketsText = value; OnPropertyChanged(); }
+        }
+
+        private string _txPacketsText;
+        public string TxPacketsText
+        {
+            get { return _txPacketsText; }
+            set { _txPacketsText = value; OnPropertyChanged(); }
+        }
+
+
 
         public MainViewModel()
         {
@@ -40,7 +63,22 @@ namespace KTaNE_Console.ViewModel
             TestCmd = new RelayCommand((o) =>
             {
                 int foo = int.Parse(tbText);
-                // SendCommand();
+
+                byte[] bytes = new byte[14];
+                bytes[0] = Serial.SYNC_BYTE;
+                bytes[1] = Serial.SYNC_BYTE;
+                bytes[2] = (byte)bytes.Length;
+                bytes[3] = 1;
+                bytes[4] = 2;
+                bytes[9] = 30; // N_MAX_MODULE_NAME_CHARS
+                bytes[10] = (byte)foo;
+                bytes[11] = 0x12; // REQUEST_NAME
+                bytes[12] = 0;
+                bytes[13] = 0;
+
+
+                serial.Write(bytes);
+                TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
             });
         }
 
@@ -52,6 +90,13 @@ namespace KTaNE_Console.ViewModel
             nPacketsReceived++;
             OnPropertyChanged("nPacketsReceived");
             Console.WriteLine(e.packet[e.packet.Length-1].ToString());
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var pkt = UartPacket.FromFullPacket(e.packet);
+                ReceivedPackets.Add(pkt);
+                RxPacketsText += pkt.ToString() + Environment.NewLine;
+            });
+            //OnPropertyChanged("PacketsList");
         }
 
         private void Serial_TextReceived(object sender, SerialTextReceivedEventArgs e)

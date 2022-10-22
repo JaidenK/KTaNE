@@ -8,7 +8,7 @@ namespace KTaNE_Console.Core
     public class Serial
     {
         private readonly int PACKET_LENGTH_OFFSET = 2;
-        private readonly byte SYNC_BYTE = 0xA5;
+        public static readonly byte SYNC_BYTE = 0xA5;
 
         private Serial _instance;
 
@@ -194,6 +194,15 @@ namespace KTaNE_Console.Core
                     return;
                 }
                 Write($"Connected!\n");
+            }
+        }
+
+        public void Write(byte[] bytes)
+        {
+            lock(_lock)
+            {
+                if(_port.IsOpen)
+                    _port.Write(bytes, 0, bytes.Length);
             }
         }
     }

@@ -60,6 +60,7 @@
     <Compile Include="Core\Serial.cs" />
     <Compile Include="Core\SerialPacketReceivedEventArgs.cs" />
     <Compile Include="Core\SerialTextReceivedEventArgs.cs" />
+    <Compile Include="Model\UartPacket.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
