@@ -43,16 +43,16 @@
 
 
 /* IO PINS */
-#define SPEAKER_PIN 8
+#define SPEAKER_PIN 9
 #define START_BTN 12
 
-#define TM1637_CLK 3
-#define TM1637_DIO 2
+#define TM1637_CLK 8
+#define TM1637_DIO 7
 
 #define LIGHT_PIN A3
 
-#define STRIKE_PIN 10
-#define DISARM_PIN 9
+#define STRIKE1_PIN 2
+#define STRIKE2_PIN 3
 
 
 /**

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "KTaNE.h"
+#include "ES_Framework.h"
 
 
 const char ModelID[N_MAX_MODULE_ID_CHARS] = "VALK_SKETCH_000";
@@ -18,6 +19,9 @@ void ServiceI2CRequest(I2C_CommandPacket *pkt)
         break;
     case REQUEST_NAME:
         Wire.write(ModuleName);
+        break;   
+    case FLASH_LED:
+        ES_PostAll((ES_Event){FLASH_REQUESTED,0});
         break;
     default:
         break;

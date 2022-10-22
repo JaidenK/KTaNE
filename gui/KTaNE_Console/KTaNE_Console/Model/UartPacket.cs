@@ -2,6 +2,8 @@
 {
     public class UartPacket
     {
+        public static readonly int DATA_START = 11;
+
         public byte seqCnt { get; set; }
         public byte seqCntEcho { get; set; }
         public byte nResponseBytes { get; set; }
@@ -11,7 +13,6 @@
 
         public static UartPacket FromFullPacket(byte[] buf)
         {
-            const int DATA_START = 11;
 
             var length = buf[2];
             var dataLength = length - (DATA_START + 1 + 2);

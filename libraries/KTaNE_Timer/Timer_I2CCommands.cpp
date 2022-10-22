@@ -20,6 +20,15 @@ void ServiceI2CRequest(I2C_CommandPacket *pkt)
     case REQUEST_NAME:
         Wire.write(ModuleName);
         break;
+    case GET_TIME_MS:    
+        uint32_t t = (uint32_t)millis();            
+        Wire.write(((uint8_t *)&t)[0]);             
+        Wire.write(((uint8_t *)&t)[1]);             
+        Wire.write(((uint8_t *)&t)[2]);             
+        Wire.write(((uint8_t *)&t)[3]);      
+    case FLASH_LED:
+        ES_PostAll((ES_Event){FLASH_REQUESTED,0});
+        break;
     default:
         break;
     }

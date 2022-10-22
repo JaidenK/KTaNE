@@ -3,6 +3,7 @@
 #include "SerialCommandProcessor.h"
 #include "SerialManager.h"
 #include "KTaNE_Common.h"
+#include "ES_Framework.h"
 
 #define OFFSET_LENGTH 2
 #define OFFSET_SEQ_CNT 3
@@ -12,6 +13,24 @@
 #define OFFSET_CMD_START 11
 
 static uint8_t responseBuf[32];
+
+void ServiceCommandLocally(uint8_t *buf)
+{   
+    uint8_t address = buf[OFFSET_ADDRESS];
+    uint8_t *command = &buf[OFFSET_CMD_START];
+    uint8_t length = buf[OFFSET_LENGTH] - OFFSET_CMD_START - 1; // extra -1 for CRC
+    uint8_t nResponseBytes = buf[OFFSET_RESPONSE_LENGTH];
+
+    switch (command[0])
+    {
+    case FLASH_LED:
+        ES_PostAll((ES_Event){FLASH_REQUESTED,0});
+        break;    
+    default:
+        // Error condition
+        break;
+    }
+}
 
 void ProcessSerialCommand(uint8_t *buf)
 {
@@ -27,14 +46,11 @@ void ProcessSerialCommand(uint8_t *buf)
     uint8_t length = buf[OFFSET_LENGTH] - OFFSET_CMD_START - 1; // extra -1 for CRC
     uint8_t nResponseBytes = buf[OFFSET_RESPONSE_LENGTH];
 
-    //Serial.print("Address ");
-    //Serial.println(address);
-    //Serial.print("command ");
-    //Serial.println(command[0]);
-    //Serial.print("length ");
-    //Serial.println(length);
-    //Serial.print("nResponseBytes ");
-    //Serial.println(nResponseBytes);
+    if(address == i2c_address)
+    {
+        ServiceCommandLocally(buf);
+        return;
+    }
 
     I2C_SendPacketEx(address,command,length);
 

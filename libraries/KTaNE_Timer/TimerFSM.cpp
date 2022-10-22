@@ -122,6 +122,18 @@ void TestUARTCommand()
 
 }
 
+void FlashBlocking()
+{
+    for (int i = 0; i < 5; i++)
+    {
+        digitalWrite(STRIKE1_PIN,1);
+        delay(200);
+        digitalWrite(STRIKE1_PIN,0);
+        delay(200);
+    }
+    
+}
+
 uint8_t InitTimerFSM(uint8_t Priority)
 {
     MyPriority = Priority;
@@ -217,6 +229,10 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             TestUARTCommand();
             StartPseudoTimer(0, 3000);
             ScanForModules();
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        case FLASH_REQUESTED:
+            FlashBlocking();
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         default:

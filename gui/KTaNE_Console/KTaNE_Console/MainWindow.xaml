@@ -35,7 +35,10 @@
                 <TextBlock Text="Packets received"/>
                 <TextBlock Text="{Binding nPacketsReceived}"/>
                 <Button Command="{Binding TestCmd}" Content="Test" HorizontalAlignment="Left"/>
-                <TextBox Text="{Binding tbText}"/>
+                <DockPanel>
+                    <TextBox Text="{Binding TestCommandAddressString}" Width="40"/>
+                    <TextBox Text="{Binding TestCommandBytesString}"/>
+                </DockPanel>
                 <TextBlock Text="Tx Packets:"/>
                 <TextBox Text="{Binding TxPacketsText}" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="100"/>
                 <TextBlock Text="Rx Packets:"/>

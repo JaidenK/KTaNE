@@ -46,6 +46,7 @@ typedef enum {
     ES_TIMERSTOPPED, /* signals that a timer has stopped*/
     /* User-defined events start here */
     BUTTON_EVENT,
+    FLASH_REQUESTED,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 

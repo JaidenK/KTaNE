@@ -20,6 +20,7 @@ typedef enum
     REQUEST_NAME,               // Ask a module to proivde its ASCII name
     REQUEST_ID,                 // Ask a module to return its model ID. This must be a N_MODULE_ID_CHARS length ASCII string.
     REQUEST_STATE,              // Ask a module what its current state is (idle, unsolved, solved, etc.)
+    REQUEST_CONFIG,             // Ask for the state of the following command. (command is transmitted with a second command as its argument)
     RESET,                      // Command a module to return to its initial state
 
     // Gameplay commands

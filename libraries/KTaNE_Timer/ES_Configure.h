@@ -53,6 +53,7 @@ typedef enum {
     LIGHT_LEVEL_CHANGED,
     START_REQUESTED,
     I2C_CMD_RECEIVED,
+    FLASH_REQUESTED,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 

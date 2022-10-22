@@ -39,15 +39,10 @@ void BOARD_Init()
     //pinMode(SPEAKER_PIN,OUTPUT);
     pinMode(START_BTN,INPUT_PULLUP);
     pinMode(LIGHT_PIN,INPUT);
-    pinMode(STRIKE_PIN,OUTPUT);
-    pinMode(DISARM_PIN,OUTPUT);
-    digitalWrite(STRIKE_PIN,1);
-    digitalWrite(DISARM_PIN,1);
-
-    // Clear Screen
-    //Serial.print(F("\u001b[1;1H\u001b[0J"));
-    //PrintHeader();
-
+    pinMode(STRIKE1_PIN,OUTPUT);
+    pinMode(STRIKE2_PIN,OUTPUT);
+    digitalWrite(STRIKE1_PIN,0);
+    digitalWrite(STRIKE2_PIN,0);
 }
 
 /**

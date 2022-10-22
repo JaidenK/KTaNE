@@ -30,6 +30,9 @@ namespace KTaNE_Console.ViewModel
         public RelayCommand ClearConsoleCmd { get; set; }
         public RelayCommand TestCmd { get; set; }
 
+        public string TestCommandAddressString { get; set; }
+        public string TestCommandBytesString { get; set; }
+
         public List<UartPacket> ReceivedPackets { get; set; } = new List<UartPacket>();
         public List<UartPacket> SentPackets { get; set; } = new List<UartPacket>();
 
@@ -62,23 +65,36 @@ namespace KTaNE_Console.ViewModel
             });
             TestCmd = new RelayCommand((o) =>
             {
-                int foo = int.Parse(tbText);
-
-                byte[] bytes = new byte[14];
-                bytes[0] = Serial.SYNC_BYTE;
-                bytes[1] = Serial.SYNC_BYTE;
-                bytes[2] = (byte)bytes.Length;
-                bytes[3] = 1;
-                bytes[4] = 2;
-                bytes[9] = 30; // N_MAX_MODULE_NAME_CHARS
-                bytes[10] = (byte)foo;
-                bytes[11] = 0x12; // REQUEST_NAME
-                bytes[12] = 0;
-                bytes[13] = 0;
+                try
+                {
+                    int address = Convert.ToByte(TestCommandAddressString, 16);
+                    var splitBytes = TestCommandBytesString.Split();
 
 
-                serial.Write(bytes);
-                TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
+
+                    byte[] bytes = new byte[13 + splitBytes.Length];
+                    bytes[0] = Serial.SYNC_BYTE;
+                    bytes[1] = Serial.SYNC_BYTE;
+                    bytes[2] = (byte)bytes.Length;
+                    bytes[3] = 1;
+                    bytes[4] = 2;
+                    bytes[9] = 30; // N_MAX_MODULE_NAME_CHARS
+                    bytes[10] = (byte)address;
+                    for (int i = 0; i < splitBytes.Length; i++)
+                    {
+                        bytes[UartPacket.DATA_START + i] = Convert.ToByte(splitBytes[i], 16);
+                    }
+
+                    // Calculate CRC
+                    // ... 
+
+                    serial.Write(bytes);
+                    TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
+                }
+                catch (Exception ex)
+                {
+                    ConsoleWrite(ex.Message + Environment.NewLine);
+                }
             });
         }
 

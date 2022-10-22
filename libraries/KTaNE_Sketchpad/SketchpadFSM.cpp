@@ -103,6 +103,18 @@ uint8_t InitSketchpadFSM(uint8_t Priority)
     Serial.println(F("Sketchpad FSM Initialized"));
 }
 
+void FlashBlocking()
+{
+    for (int i = 0; i < 5; i++)
+    {
+        digitalWrite(STRIKE_PIN,1);
+        delay(200);
+        digitalWrite(STRIKE_PIN,0);
+        delay(200);
+    }
+    
+}
+
 uint8_t PostSketchpadFSM(ES_Event ThisEvent)
 {
     return ES_PostToService(MyPriority, ThisEvent);
@@ -155,6 +167,11 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
                 I2C_SendPacket(TIMER_I2C_ADDRESS, SOLVED);
             }
         }
+        else if(ThisEvent.EventType == FLASH_REQUESTED)
+        {
+            FlashBlocking();
+            ThisEvent.EventType = ES_NO_EVENT;
+        }    
         break;
     default: // all unhandled states fall into here
         break;
