@@ -15,6 +15,7 @@ Common functions used between all KTaNE modules.
 #include <stdint.h>
 
 #include "KTaNE_CommandIDs.h"
+#include "KTaNE_Constants.h"
 
 extern uint8_t i2c_address;
 //extern uint8_t requestType;
@@ -42,5 +43,22 @@ void ServiceI2CRequest(I2C_CommandPacket *pkt);
 void ReceiveI2CCommand(I2C_CommandPacket *pkt); 
 uint8_t I2C_SendPacket(uint8_t address, uint8_t command);
 uint8_t I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length);
+
+
+typedef struct
+{
+    uint8_t isLit;
+    char chars[INDICATOR_MAX_LENGTH];
+}
+Indicator;
+
+typedef enum
+{
+    NO_PORT = 0,
+    SERIAL_PORT,
+    PARALLEL_PORT,
+    HDMI_PORT,
+}
+PortType;
 
 #endif

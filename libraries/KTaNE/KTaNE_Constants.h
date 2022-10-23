@@ -26,7 +26,7 @@ Constants used between all modules for KTaNE.
 #define GENERAL_CALL_I2C_ADDRESS 0x00
 #define TIMER_I2C_ADDRESS 0x01 // Fixed address of the timer module
 
-#define SERIAL_NO_LENGTH 6
+#define SERIAL_NO_MAX_LENGTH 16
 
 #define STRIKE_LED_OCR1A 31250 // How many counts of the 256 prescaled timer that the strike LED should be on after a strike
 
@@ -38,6 +38,10 @@ Constants used between all modules for KTaNE.
 #define N_MAX_MODULE_ID_CHARS 30
 #define N_MAX_MODULE_NAME_CHARS 30
 #define N_MAX_MODULES 12
+
+#define INDICATOR_MAX_LENGTH 3 // Maximum number of characters in an indicator
+#define N_MAX_INDICATORS 12 // Maximum number of indicators supported in a system
+#define N_MAX_PORTS 12
 
 
 #endif /* _KTANE_CONSTANTS_H_ */

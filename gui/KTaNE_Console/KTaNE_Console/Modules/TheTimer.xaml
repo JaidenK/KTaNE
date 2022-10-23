@@ -15,6 +15,18 @@
                 <TextBox Text="{Binding Path=TimeLimitInput}" Width="80" DockPanel.Dock="Right"/>
                 <TextBlock Text="{Binding Path=TimeLimitString}"/>
             </DockPanel>
+            <DockPanel>
+                <TextBlock Text="# of Batteries" Width="80"/>
+                <Button Content="Set" Command="{Binding SetNumBatteriesCmd}" DockPanel.Dock="Right"/>
+                <TextBox Text="{Binding Path=NumBatteriesInput}" Width="80" DockPanel.Dock="Right"/>
+                <TextBlock Text="{Binding Path=NumBatteriesFeedback}"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="Serial Number" Width="80"/>
+                <Button Content="Set" Command="{Binding SetSerialNoCmd}" DockPanel.Dock="Right"/>
+                <TextBox Text="{Binding Path=SerialNoInput}" Width="80" DockPanel.Dock="Right"/>
+                <TextBlock Text="{Binding Path=SerialNoFeedback}"/>
+            </DockPanel>
         </StackPanel>
     </Grid>
 </UserControl>

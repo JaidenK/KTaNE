@@ -2,16 +2,18 @@
 #define _TIMER_CONFIGURE_H_
 
 #include <stdint.h>
-
-/* EEPROM Addresses */
-#define EEPROM_SERIAL_NO 0x10 // String
-#define EEPROM_TIME_LIMIT 0x20 // uint32_t Stored as seconds
-#define EEPROM_N_BATTERIES 0x24 // uint8_t
-#define EEPROM_LIT_INDIC 0x25 // uint8_t array of N_MAX_INDICATORS elements
-#define EEPROM_PORTS 0x35 // uint8_t bitfield
+#include "KTaNE_Common.h"
+#include "KTaNE_Constants.h"
 
 extern uint32_t timeLimit;
+extern char serial_no[SERIAL_NO_MAX_LENGTH];
+extern uint8_t nBatteries;
+extern Indicator indicators[N_MAX_INDICATORS];
+extern PortType ports[N_MAX_PORTS];
+
 void SetTimeLimitConfig(uint32_t newTimeLimit);
+void SetNumBatteriesConfig(uint8_t newNBatteries);
+void SetSerialNoConfig(char *newSerialNo);
 
 void LoadAllEepromConfigInfo();
 

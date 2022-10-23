@@ -35,6 +35,22 @@ void ServiceCommandLocally(uint8_t *buf)
         SetTimeLimitConfig(*((uint32_t *)&command[1]));
         SendUARTResponse(address,command,5);
         break;
+    case SET_N_BATTERIES:
+        Serial.print("New batteries: ");
+        Serial.println(*((uint32_t *)&command[1]));
+        SetNumBatteriesConfig(*((uint32_t *)&command[1]));
+        response[0] = SET_N_BATTERIES;
+        response[1] = nBatteries;
+        SendUARTResponse(address,response,2);
+        break;
+    case SET_SERIAL_NO:
+        Serial.print("New serial: ");
+        Serial.println((char *)&command[1]);
+        response[0] = SET_SERIAL_NO;
+        SetSerialNoConfig(&command[1]);
+        memcpy(&response[1],serial_no,sizeof(serial_no));
+        SendUARTResponse(address,response,sizeof(serial_no)+1);
+        break;
     case REQUEST_CONFIG:
         switch (command[1])
         {
@@ -42,7 +58,17 @@ void ServiceCommandLocally(uint8_t *buf)
             response[0] = SET_TIME_LIMIT;
             memcpy(&response[1],&timeLimit,sizeof(uint32_t));
             SendUARTResponse(address,response,sizeof(uint32_t)+1);
-            break;        
+            break;     
+        case SET_N_BATTERIES:
+            response[0] = SET_N_BATTERIES;
+            response[1] = nBatteries;
+            SendUARTResponse(address,response,2);
+            break;     
+        case SET_SERIAL_NO:
+            response[0] = SET_SERIAL_NO;
+            memcpy(&response[1],serial_no,sizeof(serial_no));
+            SendUARTResponse(address,response,sizeof(serial_no)+1);
+            break;  
         default:
             break;
         }

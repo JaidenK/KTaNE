@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define SYNC_BYTE 0xA5
+
 void ServiceSerial();
 
 void SendUARTCommandByte(uint8_t address, uint8_t byte);

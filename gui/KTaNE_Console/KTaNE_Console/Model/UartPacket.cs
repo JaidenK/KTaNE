@@ -1,4 +1,6 @@
-﻿namespace KTaNE_Console.Model
+﻿using System;
+
+namespace KTaNE_Console.Model
 {
     public class UartPacket
     {
@@ -18,6 +20,7 @@
         // Convenient wrappers. Only true for certain commands.
         public CommandID Command => (CommandID)i2c_bytes[0];
         public byte Argument => i2c_bytes[1];
+        public UInt32 Arg32 => BitConverter.ToUInt32(i2c_bytes, 1);
 
         public static UartPacket FromFullPacket(byte[] buf)
         {
