@@ -8,27 +8,16 @@
         // Array Indices
         public const int DATA_START = 11;
 
-        #region Command IDs
-
-        // Initialization commands
-        public const byte REQUEST_CONFIG = 0x15;
-        public const byte RESET = 0x16;
-
-        // Configuration commands
-        public const byte FLASH_LED = 0x50;
-        public const byte SET_SERIAL_NO = 0x51;
-        public const byte SET_N_BATTERIES = 0x52;
-        public const byte SET_INDICATOR = 0x53;
-        public const byte SET_PORT = 0x54;
-        public const byte SET_TIME_LIMIT = 0x55;
-        #endregion
-
         public byte seqCnt { get; set; }
         public byte seqCntEcho { get; set; }
         public byte nResponseBytes { get; set; }
         public byte address { get; set; }
         public byte[] i2c_bytes { get; set; }
         public byte[] crc { get; set; }
+
+        // Convenient wrappers. Only true for certain commands.
+        public CommandID Command => (CommandID)i2c_bytes[0];
+        public byte Argument => i2c_bytes[1];
 
         public static UartPacket FromFullPacket(byte[] buf)
         {

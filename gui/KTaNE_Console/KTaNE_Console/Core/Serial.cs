@@ -8,22 +8,7 @@ namespace KTaNE_Console.Core
 {
     public class Serial
     {
-        private readonly int PACKET_LENGTH_OFFSET = 2;
         public static readonly byte SYNC_BYTE = 0xA5;
-
-        private Serial _instance;
-
-        public Serial Instance
-        {
-            get
-            {
-                if (_instance is null)
-                {
-                    _instance = new Serial();
-                }
-                return _instance;
-            }
-        }
 
         private readonly object _lock = new object();
         private SerialPort _port { get; set; }
@@ -33,10 +18,11 @@ namespace KTaNE_Console.Core
 
         public event EventHandler<SerialTextReceivedEventArgs> TextReceived;
         public event EventHandler<SerialPacketReceivedEventArgs> PacketReceived;
+        public event EventHandler<SerialPacketSentEventArgs> PacketSent;
 
         public void Write(string s)
         {
-            TextReceived.Invoke(this, new SerialTextReceivedEventArgs(s));
+            TextReceived?.Invoke(this, new SerialTextReceivedEventArgs(s));
         }
 
         public Serial()
@@ -67,11 +53,8 @@ namespace KTaNE_Console.Core
         {
             byte[] buf = new byte[1024];
             byte[] packetBuf = new byte[256]; // only needs to be enough to hold 1 packet
-            const int MaxPacketSize = 100;
             int iPacketBuf = 0;
             int nBytesRead = 0;
-            int iSync = -1;
-            string newChars = "";
             byte packetLength = 0;
             RxPacketState state = RxPacketState.SearchingForSync1;
 
@@ -142,7 +125,6 @@ namespace KTaNE_Console.Core
                             }
                         default:
                             throw new Exception("Unhandled RxPacketState: " + state.ToString());
-                            break;
                     }
 
                     // Store the date
@@ -160,7 +142,15 @@ namespace KTaNE_Console.Core
                             packet = new byte[packetLength]
                         };
                         Array.Copy(packetBuf, 0, args.packet, 0, packetLength);
-                        PacketReceived.Invoke(this, args);
+                        try
+                        {
+                            PacketReceived?.Invoke(this, args);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                            //throw;
+                        }
                     }
                 }
                 if (sb.Length > 0)
@@ -177,6 +167,10 @@ namespace KTaNE_Console.Core
 
         public void Connect(string PortName, int BaudRate)
         {
+            if(PortName is null)
+            {
+                return;
+            }
 
             lock (_lock)
             {
@@ -200,11 +194,22 @@ namespace KTaNE_Console.Core
 
         public void Write(byte[] bytes)
         {
-            lock(_lock)
+            lock (_lock)
             {
-                if(_port.IsOpen)
+                if (_port.IsOpen)
+                {
                     _port.Write(bytes, 0, bytes.Length);
+                }
             }
+        }
+
+        public byte[] SendCommand(byte nResponseBytes, byte address, byte command, UInt32 argument)
+        {
+            byte[] bytes = new byte[5];
+            bytes[0] = command;
+            Array.Copy(BitConverter.GetBytes(argument), 0, bytes, 1, 4);
+
+            return SendCommand(nResponseBytes, address, bytes);
         }
 
         public byte[] SendCommand(byte nResponseBytes, byte address, byte[] i2c_bytes)
@@ -216,7 +221,7 @@ namespace KTaNE_Console.Core
             bytes[2] = (byte)bytes.Length;
             bytes[3] = 1;
             bytes[4] = 2;
-            bytes[9] = 30; // N_MAX_MODULE_NAME_CHARS
+            bytes[9] = nResponseBytes;
             bytes[10] = (byte)address;
             for (int i = 0; i < i2c_bytes.Length; i++)
             {
@@ -227,6 +232,14 @@ namespace KTaNE_Console.Core
             // ... 
 
             Write(bytes);
+
+            var args = new SerialPacketSentEventArgs
+            {
+                packet = new byte[bytes.Length]
+            };
+            Array.Copy(bytes, 0, args.packet, 0, bytes.Length);
+
+            PacketSent?.Invoke(this, args);
 
             return bytes;
         }

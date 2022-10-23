@@ -17,9 +17,10 @@
                     <ComboBox 
                       HorizontalAlignment="Left"
                       Width="200" 
-                      ItemsSource="{Binding Ports}" 
-                      SelectedValue="{Binding PortName}" 
-                      SelectionChanged="ComboBox_SelectionChanged"/>
+                      ItemsSource="{Binding Path=ComPorts}" 
+                      SelectedValue="{Binding Path=PortName}" 
+                      SelectionChanged="ComboBox_SelectionChanged"
+                      MouseDown="ComboBox_MouseDown" GotFocus="ComboBox_GotFocus" MouseEnter="ComboBox_MouseEnter"/>
                     <Button Content="Clear" 
                             HorizontalAlignment="Right"
                             Padding="5,0,5,0"
@@ -29,16 +30,7 @@
                 <TextBox Text="{Binding ConsoleText}" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
             </DockPanel>
             <StackPanel>
-                <Grid Height="500">
-                    <StackPanel Width="300" HorizontalAlignment="Left" Margin="20">
-                        <DockPanel>
-                            <TextBlock Text="Time Limit" Width="80"/>
-                            <Button Content="Set" Command="{Binding SetTimeLimitCmd}" DockPanel.Dock="Right"/>
-                            <TextBox Text="{Binding Path=TimeLimitInput}" Width="80" DockPanel.Dock="Right"/>
-                            <TextBlock Text="{Binding Path=TimeLimitString}"/>
-                        </DockPanel>
-                    </StackPanel>
-                </Grid>
+                <ItemsControl ItemsSource="{Binding Path=ModuleList}" Height="200"/>
                 <TextBlock Text="Packets received"/>
                 <TextBlock Text="{Binding nPacketsReceived}"/>
                 <Button Command="{Binding TestCmd}" Content="Test" HorizontalAlignment="Left"/>

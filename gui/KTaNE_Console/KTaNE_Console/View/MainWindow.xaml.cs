@@ -59,5 +59,19 @@ namespace KTaNE_Console
         {
             (sender as TextBox).ScrollToEnd();
         }
+
+        private void ComboBox_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+        }
+
+        private void ComboBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void ComboBox_MouseEnter(object sender, MouseEventArgs e)
+        {
+
+            vm.RefreshComList();
+        }
     }
 }
