@@ -1,7 +1,26 @@
 
 #include <Wire.h>
+#include <EEPROM.h>
 
 #include "Timer_Configure.h"
+
+
+uint32_t timeLimit = 0;
+
+void SetTimeLimitConfig(uint32_t newTimeLimit)
+{
+    timeLimit = newTimeLimit;
+    EEPROM.put(EEPROM_TIME_LIMIT, timeLimit);
+}
+
+void LoadAllEepromConfigInfo()
+{
+    EEPROM.get(EEPROM_TIME_LIMIT, timeLimit);
+    if(!timeLimit)
+    {
+        SetTimeLimitConfig(60);
+    }
+}
 
 
 uint8_t BroadcastAllConfigInfo(void)

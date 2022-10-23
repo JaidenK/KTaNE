@@ -41,6 +41,7 @@ typedef enum
     SET_N_BATTERIES,            // Inform a module how many batteries are on the bomb
     SET_INDICATOR,              // Inform a module of an indicator that is installed, and its state. State of -1 means clear list.
     SET_PORT,                   // Inform a module of a port that is installed. -1 means clear list   
+    SET_TIME_LIMIT,
 
     // UART commands
     ACK = 0x60,                 // Parameter may include response bytes 

@@ -169,17 +169,17 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         if (ThisEvent.EventType == ES_ENTRY || 
             ThisEvent.EventType == ES_INIT)// only respond to ES_Init
         {
-            tone(SPEAKER_PIN,C4,100);
-            ClearClock();
-            showTime(0);
+            //tone(SPEAKER_PIN,C4,100);
+            //ClearClock();
+            //showTime(0);
             //initModules();
 
 
-            tone(SPEAKER_PIN,G4,90);
-            delay(100);
+            //tone(SPEAKER_PIN,G4,90);
+            //delay(100);
 
             // Inform modules of configuration settings
-            BroadcastAllConfigInfo();
+            //BroadcastAllConfigInfo();
 
             // Request all modules to "reset"
             // for(uint8_t i = 0; i < nConnectedModules; i++)
@@ -190,10 +190,13 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             // }
             // Serial.println(F("Modules reset"));
             
-            tone(SPEAKER_PIN,E4,100);
-            delay(100);
+            //tone(SPEAKER_PIN,E4,100);
+            //delay(100);
 
-            ClearClock();
+            //ClearClock();
+            
+            LoadAllEepromConfigInfo();
+            SendUARTCommandByte(i2c_address,RESET);
 
             // now put the machine into the actual initial state
             nextState = Idle;
@@ -226,7 +229,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             break;
         case ES_TIMEOUT:
         case ES_ENTRY:
-            TestUARTCommand();
+            //TestUARTCommand();
             StartPseudoTimer(0, 3000);
             ScanForModules();
             ThisEvent.EventType = ES_NO_EVENT;

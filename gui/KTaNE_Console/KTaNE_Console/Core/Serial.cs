@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KTaNE_Console.Model;
+using System;
 using System.IO.Ports;
 using System.Text;
 using System.Threading;
@@ -204,6 +205,30 @@ namespace KTaNE_Console.Core
                 if(_port.IsOpen)
                     _port.Write(bytes, 0, bytes.Length);
             }
+        }
+
+        public byte[] SendCommand(byte nResponseBytes, byte address, byte[] i2c_bytes)
+        {
+
+            byte[] bytes = new byte[13 + i2c_bytes.Length];
+            bytes[0] = Serial.SYNC_BYTE;
+            bytes[1] = Serial.SYNC_BYTE;
+            bytes[2] = (byte)bytes.Length;
+            bytes[3] = 1;
+            bytes[4] = 2;
+            bytes[9] = 30; // N_MAX_MODULE_NAME_CHARS
+            bytes[10] = (byte)address;
+            for (int i = 0; i < i2c_bytes.Length; i++)
+            {
+                bytes[UartPacket.DATA_START + i] = i2c_bytes[i];
+            }
+
+            // Calculate CRC
+            // ... 
+
+            Write(bytes);
+
+            return bytes;
         }
     }
 }

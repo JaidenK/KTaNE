@@ -30,7 +30,14 @@
             </DockPanel>
             <StackPanel>
                 <Grid Height="500">
-
+                    <StackPanel Width="300" HorizontalAlignment="Left" Margin="20">
+                        <DockPanel>
+                            <TextBlock Text="Time Limit" Width="80"/>
+                            <Button Content="Set" Command="{Binding SetTimeLimitCmd}" DockPanel.Dock="Right"/>
+                            <TextBox Text="{Binding Path=TimeLimitInput}" Width="80" DockPanel.Dock="Right"/>
+                            <TextBlock Text="{Binding Path=TimeLimitString}"/>
+                        </DockPanel>
+                    </StackPanel>
                 </Grid>
                 <TextBlock Text="Packets received"/>
                 <TextBlock Text="{Binding nPacketsReceived}"/>

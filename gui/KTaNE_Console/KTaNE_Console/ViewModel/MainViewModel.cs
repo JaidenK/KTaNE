@@ -3,6 +3,7 @@ using KTaNE_Console.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -50,6 +51,10 @@ namespace KTaNE_Console.ViewModel
             set { _txPacketsText = value; OnPropertyChanged(); }
         }
 
+        public string TimeLimitString { get; set; } = "0:0:0";
+        public string TimeLimitInput { get; set; } = "0";
+        public RelayCommand SetTimeLimitCmd { get; set; }
+
 
 
         public MainViewModel()
@@ -96,6 +101,19 @@ namespace KTaNE_Console.ViewModel
                     ConsoleWrite(ex.Message + Environment.NewLine);
                 }
             });
+
+            SetTimeLimitCmd = new RelayCommand((o) =>
+            {
+                byte nResponseBytes = 0;
+                byte address = UartPacket.TIMER_ADDRESS;
+                Int32 timeLimit_s = Int32.Parse(TimeLimitInput);
+                byte[] command = new byte[5];
+                command[0] = UartPacket.SET_TIME_LIMIT;
+                Array.Copy(BitConverter.GetBytes(timeLimit_s), 0, command, 1, 4);
+
+                serial.SendCommand(nResponseBytes, address, command);
+            });
+
         }
 
         private void Serial_PacketReceived(object sender, SerialPacketReceivedEventArgs e)
@@ -106,12 +124,43 @@ namespace KTaNE_Console.ViewModel
             nPacketsReceived++;
             OnPropertyChanged("nPacketsReceived");
             Console.WriteLine(e.packet[e.packet.Length-1].ToString());
-            Application.Current.Dispatcher.Invoke(() =>
+
+            try
             {
-                var pkt = UartPacket.FromFullPacket(e.packet);
-                ReceivedPackets.Add(pkt);
-                RxPacketsText += pkt.ToString() + Environment.NewLine;
-            });
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var pkt = UartPacket.FromFullPacket(e.packet);
+                    ReceivedPackets.Add(pkt);
+                    RxPacketsText += pkt.ToString() + Environment.NewLine;
+
+                    switch(pkt.address & 0b01111111)
+                    {
+                        case UartPacket.TIMER_ADDRESS:
+                            switch(pkt.i2c_bytes[0])
+                            {
+                                case UartPacket.RESET:
+                                    var bytes = serial.SendCommand(0, UartPacket.TIMER_ADDRESS,new byte[] { UartPacket.REQUEST_CONFIG, UartPacket.SET_TIME_LIMIT });
+                                    TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
+                                    break;
+                                case UartPacket.SET_TIME_LIMIT:
+                                    UInt32 newTimeLimit = BitConverter.ToUInt32(pkt.i2c_bytes, 1);
+                                    TimeLimitString = String.Format("{0:00}:{1:00}", newTimeLimit / 60, newTimeLimit % 60);
+                                    OnPropertyChanged("TimeLimitString");
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                });
+            }
+            catch(Exception ex)
+            {
+                ConsoleWrite(ex.Message);
+            }
             //OnPropertyChanged("PacketsList");
         }
 

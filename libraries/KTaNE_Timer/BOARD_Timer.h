@@ -34,14 +34,6 @@
 #define ERROR ((int8_t) -1)
 #define SUCCESS ((int8_t) 1)
 
-/* EEPROM Addresses */
-#define EEPROM_SERIAL_NO 0x10 // String
-#define EEPROM_TIME_LIMIT 0x20 // uint8_t Stored as minutes
-#define EEPROM_N_BATTERIES 0x24 // uint8_t
-#define EEPROM_LIT_INDIC 0x25 // uint8_t array of N_MAX_INDICATORS elements
-#define EEPROM_PORTS 0x35 // uint8_t bitfield
-
-
 /* IO PINS */
 #define SPEAKER_PIN 9
 #define START_BTN 12
