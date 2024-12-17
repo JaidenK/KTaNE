@@ -10,7 +10,6 @@
 
 #include <stdint.h>
 #include "KTaNE_Constants.h"
-#include "TM1637Display.h"
 
 /*******************************************************************************
  * PUBLIC #DEFINES                                                             *

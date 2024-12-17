@@ -55,7 +55,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Core\Crc16.cs" />
     <Compile Include="Core\RelayCommand.cs" />
     <Compile Include="Core\Serial.cs" />
     <Compile Include="Core\SerialPacketReceivedEventArgs.cs" />
