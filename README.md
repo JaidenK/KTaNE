@@ -21,3 +21,7 @@ The code should now build.
     - Pin 10 is the Arduino's default Slave Select pin for the ArduinoISP sketch.
 5. Set the Arduino IDE's programmer to "Arduino as ISP" and select "ATMega328P on a breadboard (8 MHz internal clock)" for the board
 6. Use "Sketch > Upload Using Programmer" menu command to upload the code
+
+# Documentation
+Communication Protocols:
+https://docs.google.com/document/d/1BFYc2orsP6i7TOAGHv1l20GYD-Ui4hXYQUHcmJRFHF8/edit?usp=sharing
