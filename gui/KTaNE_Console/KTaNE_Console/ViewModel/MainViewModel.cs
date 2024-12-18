@@ -118,12 +118,18 @@ namespace KTaNE_Console.ViewModel
             {
                 try
                 {
+                    var now = DateTime.Now;
+                    var timeString = now.ToString("MM/dd/yyyy HH:mm");
+                    Console.WriteLine(timeString);
+
                     byte i2c_address = Convert.ToByte(SetEEPROMI2CAddressString);
                     short eeprom_addr = Convert.ToInt16(SetEEPROMAddressString, 16);
                     var eeprom_addr_bytes = BitConverter.GetBytes(eeprom_addr);
                     byte value = Convert.ToByte(SetEEPROMByteString, 16);
 
-                    byte[] bytes = new byte[13 + 4];
+                    byte nEEPROMBytes = (byte)timeString.Length;
+
+                    byte[] bytes = new byte[13 + 4 + nEEPROMBytes];
                     bytes[0] = Serial.SYNC_BYTE;
                     bytes[1] = Serial.SYNC_BYTE;
                     bytes[2] = (byte)bytes.Length;
@@ -134,7 +140,11 @@ namespace KTaNE_Console.ViewModel
                     bytes[11] = (byte)CommandID.SET_EEPROM; // GET_EEPROM command ID
                     bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
                     bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
-                    bytes[14] = value; // number of bytes
+                    bytes[14] = nEEPROMBytes; // Number of bytes
+                    for(int i = 0; i < nEEPROMBytes; i++)
+                    {
+                        bytes[15 + i] = (byte)timeString[i];
+                    }
 
                     // Calculate CRC
                     // ... 

@@ -1,5 +1,6 @@
 ﻿namespace KTaNE_Console.Model
 {
+    // This is an exact Copy+Paste of the enum from KTaNE_CommandIDs.h
     public enum CommandID
     {
         INVALID_COMMAND = 0x00,

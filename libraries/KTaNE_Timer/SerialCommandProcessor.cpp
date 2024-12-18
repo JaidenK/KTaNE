@@ -20,6 +20,7 @@ static uint8_t responseBuf[32];
 void SetEEPROMCmd(uint8_t *command)
 {
     uint16_t eeprom_addr = *(uint16_t *)(&command[1]);
+    uint8_t length = command[3];
 
     if(eeprom_addr < END_OF_PROTECTED_EEPROM)
     {
@@ -27,8 +28,15 @@ void SetEEPROMCmd(uint8_t *command)
         return;
     }
 
-    uint8_t value = command[3];
-    EEPROM.update(eeprom_addr, value);
+    // Maybe in the future we can remove this cap, but for now
+    // it's a "safety" feature.
+    if(length > 16)
+        length = 16;
+
+    for(uint8_t i = 0; i < length; i++)
+    {
+        EEPROM.update(eeprom_addr+i, command[4+i]);
+    }
 }
 
 void TestEEPROMDump(uint8_t *command)
