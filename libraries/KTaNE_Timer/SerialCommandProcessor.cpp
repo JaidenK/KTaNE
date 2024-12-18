@@ -17,20 +17,20 @@
 
 static uint8_t responseBuf[32];
 
-void TestEEPROMDump(void)
+void TestEEPROMDump(uint8_t *command)
 {
-    Serial.println("EEPROM DUMP");
-    uint16_t eeprom_addr = 0;
-    uint8_t bytes[20] = {0};
-    bytes[0] = GET_EEPROM;
-    bytes[1] = 0;
-    bytes[2] = 0;
-    bytes[3] = 16;
-    for(uint8_t i = 0; i < 16; i++)
+    uint16_t eeprom_addr = *(uint16_t *)(&command[1]);
+    uint8_t length = command[3];
+    uint8_t bytes[4+length] = {0};
+    bytes[0] = command[0];
+    bytes[1] = command[1];
+    bytes[2] = command[2];
+    bytes[3] = command[3];
+    for(uint8_t i = 0; i < length; i++)
     {
         EEPROM.get(eeprom_addr+i,bytes[i+4]);
     }
-    SendUARTResponse(1, bytes, 20);
+    SendUARTResponse(1, bytes, 4+length);
 }
 
 void ServiceCommandLocally(uint8_t *buf)
@@ -91,7 +91,7 @@ void ServiceCommandLocally(uint8_t *buf)
         }
         break;
     case GET_EEPROM:
-        TestEEPROMDump();
+        TestEEPROMDump(command);
         break;
     default:
         // Error condition
