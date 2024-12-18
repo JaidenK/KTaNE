@@ -33,7 +33,17 @@
                 <ItemsControl ItemsSource="{Binding Path=ModuleList}" Height="200"/>
                 <TextBlock Text="Packets received"/>
                 <TextBlock Text="{Binding nPacketsReceived}"/>
-                <Button Command="{Binding EEPROMDumpCmd}" Content="EEPROM Dump" HorizontalAlignment="Left"/>
+                <Button Margin="5" Command="{Binding EEPROMDumpCmd}" Content="EEPROM Dump" HorizontalAlignment="Left"/>
+                <DockPanel Margin="5">
+                    <Button Command="{Binding SetEEPROMCmd}" Content="Set EEPROM" HorizontalAlignment="Left"/>
+                    <TextBlock Text="I2C Address (dec):" Margin="10,0,0,0"/>
+                    <TextBox Text="{Binding SetEEPROMI2CAddressString}" Width="40"/>
+                    <TextBlock Text="EEPROM Address (hex):" Margin="10,0,0,0"/>
+                    <TextBox Text="{Binding SetEEPROMAddressString}" Width="40"/>
+                    <TextBlock Text="Value (hex, 1 byte):" Margin="10,0,0,0"/>
+                    <TextBox Text="{Binding SetEEPROMByteString}" Width="40"/>
+                    <TextBlock/>
+                </DockPanel>
                 <Button Command="{Binding TestCmd}" Content="Test" HorizontalAlignment="Left"/>
                 <DockPanel>
                     <TextBox Text="{Binding TestCommandAddressString}" Width="40"/>

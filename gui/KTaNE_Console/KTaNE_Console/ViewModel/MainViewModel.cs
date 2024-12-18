@@ -52,8 +52,13 @@ namespace KTaNE_Console.ViewModel
         #region Serial Commands
         public RelayCommand TestCmd { get; set; }
         public RelayCommand EEPROMDumpCmd { get; set; }
+        public RelayCommand SetEEPROMCmd { get; set; }
         public string TestCommandAddressString { get; set; }
         public string TestCommandBytesString { get; set; }
+        public string SetEEPROMAddressString { get; set; } = "0";
+        public string SetEEPROMByteString { get; set; } = "0";
+        public string SetEEPROMI2CAddressString { get; set; } = "1";
+
 
         public Queue<byte[]> TxQueue { get; set; } = new Queue<byte[]>();
         #endregion
@@ -109,6 +114,40 @@ namespace KTaNE_Console.ViewModel
                 }
             });
 
+            SetEEPROMCmd = new RelayCommand((o) =>
+            {
+                try
+                {
+                    byte i2c_address = Convert.ToByte(SetEEPROMI2CAddressString);
+                    short eeprom_addr = Convert.ToInt16(SetEEPROMAddressString, 16);
+                    var eeprom_addr_bytes = BitConverter.GetBytes(eeprom_addr);
+                    byte value = Convert.ToByte(SetEEPROMByteString, 16);
+
+                    byte[] bytes = new byte[13 + 4];
+                    bytes[0] = Serial.SYNC_BYTE;
+                    bytes[1] = Serial.SYNC_BYTE;
+                    bytes[2] = (byte)bytes.Length;
+                    bytes[3] = 1;
+                    bytes[4] = 2;
+                    bytes[9] = 0; // No response
+                    bytes[10] = i2c_address;
+                    bytes[11] = (byte)CommandID.SET_EEPROM; // GET_EEPROM command ID
+                    bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
+                    bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
+                    bytes[14] = value; // number of bytes
+
+                    // Calculate CRC
+                    // ... 
+
+                    serial.Write(bytes);
+                    TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
+                }
+                catch (Exception ex)
+                {
+                    ConsoleWrite(ex.Message + Environment.NewLine);
+                }
+            });
+
             EEPROMDumpCmd = new RelayCommand((o) =>
             {
                 try
@@ -127,7 +166,7 @@ namespace KTaNE_Console.ViewModel
                         bytes[4] = 2;
                         bytes[9] = 30; // N_MAX_MODULE_NAME_CHARS
                         bytes[10] = (byte)i2c_address;
-                        bytes[11] = 0x52; // GET_EEPROM command ID
+                        bytes[11] = (byte)CommandID.GET_EEPROM;
                         bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
                         bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
                         bytes[14] = 16; // number of bytes
