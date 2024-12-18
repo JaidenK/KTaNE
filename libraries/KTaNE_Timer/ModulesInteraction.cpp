@@ -111,7 +111,7 @@ uint8_t doesModuleAlreadyExist(uint8_t address)
         if(!ModList[i].i2c_address)
             continue;
 
-        Serial.println(ModList[i].model_id);
+        //Serial.println(ModList[i].model_id);
         if(address == ModList[i].i2c_address)
         {
             // Existing module
@@ -157,7 +157,10 @@ uint8_t ScanForModules()
             }
             else
             {
+                
+                #ifdef VERBOSE_BUS_SCAN
                 RequestAndPrintModuleName(address);
+                #endif
                 char IDbuf[N_MAX_MODULE_ID_CHARS] = {0};
                 GetModuleID(address,IDbuf,sizeof(IDbuf));     
 
@@ -177,7 +180,9 @@ uint8_t ScanForModules()
                     Serial.print("model id: ");
                     Serial.println(ModList[i].model_id);
                 }
+                #ifdef VERBOSE_BUS_SCAN
                 Serial.println();
+                #endif
             }
         }
         else if (wire_result == 4)
