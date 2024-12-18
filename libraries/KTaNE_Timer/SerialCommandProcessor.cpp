@@ -17,6 +17,20 @@
 
 static uint8_t responseBuf[32];
 
+void SetEEPROMCmd(uint8_t *command)
+{
+    uint16_t eeprom_addr = *(uint16_t *)(&command[1]);
+
+    if(eeprom_addr < END_OF_PROTECTED_EEPROM)
+    {
+        Serial.println(F("Protected EEPROM"));
+        return;
+    }
+
+    uint8_t value = command[3];
+    EEPROM.update(eeprom_addr, value);
+}
+
 void TestEEPROMDump(uint8_t *command)
 {
     uint16_t eeprom_addr = *(uint16_t *)(&command[1]);
@@ -92,6 +106,9 @@ void ServiceCommandLocally(uint8_t *buf)
         break;
     case GET_EEPROM:
         TestEEPROMDump(command);
+        break;
+    case SET_EEPROM:
+        SetEEPROMCmd(command);
         break;
     default:
         // Error condition
