@@ -19,8 +19,13 @@ Constants used between all modules for KTaNE.
 #define SYNC_BYTE_B 0xF0
 #define N_SYNC_BYTES 8 // How many sync bytes to send
 
-#define EEPROM_I2C_ADDRESS 0x00 // Location in EEPROM where the module's address is stored.
-#define EEPROM_CONFIGURED_ADDRESS 0x01 // Location in EEPROM where the bit stating whether the module has been configured or not is stored.
+#define EEPROM_MODULE_NAME        0x00 // Name of module. 16 ASCII chars. "readonly"
+#define EEPROM_REAL_MODULE_SERIAL 0x10 // Unique identifier of this module. 16 ASCII chars. "readonly"
+#define EEPROM_BUILD_DATE         0x20 // 16 ASCII chars. "readonly" format "MM/DD/YYYY HH:MM"
+#define END_OF_PROTECTED_EEPROM   0x30 // EEPROM prior to this point cannot be modified by commands from the PC
+#define EEPROM_CONFIG_DATE        0x30 // Set by the PC when the user reconfigures the bomb.
+#define EEPROM_I2C_ADDRESS        0x40 // This module's I2C address. Used so that the system is predictable when it's power cycled.
+
 #define SERIAL_BAUD_RATE 9600
 
 #define GENERAL_CALL_I2C_ADDRESS 0x00

@@ -9,7 +9,7 @@
 #include "KTaNE.h"
 #include "ModulesInteraction.h"
 
-#define VERBOSE_BUS_SCAN
+//#define VERBOSE_BUS_SCAN
 
 ModuleInfo ModList[N_MAX_MODULES] = {0};
 
@@ -149,7 +149,9 @@ uint8_t ScanForModules()
             uint8_t isNotValid = ValidateSyncBytes(address);
             if(isNotValid)
             {
-                Serial.println(F("Multiple devices detected (invalid sync bytes)"));
+                Serial.println(F("Multiple devices detected (invalid sync bytes) at address: 0x"));
+                print2digithex(address);
+                Serial.println();
                 // Send the command to scramble their addressses
                 I2C_SendPacket(address, REASSIGN_I2C_ADDRESS);
             }
@@ -180,17 +182,19 @@ uint8_t ScanForModules()
         }
         else if (wire_result == 4)
         {
-            Serial.println(F("Unknown error"));
+            Serial.println(F("Unknown error wire_result=4"));
         }
         else if (wire_result == 3)
         {
-            Serial.println(F("Error"));
+            Serial.println(F("Error wire_result=3"));
         }
         else
         {
             // Silence
         }
     }
+    #ifdef VERBOSE_BUS_SCAN
     Serial.println();
+    #endif
     return 0;
 }

@@ -6,13 +6,13 @@
         xmlns:local="clr-namespace:KTaNE_Console"
         xmlns:ViewModel="clr-namespace:KTaNE_Console.ViewModel"
         mc:Ignorable="d"
-        Title="MainWindow" Height="874" Width="1094" ContentRendered="Window_ContentRendered">
+        Title="MainWindow" Height="874" Width="1200" ContentRendered="Window_ContentRendered">
     <Window.DataContext>
         <ViewModel:MainViewModel/>
     </Window.DataContext>
     <Grid Margin="10">
         <DockPanel>
-            <DockPanel Width="300">
+            <DockPanel Width="520">
                 <Grid DockPanel.Dock="Top">
                     <ComboBox 
                       HorizontalAlignment="Left"
@@ -27,21 +27,22 @@
                             Command="{Binding ClearConsoleCmd}"/>
                 </Grid>
                 <!-- Todo: Bind to a command or something idk -->
-                <TextBox Text="{Binding ConsoleText}" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
+                <TextBox Text="{Binding ConsoleText}" FontFamily="Consolas" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
             </DockPanel>
             <StackPanel>
                 <ItemsControl ItemsSource="{Binding Path=ModuleList}" Height="200"/>
                 <TextBlock Text="Packets received"/>
                 <TextBlock Text="{Binding nPacketsReceived}"/>
+                <Button Command="{Binding EEPROMDumpCmd}" Content="EEPROM Dump" HorizontalAlignment="Left"/>
                 <Button Command="{Binding TestCmd}" Content="Test" HorizontalAlignment="Left"/>
                 <DockPanel>
                     <TextBox Text="{Binding TestCommandAddressString}" Width="40"/>
                     <TextBox Text="{Binding TestCommandBytesString}"/>
                 </DockPanel>
                 <TextBlock Text="Tx Packets:"/>
-                <TextBox Text="{Binding TxPacketsText}" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="100"/>
+                <TextBox Text="{Binding TxPacketsText}" FontFamily="Consolas"  TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="100"/>
                 <TextBlock Text="Rx Packets:"/>
-                <TextBox Text="{Binding RxPacketsText}" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="100"/>
+                <TextBox Text="{Binding RxPacketsText}" FontFamily="Consolas"  TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="100"/>
             </StackPanel>
         </DockPanel>
     </Grid>

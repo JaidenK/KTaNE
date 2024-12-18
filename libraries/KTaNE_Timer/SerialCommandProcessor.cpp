@@ -6,6 +6,7 @@
 #include "ES_Framework.h"
 #include "Timer_Configure.h"
 #include <string.h>
+#include "EEPROM.h"
 
 #define OFFSET_LENGTH 2
 #define OFFSET_SEQ_CNT 3
@@ -15,6 +16,22 @@
 #define OFFSET_CMD_START 11
 
 static uint8_t responseBuf[32];
+
+void TestEEPROMDump(void)
+{
+    Serial.println("EEPROM DUMP");
+    uint16_t eeprom_addr = 0;
+    uint8_t bytes[20] = {0};
+    bytes[0] = GET_EEPROM;
+    bytes[1] = 0;
+    bytes[2] = 0;
+    bytes[3] = 16;
+    for(uint8_t i = 0; i < 16; i++)
+    {
+        EEPROM.get(eeprom_addr+i,bytes[i+4]);
+    }
+    SendUARTResponse(1, bytes, 20);
+}
 
 void ServiceCommandLocally(uint8_t *buf)
 {   
@@ -30,13 +47,13 @@ void ServiceCommandLocally(uint8_t *buf)
         ES_PostAll((ES_Event){FLASH_REQUESTED,0});
         break;    
     case SET_TIME_LIMIT:
-        Serial.print("New time: ");
+        Serial.print(F("New time: "));
         Serial.println(*((uint32_t *)&command[1]));
         SetTimeLimitConfig(*((uint32_t *)&command[1]));
         SendUARTResponse(address,command,5);
         break;
     case SET_N_BATTERIES:
-        Serial.print("New batteries: ");
+        Serial.print(F("New batteries: "));
         Serial.println(*((uint32_t *)&command[1]));
         SetNumBatteriesConfig(*((uint32_t *)&command[1]));
         response[0] = SET_N_BATTERIES;
@@ -44,7 +61,7 @@ void ServiceCommandLocally(uint8_t *buf)
         SendUARTResponse(address,response,2);
         break;
     case SET_SERIAL_NO:
-        Serial.print("New serial: ");
+        Serial.print(F("New serial: "));
         Serial.println((char *)&command[1]);
         response[0] = SET_SERIAL_NO;
         SetSerialNoConfig(&command[1]);
@@ -73,8 +90,12 @@ void ServiceCommandLocally(uint8_t *buf)
             break;
         }
         break;
+    case GET_EEPROM:
+        TestEEPROMDump();
+        break;
     default:
         // Error condition
+        Serial.println(F("Invalid serial command."));
         break;
     }
 }

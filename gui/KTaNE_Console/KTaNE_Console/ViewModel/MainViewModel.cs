@@ -51,6 +51,7 @@ namespace KTaNE_Console.ViewModel
 
         #region Serial Commands
         public RelayCommand TestCmd { get; set; }
+        public RelayCommand EEPROMDumpCmd { get; set; }
         public string TestCommandAddressString { get; set; }
         public string TestCommandBytesString { get; set; }
         #endregion
@@ -105,7 +106,40 @@ namespace KTaNE_Console.ViewModel
                     ConsoleWrite(ex.Message + Environment.NewLine);
                 }
             });
-            
+
+            EEPROMDumpCmd = new RelayCommand((o) =>
+            {
+                try
+                {
+                    int address = 0x01; // Timer is always 0x01
+
+
+
+                    byte[] bytes = new byte[13 + 4];
+                    bytes[0] = Serial.SYNC_BYTE;
+                    bytes[1] = Serial.SYNC_BYTE;
+                    bytes[2] = (byte)bytes.Length;
+                    bytes[3] = 1;
+                    bytes[4] = 2;
+                    bytes[9] = 30; // N_MAX_MODULE_NAME_CHARS
+                    bytes[10] = (byte)address;
+                    bytes[11] = 0x52; // GET_EEPROM command ID
+                    bytes[12] = 0; // EEPROM Addresss upper byte
+                    bytes[13] = 0; // EEPROM Addresss lower byte
+                    bytes[14] = 16; // number of bytes
+
+                    // Calculate CRC
+                    // ... 
+
+                    serial.Write(bytes);
+                    TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
+                }
+                catch (Exception ex)
+                {
+                    ConsoleWrite(ex.Message + Environment.NewLine);
+                }
+            });
+
         }
 
         internal void RefreshComList()
@@ -131,6 +165,32 @@ namespace KTaNE_Console.ViewModel
             ReceivedPackets.Add(pkt);
             RxPacketsText += pkt.ToString() + Environment.NewLine;
             //OnPropertyChanged("PacketsList");
+
+            if (pkt.i2c_bytes[0] == (byte)CommandID.GET_EEPROM)
+            {
+                int i2c_address = pkt.address & 0x7F; // Mask off top bit that indicates this is a response
+                int eeprom_address = 0;
+                int length = pkt.i2c_bytes[3];
+                string s = $"{i2c_address.ToString("D3")} {eeprom_address.ToString("X3")}: ";
+                for (int i =0; i < length; i++)
+                {
+                    byte b = pkt.i2c_bytes[4 + i];
+                    s += b.ToString("X2") + " ";
+                }
+                for (int i = 0; i < length; i++)
+                {
+                    byte b = pkt.i2c_bytes[4 + i];
+                    if(b >= 32 && b <= 126)
+                    {
+                        s += (char)b;
+                    }
+                    else
+                    {
+                        s += '.';
+                    }
+                }
+                ConsoleWrite(s + Environment.NewLine);
+            }
         }
 
         private void Serial_TextReceived(object sender, SerialTextReceivedEventArgs e)
