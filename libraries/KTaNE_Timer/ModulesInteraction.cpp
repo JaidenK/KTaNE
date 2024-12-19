@@ -167,7 +167,10 @@ uint8_t ScanForModules()
                 if(!doesModuleAlreadyExist(address))
                 {                    
                     // New module
-                    Serial.println(F(" (New module!)"));
+                    Serial.print(F(" (New module!): "));
+                    print2digithex(address);
+                    Serial.println();
+                    
                                         
                     // Find first available index (or overwrite the last one)
                     uint8_t i = 0;

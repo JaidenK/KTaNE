@@ -54,9 +54,43 @@ void I2C_Init(int address)
     Wire.onReceive(I2C_receive);
 }
 
+void ServiceI2C_GetEEPROM(I2C_CommandPacket *pkt)
+{
+    Wire.write(pkt->CommandID); // GET_EEPROM
+    Wire.write(pkt->data[0]);   // EEPROM Address Lo
+    Wire.write(pkt->data[1]);   // EEPROM Address Hi
+    Wire.write(pkt->data[2]);   // Length
+    uint16_t eeprom_addr = *(uint16_t *)(&pkt->data[0]);
+    uint8_t length = pkt->data[2];
+    uint8_t byte = 0xFF;
+    for(uint8_t i = 0; i < length; i++)
+    {
+        Wire.write(EEPROM.get(eeprom_addr+i,byte));
+    }
+}
+
+// Returns 1 if it was a common command. 0 otherwise.
+uint8_t ServiceI2CRequest_Common(I2C_CommandPacket *pkt)
+{
+    switch (pkt->CommandID)
+    {
+        case REQUEST_SYNC:
+            writeSyncBytes(pkt->data[0]);
+            break;
+        case GET_EEPROM:
+            ServiceI2C_GetEEPROM(pkt);
+            break;
+        default:
+            // Module-specific or invalid command ID
+            return 0;
+    }
+    return 1;
+}
+
 void I2C_request() 
 {
-    I2C_CommandPacket* pkt = &LastCommand;    
+    I2C_CommandPacket* pkt = &LastCommand;   
+    ServiceI2CRequest_Common(pkt); 
     ServiceI2CRequest(pkt);   
 }
 

@@ -11,9 +11,9 @@ void ServiceI2CRequest(I2C_CommandPacket *pkt)
 {
     switch (pkt->CommandID)
     {
-    case REQUEST_SYNC:
-        writeSyncBytes(pkt->data[0]);
-        break;
+    // case REQUEST_SYNC:
+    //     writeSyncBytes(pkt->data[0]);
+    //     break;
     case REQUEST_ID:
         Wire.write(ModelID);
         break;

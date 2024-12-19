@@ -164,7 +164,8 @@ namespace KTaNE_Console.ViewModel
                 {
                     for (int i = 0; i < 512 / 16; i++)
                     {
-                        int i2c_address = 0x01; // Timer is always 0x01
+                        //int i2c_address = 0x01; // Timer is always 0x01
+                        byte i2c_address = Convert.ToByte(SetEEPROMI2CAddressString);
 
                         var eeprom_addr_bytes = BitConverter.GetBytes((short)(0x10 * i));
 
@@ -174,7 +175,7 @@ namespace KTaNE_Console.ViewModel
                         bytes[2] = (byte)bytes.Length;
                         bytes[3] = 1;
                         bytes[4] = 2;
-                        bytes[9] = 30; // N_MAX_MODULE_NAME_CHARS
+                        bytes[9] = 20; // 16 bytes + header
                         bytes[10] = (byte)i2c_address;
                         bytes[11] = (byte)CommandID.GET_EEPROM;
                         bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
