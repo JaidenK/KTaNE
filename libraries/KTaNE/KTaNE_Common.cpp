@@ -54,6 +54,8 @@ void I2C_Init(int address)
     Wire.onReceive(I2C_receive);
 }
 
+
+
 void ServiceI2C_GetEEPROM(I2C_CommandPacket *pkt)
 {
     Wire.write(pkt->CommandID); // GET_EEPROM
@@ -94,6 +96,42 @@ void I2C_request()
     ServiceI2CRequest(pkt);   
 }
 
+void ReceiveI2C_SetEEPROM(I2C_CommandPacket *pkt)
+{
+    uint16_t eeprom_addr = *(uint16_t *)(&pkt->data[0]);
+    uint8_t length = pkt->data[2];
+
+    if(eeprom_addr < END_OF_PROTECTED_EEPROM)
+    {
+        Serial.println(F("Protected EEPROM"));
+        return;
+    }
+
+    // Maybe in the future we can remove this cap, but for now
+    // it's a "safety" feature.
+    if(length > 16)
+        length = 16;
+
+    for(uint8_t i = 0; i < length; i++)
+    {
+        EEPROM.update(eeprom_addr+i, pkt->data[3+i]);
+    }
+}
+
+uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt)
+{
+    switch (pkt->CommandID)
+    {
+    case SET_EEPROM:
+        ReceiveI2C_SetEEPROM(pkt);
+        break;    
+    default:
+        // Module-specific or invalid command ID
+        return 0;
+    }
+    return 1;
+}
+
 void I2C_receive(int nBytes) 
 {
     // Get handle to where we'll store the packet
@@ -105,7 +143,7 @@ void I2C_receive(int nBytes)
     {
         ((uint8_t *)pkt)[i] = Wire.read();
     }
-
+    ReceiveI2CCommand_Common(pkt);
     ReceiveI2CCommand(pkt);
 }
 
