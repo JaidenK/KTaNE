@@ -95,33 +95,6 @@ static uint8_t moduleI2Crequest = 0;
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
 
-void TestUARTCommand()
-{
-    // Sync
-    Serial.write(0xA5);
-    Serial.write(0xA5);
-    // Length
-    Serial.write(14);
-    // Sequence Counts
-    Serial.write(0x00);
-    Serial.write(0x00);
-    // Reserved
-    Serial.write(0x01);
-    Serial.write(0x02);
-    Serial.write(0x03);
-    Serial.write(0x04);
-    // Response length
-    Serial.write(0x00);
-    // Destination/Sender 
-    Serial.write(0x00);
-    // Command
-    Serial.write(0x12);
-    // CRC
-    Serial.write(0x34);
-    Serial.write(0x56);
-
-}
-
 void FlashBlocking()
 {
     for (int i = 0; i < 5; i++)
@@ -169,33 +142,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
     case InitPState: // If current state is initial Psedudo State
         if (ThisEvent.EventType == ES_ENTRY || 
             ThisEvent.EventType == ES_INIT)// only respond to ES_Init
-        {
-            //tone(SPEAKER_PIN,C4,100);
-            //ClearClock();
-            //showTime(0);
-            //initModules();
-
-
-            //tone(SPEAKER_PIN,G4,90);
-            //delay(100);
-
-            // Inform modules of configuration settings
-            //BroadcastAllConfigInfo();
-
-            // Request all modules to "reset"
-            // for(uint8_t i = 0; i < nConnectedModules; i++)
-            // {
-            //     Wire.beginTransmission(ConnectedModules[i].i2c_address);
-            //     //Wire.write(REQ_RESET);
-            //     Wire.endTransmission();
-            // }
-            // Serial.println(F("Modules reset"));
-            
-            //tone(SPEAKER_PIN,E4,100);
-            //delay(100);
-
-            //ClearClock();
-            
+        {            
             LoadAllEepromConfigInfo();
             SendUARTCommandByte(i2c_address,RESET);
 
@@ -230,7 +177,6 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             break;
         case ES_TIMEOUT:
         case ES_ENTRY:
-            //TestUARTCommand();
             StartPseudoTimer(0, 3000);
             ScanForModules();
             ThisEvent.EventType = ES_NO_EVENT;
