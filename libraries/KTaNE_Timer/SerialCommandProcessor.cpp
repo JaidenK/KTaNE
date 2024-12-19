@@ -162,11 +162,11 @@ void ProcessSerialCommand(uint8_t *buf)
             if(c == 0xFF)
                 continue;
 
-            Serial.print((char)c);
+            //Serial.print((char)c);
         }
         while(Wire.available()) Wire.read(); // Consume extra characters
 
-        Serial.println();
+        //Serial.println();
         
         SendUARTResponse(address, responseBuf, nResponseBytes);
     }
