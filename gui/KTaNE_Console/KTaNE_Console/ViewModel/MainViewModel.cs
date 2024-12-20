@@ -14,7 +14,7 @@ using System.Windows.Threading;
 
 namespace KTaNE_Console.ViewModel
 {
-    public class MainViewModel : ObservableObject
+    public class MainViewModel : ObservableObject, IConsoleWriter
     {
         public Serial serial;
 
@@ -72,7 +72,7 @@ namespace KTaNE_Console.ViewModel
             serial.PacketReceived += Serial_PacketReceived;
             serial.PacketSent += Serial_PacketSent;
 
-            ModuleList.Add(new TheTimer(serial));
+            ModuleList.Add(new TheTimer(serial,this));
 
             ClearConsoleCmd = new RelayCommand((o) =>
             {
@@ -127,7 +127,8 @@ namespace KTaNE_Console.ViewModel
                     var eeprom_addr_bytes = BitConverter.GetBytes(eeprom_addr);
                     byte value = Convert.ToByte(SetEEPROMByteString, 16);
 
-                    byte nEEPROMBytes = (byte)timeString.Length;
+                    //byte nEEPROMBytes = (byte)timeString.Length;
+                    byte nEEPROMBytes = 1;
 
                     byte[] bytes = new byte[13 + 4 + nEEPROMBytes];
                     bytes[0] = Serial.SYNC_BYTE;
@@ -141,10 +142,11 @@ namespace KTaNE_Console.ViewModel
                     bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
                     bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
                     bytes[14] = nEEPROMBytes; // Number of bytes
-                    for(int i = 0; i < nEEPROMBytes; i++)
-                    {
-                        bytes[15 + i] = (byte)timeString[i];
-                    }
+                    //for(int i = 0; i < nEEPROMBytes; i++)
+                    //{
+                    //    bytes[15 + i] = (byte)timeString[i];
+                    //}
+                    bytes[15] = value;
 
                     // Calculate CRC
                     // ... 

@@ -67,6 +67,7 @@
     <Compile Include="Modules\TheTimer.xaml.cs">
       <DependentUpon>TheTimer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModel\IConsoleWriter.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Page Include="Modules\TheTimer.xaml">
       <SubType>Designer</SubType>

@@ -5,28 +5,86 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:KTaNE_Console.Modules"
              mc:Ignorable="d" 
-             d:DesignHeight="450" Height="100" d:DesignWidth="800" Background="AliceBlue">
+             d:DesignHeight="450" d:DesignWidth="800" Background="AliceBlue">
     <Grid>
-        <Label Content="Foo"/>
+        
+        <Label Content=""/>
         <StackPanel Width="300" HorizontalAlignment="Left" Margin="20">
             <DockPanel>
-                <TextBlock Text="Time Limit" Width="80"/>
-                <Button Content="Set" Command="{Binding SetTimeLimitCmd}" DockPanel.Dock="Right"/>
-                <TextBox Text="{Binding Path=TimeLimitInput}" Width="80" DockPanel.Dock="Right"/>
-                <TextBlock Text="{Binding Path=TimeLimitString}"/>
+                <TextBlock Text="Serial #" DockPanel.Dock="Right" Width="60" TextAlignment="Right"/>
+                <TextBlock Text="Version" DockPanel.Dock="Right" Width="100" TextAlignment="Center"/>
+                <TextBlock Text="Model ID"/>
             </DockPanel>
             <DockPanel>
-                <TextBlock Text="# of Batteries" Width="80"/>
-                <Button Content="Set" Command="{Binding SetNumBatteriesCmd}" DockPanel.Dock="Right"/>
-                <TextBox Text="{Binding Path=NumBatteriesInput}" Width="80" DockPanel.Dock="Right"/>
-                <TextBlock Text="{Binding Path=NumBatteriesFeedback}"/>
+                <TextBlock Text="{Binding Path=ModuleSerialNo}" DockPanel.Dock="Right" Width="60" TextAlignment="Right"/>
+                <TextBlock Text="{Binding Path=ModuleVersion}" DockPanel.Dock="Right" Width="100" TextAlignment="Center"/>
+                <TextBlock Text="{Binding Path=ModuleName}"/>
+            </DockPanel>
+            <Separator/>
+            <DockPanel>
+                <TextBlock Text="Time Limit (s)" Width="80"/>
+                <TextBox Text="{Binding Path=TimeLimitInput}" Width="80" DockPanel.Dock="Right"/>
+                <TextBlock Text="{Binding Path=TimeLimitString}" TextAlignment="Right"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="# of AA Batteries" Width="90"/>
+                <TextBox Text="{Binding Path=NumAABatteriesInput}" Width="80" DockPanel.Dock="Right" />
+                <TextBlock Text="{Binding Path=NumAABatteriesFeedback}" TextAlignment="Right"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="# of D Batteries" Width="90"/>
+                <TextBox Text="{Binding Path=NumDBatteriesInput}" Width="80" DockPanel.Dock="Right"/>
+                <TextBlock Text="{Binding Path=NumDBatteriesFeedback}" TextAlignment="Right"/>
             </DockPanel>
             <DockPanel>
                 <TextBlock Text="Serial Number" Width="80"/>
-                <Button Content="Set" Command="{Binding SetSerialNoCmd}" DockPanel.Dock="Right"/>
                 <TextBox Text="{Binding Path=SerialNoInput}" Width="80" DockPanel.Dock="Right"/>
-                <TextBlock Text="{Binding Path=SerialNoFeedback}"/>
+                <TextBlock Text="{Binding Path=SerialNoFeedback}" TextAlignment="Right"/>
             </DockPanel>
+            <DockPanel>
+                <TextBlock Text="Indicators" Width="80"/>
+                <TextBox Text="{Binding Path=IndicatorsInput}" Width="80" DockPanel.Dock="Right"/>
+                <TextBlock Text="{Binding Path=IndicatorsFeedback}" TextAlignment="Right"/>
+            </DockPanel>
+            <StackPanel>
+                <TextBlock Text="Ports"/>
+                <DockPanel>
+                    <CheckBox Content="" IsChecked="{Binding Path=Port_DVID_Feedback, Mode=OneWay}"/>
+                    <CheckBox Content="DVI-D" IsChecked="{Binding Path=Port_DVID_Input}"/>
+                </DockPanel>
+                <DockPanel>
+                    <CheckBox Content="" IsChecked="{Binding Path=Port_Parallel_Feedback, Mode=OneWay}"/>
+                    <CheckBox Content="Parallel" IsChecked="{Binding Path=Port_Parallel_Input}"/>
+                </DockPanel>
+                <DockPanel>
+                    <CheckBox Content="" IsChecked="{Binding Path=Port_PS2_Feedback, Mode=OneWay}"/>
+                    <CheckBox Content="PS/2" IsChecked="{Binding Path=Port_PS2_Input}"/>
+                </DockPanel>
+                <DockPanel>
+                    <CheckBox Content="" IsChecked="{Binding Path=Port_RJ45_Feedback, Mode=OneWay}"/>
+                    <CheckBox Content="RJ-45" IsChecked="{Binding Path=Port_RJ45_Input}"/>
+                </DockPanel>
+                <DockPanel>
+                    <CheckBox Content="" IsChecked="{Binding Path=Port_Serial_Feedback, Mode=OneWay}"/>
+                    <CheckBox Content="Serial" IsChecked="{Binding Path=Port_Serial_Input}"/>
+                </DockPanel>
+                <DockPanel>
+                    <CheckBox Content="" IsChecked="{Binding Path=Port_StereoRCA_Feedback, Mode=OneWay}"/>
+                    <CheckBox Content="Stereo RCA" IsChecked="{Binding Path=Port_StereoRCA_Input}"/>
+                </DockPanel>
+                <DockPanel>
+                    <CheckBox Content="" IsChecked="{Binding Path=Port_Spare1_Feedback, Mode=OneWay}"/>
+                    <CheckBox Content="(spare)" IsChecked="{Binding Path=Port_Spare1_Input}"/>
+                </DockPanel>
+                <DockPanel>
+                    <CheckBox Content="" IsChecked="{Binding Path=Port_Spare2_Feedback, Mode=OneWay}"/>
+                    <CheckBox Content="(spare)" IsChecked="{Binding Path=Port_Spare2_Input}"/>
+                </DockPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Read" Width="50" Margin="0,0,20,0" Command="{Binding ReadTimerEEPROMCmd}"/>
+                <Button Content="Apply" Width="50" Command="{Binding ApplyTimerEEPROMCmd}"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </UserControl>

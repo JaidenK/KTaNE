@@ -26,6 +26,13 @@ Constants used between all modules for KTaNE.
 #define EEPROM_CONFIG_DATE        0x30 // Set by the PC when the user reconfigures the bomb.
 #define EEPROM_I2C_ADDRESS        0x40 // This module's I2C address. Used so that the system is predictable when it's power cycled.
 
+#define EEPROM_TIMER_BOMB_SERIAL_NO     0x50
+#define EEPROM_TIMER_TIME_LIMIT_SECONDS 0x60 // uint16_t
+#define EEPROM_TIMER_N_AA_BATTERIES     0x62 // uint8_t 
+#define EEPROM_TIMER_N_D_BATTERIES      0x63 // uint8_t 
+#define EEPROM_TIMER_PORTS              0x64 // bitfield (6 bits) order matches defusal manual appendix LSB: DVI-D, MSB: Stero RCA
+#define EEPROM_TIMER_INDICATORS         0x70 // null-terminated string
+
 #define SERIAL_BAUD_RATE 9600
 
 #define GENERAL_CALL_I2C_ADDRESS 0x00
@@ -48,5 +55,16 @@ Constants used between all modules for KTaNE.
 #define N_MAX_INDICATORS 12 // Maximum number of indicators supported in a system
 #define N_MAX_PORTS 12
 
+typedef enum
+{
+    INVALID_PORT = 0,
+    DVI_D,
+    PARALLEL,
+    PS_2,
+    RJ_45,
+    SERIAL,
+    STEREO_RCA
+}
+Port_t;
 
 #endif /* _KTANE_CONSTANTS_H_ */
