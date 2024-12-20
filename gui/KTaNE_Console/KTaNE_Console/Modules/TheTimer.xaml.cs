@@ -21,7 +21,20 @@ using System.Windows.Shapes;
 
 namespace KTaNE_Console.Modules
 {
+    public class EEPROM
+    {
+        // This must match KTaNE_Constants.h
+        public static readonly ushort MODULE_NAME = 0x00;
+        public static readonly ushort MODULE_SERIAL = 0x10;
+        public static readonly ushort MODULE_DATE = 0x20;
 
+        public static readonly ushort SERIAL_NO = 0x50;
+        public static readonly ushort TIME_LIMIT = 0x60;
+        public static readonly ushort AA_BATTERIES = 0x62;
+        public static readonly ushort D_BATTERIES = 0x63;
+        public static readonly ushort PORTS = 0x64;
+        public static readonly ushort INDICATORS = 0x70;
+    }
     public class EEPROM_Timer
     {
         public byte[] bytes = new byte[512];
@@ -46,34 +59,65 @@ namespace KTaNE_Console.Modules
         public string ModelID => throw new NotImplementedException();
         public SolvedState State => throw new NotImplementedException();
 
-        public string TimeLimitString { get; set; } = "0:0:0";
+        public string TimeLimitString => BitConverter.ToUInt16(Eeprom.bytes, EEPROM.TIME_LIMIT).ToString();
         public string TimeLimitInput { get; set; } = "0";
         //public RelayCommand SetTimeLimitCmd { get; set; }
 
-        public string NumAABatteriesFeedback => EEPROM.bytes[0x62].ToString();
+        public string NumAABatteriesFeedback => Eeprom.bytes[EEPROM.AA_BATTERIES].ToString();
         public string NumAABatteriesInput { get; set; } = "0";
-        //public RelayCommand SetNumBatteriesCmd { get; set; }
-        public string NumDBatteriesFeedback => EEPROM.bytes[0x63].ToString();
+        public string NumDBatteriesFeedback => Eeprom.bytes[EEPROM.D_BATTERIES].ToString();
+        public string NumDBatteriesInput { get; set; } = "0";
 
-        public bool Port_DVID_Feedback => (EEPROM.bytes[0x64] & (1 << 0)) != 0;
-        public bool Port_Parallel_Feedback => (EEPROM.bytes[0x64] & (1 << 1)) != 0;
-        public bool Port_PS2_Feedback => (EEPROM.bytes[0x64] & (1 << 2)) != 0;
-        public bool Port_RJ45_Feedback => (EEPROM.bytes[0x64] & (1 << 3)) != 0;
-        public bool Port_Serial_Feedback => (EEPROM.bytes[0x64] & (1 << 4)) != 0;
-        public bool Port_StereoRCA_Feedback => (EEPROM.bytes[0x64] & (1 << 5)) != 0;
-        public bool Port_Spare1_Feedback => (EEPROM.bytes[0x64] & (1 << 6)) != 0;
-        public bool Port_Spare2_Feedback => (EEPROM.bytes[0x64] & (1 << 7)) != 0;
-
-        public string SerialNoFeedback => System.Text.Encoding.ASCII.GetString(EEPROM.bytes, 0x50, 16).Trim();
+        public bool Port_DVID_Feedback => (Eeprom.bytes[EEPROM.PORTS] & (1 << 0)) != 0;
+        public bool Port_Parallel_Feedback => (Eeprom.bytes[EEPROM.PORTS] & (1 << 1)) != 0;
+        public bool Port_PS2_Feedback => (Eeprom.bytes[EEPROM.PORTS] & (1 << 2)) != 0;
+        public bool Port_RJ45_Feedback => (Eeprom.bytes[EEPROM.PORTS] & (1 << 3)) != 0;
+        public bool Port_Serial_Feedback => (Eeprom.bytes[EEPROM.PORTS] & (1 << 4)) != 0;
+        public bool Port_StereoRCA_Feedback => (Eeprom.bytes[EEPROM.PORTS] & (1 << 5)) != 0;
+        public bool Port_Spare1_Feedback => (Eeprom.bytes[EEPROM.PORTS] & (1 << 6)) != 0;
+        public bool Port_Spare2_Feedback => (Eeprom.bytes[EEPROM.PORTS] & (1 << 7)) != 0;
+        public bool Port_DVID_Input { get; set; } = false;
+        public bool Port_Parallel_Input { get; set; } = false;
+        public bool Port_PS2_Input { get; set; } = false;
+        public bool Port_RJ45_Input { get; set; } = false;
+        public bool Port_Serial_Input { get; set; } = false;
+        public bool Port_StereoRCA_Input { get; set; } = false;
+        public bool Port_Spare1_Input { get; set; } = false;
+        public bool Port_Spare2_Input { get; set; } = false;
+        public string SerialNoFeedback => System.Text.Encoding.ASCII.GetString(Eeprom.bytes, EEPROM.SERIAL_NO, 16).Trim();
         public string SerialNoInput { get; set; } = "0";
         //public RelayCommand SetSerialNoCmd { get; set; }
+        public string IndicatorsFeedback
+        {
+            get
+            {
+                string s = "";
+                for (int i = 0; ; i++)
+                {
+                    int addr = EEPROM.INDICATORS + 4 * i;
+                    var str = System.Text.Encoding.ASCII.GetString(Eeprom.bytes, addr, 4);
+                    if (str.Length == 4)
+                    {
+                        if (str[0] == '+' || str[0] == '-')
+                        {
+                            if (i > 0)
+                                s += ", ";
+                            s += str;
+                            continue;
+                        }
+                    }
+                    break;
+                }
+                return s;
+            }
+        }
 
         private string moduleName = "<NULL>";
         public string ModuleName
         {
             get
             {
-                moduleName = System.Text.Encoding.ASCII.GetString(EEPROM.bytes, 0, 16).Trim();
+                moduleName = System.Text.Encoding.ASCII.GetString(Eeprom.bytes, EEPROM.MODULE_NAME, 16).Trim();
                 return moduleName;
             }
             set => moduleName = value;
@@ -83,7 +127,7 @@ namespace KTaNE_Console.Modules
         {
             get
             {
-                moduleSerialNo = System.Text.Encoding.ASCII.GetString(EEPROM.bytes, 0x10, 16).Trim();
+                moduleSerialNo = System.Text.Encoding.ASCII.GetString(Eeprom.bytes, EEPROM.MODULE_SERIAL, 16).Trim();
                 return moduleSerialNo;
             }
             set => moduleSerialNo = value;
@@ -94,17 +138,18 @@ namespace KTaNE_Console.Modules
         {
             get
             {
-                moduleVersion = System.Text.Encoding.ASCII.GetString(EEPROM.bytes, 0x20, 16).Trim();
+                moduleVersion = System.Text.Encoding.ASCII.GetString(Eeprom.bytes, EEPROM.MODULE_DATE, 16).Trim();
                 return moduleVersion;
             }
             set => moduleVersion = value;
         }
+        public string IndicatorsInput { get; set; }
 
         public RelayCommand ReadTimerEEPROMCmd { get; set; }
         public RelayCommand ApplyTimerEEPROMCmd { get; set; }
         private Queue<byte[]> TxQueue { get; set; } = new Queue<byte[]>();
 
-        public EEPROM_Timer EEPROM = new EEPROM_Timer();
+        public EEPROM_Timer Eeprom = new EEPROM_Timer();
 
         public List<byte[]> BuildGetEEPROMPackets(byte i2c_address, ushort eeprom_address, UInt16 length)
         {
@@ -185,6 +230,113 @@ namespace KTaNE_Console.Modules
                     CW.ConsoleWrite(ex.Message + Environment.NewLine);
                 }
             });
+
+            ApplyTimerEEPROMCmd = new RelayCommand((o) =>
+            {
+                try
+                {
+                    Task.Run(() =>
+                    {
+                        CW.ConsoleWrite("Configuring..." + Environment.NewLine);
+                        var pkts = BuildSetEEPROMPackets();
+                        pkts.ForEach(x =>
+                        {
+                            serial.Write(x);
+                            Task.Delay(200);
+                        });
+                        CW.ConsoleWrite("Done." + Environment.NewLine);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    CW.ConsoleWrite(ex.Message + Environment.NewLine);
+                }
+            });
+        }
+
+        private byte[] buildSetEEPROMPacket(ushort eeprom_addr, byte b)
+        {
+            return buildSetEEPROMPacket(eeprom_addr, new byte[] { b });
+        }
+        private byte[] buildSetEEPROMPacket(ushort eeprom_addr, byte[] bytes_to_write)
+        {
+
+            byte i2c_address = Address;
+            var eeprom_addr_bytes = BitConverter.GetBytes(eeprom_addr);
+
+            byte[] bytes = new byte[13 + 4 + bytes_to_write.Length];
+            bytes[0] = Serial.SYNC_BYTE;
+            bytes[1] = Serial.SYNC_BYTE;
+            bytes[2] = (byte)bytes.Length;
+            bytes[3] = 1;
+            bytes[4] = 2;
+            bytes[9] = 0; // No response
+            bytes[10] = i2c_address;
+            bytes[11] = (byte)CommandID.SET_EEPROM; // GET_EEPROM command ID
+            bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
+            bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
+            bytes[14] = (byte)bytes_to_write.Length; // Number of bytes
+            for (int i = 0; i < bytes_to_write.Length; i++)
+            {
+                bytes[15 + i] = bytes_to_write[i];
+            }
+
+            return bytes;
+        }
+
+        private List<byte[]> BuildSetEEPROMPackets()
+        {
+            var list = new List<byte[]>();
+
+            string serial = SerialNoInput;
+            if (serial.Length > 16)
+            {
+                serial = serial.Substring(0, 16);
+            }
+            while (serial.Length < 16)
+            {
+                serial += ' ';
+            }
+
+            list.Add(buildSetEEPROMPacket(EEPROM.SERIAL_NO, Encoding.ASCII.GetBytes(serial)));
+            list.Add(buildSetEEPROMPacket(EEPROM.TIME_LIMIT, BitConverter.GetBytes(ushort.Parse(TimeLimitInput))));
+            list.Add(buildSetEEPROMPacket(EEPROM.AA_BATTERIES, byte.Parse(NumAABatteriesInput)));
+            list.Add(buildSetEEPROMPacket(EEPROM.D_BATTERIES, byte.Parse(NumDBatteriesInput)));
+
+            // Ports
+            byte ports = 0;
+
+            ports |= (byte)(Port_DVID_Input ? (1 << 0) : 0);
+            ports |= (byte)(Port_Parallel_Input ? (1 << 1) : 0);
+            ports |= (byte)(Port_PS2_Input ? (1 << 2) : 0);
+            ports |= (byte)(Port_RJ45_Input ? (1 << 3) : 0);
+            ports |= (byte)(Port_Serial_Input ? (1 << 4) : 0);
+            ports |= (byte)(Port_StereoRCA_Input ? (1 << 5) : 0);
+            ports |= (byte)(Port_Spare1_Input ? (1 << 6) : 0);
+            ports |= (byte)(Port_Spare2_Input ? (1 << 7) : 0);
+
+            list.Add(buildSetEEPROMPacket(EEPROM.PORTS, ports));
+
+            // Indicators
+            string indicators = IndicatorsInput;
+            int i = 0;
+            while(indicators.Length > 0)
+            {
+                string sub = indicators;
+                if(indicators.Length > 16)
+                {
+                    sub = indicators.Substring(0, 16);
+                    indicators = indicators.Substring(16, indicators.Length - 16);
+                }
+                else
+                {
+                    indicators = "";
+                }
+                list.Add(buildSetEEPROMPacket((ushort)(EEPROM.INDICATORS + (i * 0x10)), Encoding.ASCII.GetBytes(sub)));
+                i++;
+            }
+
+            return list;
         }
 
         private void Serial_PacketReceived(object sender, SerialPacketReceivedEventArgs e)
@@ -221,7 +373,7 @@ namespace KTaNE_Console.Modules
                     int length = pkt.i2c_bytes[3];
                     var bytes = new byte[length];
                     Array.Copy(pkt.i2c_bytes, 4, bytes, 0, length);
-                    EEPROM.Update(eeprom_address, bytes);
+                    Eeprom.Update(eeprom_address, bytes);
                     break;
                 default:
                     break;
