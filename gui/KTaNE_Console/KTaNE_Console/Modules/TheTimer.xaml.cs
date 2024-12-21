@@ -318,7 +318,7 @@ namespace KTaNE_Console.Modules
             list.Add(buildSetEEPROMPacket(EEPROM.PORTS, ports));
 
             // Indicators
-            string indicators = IndicatorsInput;
+            string indicators = IndicatorsInput ?? "";
             int i = 0;
             while(indicators.Length > 0)
             {
