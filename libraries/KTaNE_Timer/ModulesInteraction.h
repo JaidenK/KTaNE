@@ -15,6 +15,10 @@ ModuleInfo;
 
 extern ModuleInfo ModList[N_MAX_MODULES];
 
+void flashModuleViaI2C(uint8_t address);
+void broadcastAllModules(uint8_t addr, uint8_t value);
+void resetAllModules();
+uint8_t checkAllModulesReady();
 uint8_t ScanForModules(); 
 uint8_t GetStatusAllModules();
 void print2digithex(uint8_t value);

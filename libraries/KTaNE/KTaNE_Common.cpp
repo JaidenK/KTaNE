@@ -10,8 +10,12 @@
 #include "KTaNE_Common.h"
 #include "KTaNE_CommandIDs.h"
 
+#include "ES_Configure.h"
+#include "ES_Framework.h"
+
 
 volatile uint8_t STATUS = 0;
+volatile uint8_t CONTROL = 0;
 
 uint8_t i2c_address = 0;
 volatile I2C_CommandPacket LastCommand = 
@@ -104,7 +108,7 @@ uint8_t ServiceI2CRequest_Common(I2C_CommandPacket *pkt)
         case REG_STATUS:
             Wire.write(STATUS);
             // Clear strike flag when they read status
-            STATUS = STATUS & (~_BV(STS_STRIKE));
+            STATUS &= ~_BV(STS_STRIKE);
             break;
         case REG_SYNC:
             writeSyncBytes(pkt->data[0]);
@@ -148,14 +152,46 @@ void ReceiveI2C_SetEEPROM(I2C_CommandPacket *pkt)
     }
 }
 
-uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt)
+uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt, uint8_t length)
 {
+    uint16_t event_param = 0;
     switch (pkt->CommandID)
     {
     case REG_STATUS:
         // This code is reached when they've indicated that
         // they _will be_ reading the register. The read
         // hasn't occurred yet, so don't clear anything.
+        break;
+    case REG_CTRL:
+        if(length > 1)
+        {
+            event_param = CONTROL << 8;
+            CONTROL = pkt->data[0];
+            event_param |= CONTROL;
+            
+            if(CONTROL & _BV(CTRL_START))
+            {
+                CONTROL &= ~_BV(CTRL_START);
+                ES_PostAll((ES_Event){EVENT_START,event_param});
+            }
+            if(CONTROL & _BV(CTRL_RESET))
+            {
+                CONTROL &= ~_BV(CTRL_RESET);
+                ES_PostAll((ES_Event){EVENT_RESET,event_param});
+            }
+            if(CONTROL & _BV(CTRL_LED1))
+            {
+                CONTROL &= ~_BV(CTRL_LED1);
+                ToggleSolveLED();
+            }
+            if(CONTROL & _BV(CTRL_LED2))
+            {
+                CONTROL &= ~_BV(CTRL_LED2);
+                ToggleStrikeLED();
+            }
+            
+            
+        }
         break;
     case SET_EEPROM:
         ReceiveI2C_SetEEPROM(pkt);
@@ -167,6 +203,13 @@ uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt)
     return 1;
 }
 
+// This can be used if LastCommand is manually populated elsewhere
+void I2C_receive_test(uint8_t length)
+{
+    if(ReceiveI2CCommand_Common(&LastCommand,length)) return; // Don't do custom responses if it was a default packet
+    ReceiveI2CCommand(&LastCommand);
+}
+
 void I2C_receive(int nBytes) 
 {
     // Get handle to where we'll store the packet
@@ -174,11 +217,12 @@ void I2C_receive(int nBytes)
     // Clear existing contents of that packet     
     memset(pkt,0,sizeof(I2C_CommandPacket));
     // Read the packet
-    for(uint8_t i = 0; i < sizeof(I2C_CommandPacket) && Wire.available(); i++)
+    uint8_t i = 0;
+    for(; i < sizeof(I2C_CommandPacket) && Wire.available(); i++)
     {
         ((uint8_t *)pkt)[i] = Wire.read();
-    }
-    if(ReceiveI2CCommand_Common(pkt)) return; // Don't do custom responses if it was a default packet
+    }    
+    if(ReceiveI2CCommand_Common(pkt,i)) return; // Don't do custom responses if it was a default packet
     ReceiveI2CCommand(pkt);
 }
 
@@ -193,7 +237,7 @@ uint8_t I2C_SendPacket(uint8_t address, uint8_t command)
 uint8_t I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length)
 {
     Wire.beginTransmission(address);
-    Wire.write(i2c_address);
+    //Wire.write(i2c_address);
     for(uint8_t i = 0; i < length; i++)
         Wire.write(command[i]); 
     return Wire.endTransmission();

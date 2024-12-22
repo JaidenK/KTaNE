@@ -4,6 +4,9 @@
 // sus
 #include <string.h>
 
+#include "ES_Framework.h"
+#include "ES_Configure.h"
+
 #include "KTaNE.h"
 #include "ModulesInteraction.h"
 
@@ -121,6 +124,34 @@ uint8_t doesModuleAlreadyExist(uint8_t address)
     return isExistingModule;
 }
 
+
+void flashModuleViaI2C(uint8_t address)
+{
+    Wire.beginTransmission(address);
+    Wire.write(REG_CTRL);
+    Wire.write(_BV(CTRL_LED1));
+    Wire.endTransmission();
+    delay(5);
+
+    Wire.beginTransmission(address);
+    Wire.write(REG_CTRL);
+    Wire.write(_BV(CTRL_LED2));
+    Wire.endTransmission();
+    delay(5);
+
+    Wire.beginTransmission(address);
+    Wire.write(REG_CTRL);
+    Wire.write(_BV(CTRL_LED1));
+    Wire.endTransmission();
+    delay(5);
+
+    Wire.beginTransmission(address);
+    Wire.write(REG_CTRL);
+    Wire.write(_BV(CTRL_LED2));
+    Wire.endTransmission();
+    delay(50);
+}
+
 uint8_t GetStatusAllModules()
 {
     uint8_t wire_result = 6;
@@ -134,7 +165,8 @@ uint8_t GetStatusAllModules()
             if(wire_result != 0)
             {
                 // Missing module
-                Serial.println("Missing module.");
+                //Serial.println("Missing module.");
+                ES_PostAll((ES_Event){MODULE_DISCONNECTED,ModList[i].i2c_address});
                 ModList[i].i2c_address = 0;
             }
             else
@@ -144,6 +176,79 @@ uint8_t GetStatusAllModules()
             }
         }
     }
+}
+
+uint8_t toggleLEDs(uint8_t address)
+{
+    Wire.beginTransmission(address);
+    Wire.write(REG_CTRL);
+    Wire.write(_BV(CTRL_LED1) | _BV(CTRL_LED2));
+    return Wire.endTransmission();
+}
+
+void resetAllModules()
+{
+    broadcastAllModules(REG_CTRL,_BV(CTRL_RESET));
+}
+
+void broadcastAllModules(uint8_t addr, uint8_t value)
+{
+    uint8_t wire_result = 6;
+    for(uint8_t i = 0; i < N_MAX_MODULES; i++)
+    {
+        if(ModList[i].i2c_address > 0)
+        {
+            Wire.beginTransmission(ModList[i].i2c_address);            
+            Wire.write(addr);
+            Wire.write(value);
+            wire_result = Wire.endTransmission();
+            if(wire_result != 0)
+            {
+                // Missing module
+                ES_PostAll((ES_Event){MODULE_DISCONNECTED,ModList[i].i2c_address});
+                ModList[i].i2c_address = 0;
+            }
+        }
+    }
+}
+
+uint8_t checkAllModulesReady()
+{
+    uint8_t wire_result = 6;
+    uint8_t allModulesReady = 1;
+    for(uint8_t i = 0; i < N_MAX_MODULES; i++)
+    {
+        if(ModList[i].i2c_address > 0)
+        {
+            //Serial.print(ModList[i].i2c_address);
+            //Serial.print(": ");
+            //print2digithex(ModList[i].Status);
+            //Serial.println();
+            toggleLEDs(ModList[i].i2c_address);
+
+            
+            Wire.beginTransmission(ModList[i].i2c_address);            
+            Wire.write(REG_STATUS); // Signal to a potential device that we want the sync word.
+            wire_result = Wire.endTransmission();
+            if(wire_result != 0)
+            {
+                // Missing module
+                ES_PostAll((ES_Event){MODULE_DISCONNECTED,ModList[i].i2c_address});
+                ModList[i].i2c_address = 0;
+            }
+            else
+            {
+                Wire.requestFrom(ModList[i].i2c_address, (uint8_t)1);
+                ModList[i].Status = Wire.read();
+                if(!(ModList[i].Status & _BV(STS_READY)))
+                    allModulesReady = 0;
+            }
+
+            delay(20); // Just to see the LEDs blink
+            toggleLEDs(ModList[i].i2c_address);
+        }
+    } 
+    return allModulesReady;
 }
 
 uint8_t ScanForModules()
@@ -189,11 +294,13 @@ uint8_t ScanForModules()
                 //GetModuleID(address,IDbuf,sizeof(IDbuf));     
 
                 if(!doesModuleAlreadyExist(address))
-                {                    
+                {                
+                    ES_PostAll((ES_Event){MODULE_CONNECTED,address});    
+
                     // New module
-                    Serial.print(F(" (New module!): "));
-                    print2digithex(address);
-                    Serial.println();
+                    //Serial.print(F(" (New module!): "));
+                    //print2digithex(address);
+                    //Serial.println();
                     
                                         
                     // Find first available index (or overwrite the last one)

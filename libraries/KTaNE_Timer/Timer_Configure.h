@@ -6,10 +6,10 @@
 #include "KTaNE_Constants.h"
 
 extern uint32_t timeLimit;
-extern char serial_no[SERIAL_NO_MAX_LENGTH];
-extern uint8_t nBatteries;
-extern Indicator indicators[N_MAX_INDICATORS];
-extern PortType ports[N_MAX_PORTS];
+// extern char serial_no[SERIAL_NO_MAX_LENGTH];
+// extern uint8_t nBatteries;
+// extern Indicator indicators[N_MAX_INDICATORS];
+// extern PortType ports[N_MAX_PORTS];
 
 void SetTimeLimitConfig(uint32_t newTimeLimit);
 void SetNumBatteriesConfig(uint8_t newNBatteries);

@@ -27,6 +27,8 @@ void reassignI2C(uint8_t reserved[], uint8_t nReserved);
 
 void I2C_Init(int address);
 
+void I2C_receive_test(uint8_t length); // Only the Timer should need to reference this directly
+
 typedef struct
 {
     //uint8_t SenderAddress;
@@ -36,30 +38,34 @@ typedef struct
 I2C_CommandPacket;
 
 extern volatile I2C_CommandPacket LastCommand;
+uint8_t I2C_SendPacket(uint8_t address, uint8_t command);
+uint8_t I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length);
+
 
 
 // The module-specific code must implement these functions.
 // These are called inside of the ISRs
 void ServiceI2CRequest(I2C_CommandPacket *pkt); 
 void ReceiveI2CCommand(I2C_CommandPacket *pkt); 
-uint8_t I2C_SendPacket(uint8_t address, uint8_t command);
-uint8_t I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length);
+
+void ToggleStrikeLED();
+void ToggleSolveLED();
 
 
-typedef struct
-{
-    uint8_t isLit;
-    char chars[INDICATOR_MAX_LENGTH];
-}
-Indicator;
+// typedef struct
+// {
+//     uint8_t isLit;
+//     char chars[INDICATOR_MAX_LENGTH];
+// }
+// Indicator;
 
-typedef enum
-{
-    NO_PORT = 0,
-    SERIAL_PORT,
-    PARALLEL_PORT,
-    HDMI_PORT,
-}
-PortType;
+// typedef enum
+// {
+//     NO_PORT = 0,
+//     SERIAL_PORT,
+//     PARALLEL_PORT,
+//     HDMI_PORT,
+// }
+// PortType;
 
 #endif

@@ -34,6 +34,7 @@
                 <TextBlock Text="Packets received"/>
                 <TextBlock Text="{Binding nPacketsReceived}"/>
                 <Button Margin="5" Command="{Binding EEPROMDumpCmd}" Content="EEPROM Dump" HorizontalAlignment="Left"/>
+                <Button Margin="5" Command="{Binding StartCmd}" Content="Start Game" HorizontalAlignment="Left"/>
                 <DockPanel Margin="5">
                     <Button Command="{Binding SetEEPROMCmd}" Content="Set EEPROM" HorizontalAlignment="Left"/>
                     <TextBlock Text="I2C Address (dec):" Margin="10,0,0,0"/>

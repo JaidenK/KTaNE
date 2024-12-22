@@ -52,10 +52,10 @@ void TestEEPROMDump(uint8_t *command)
     {
         EEPROM.get(eeprom_addr+i,bytes[i+4]);
     }
-    SendUARTResponse(1, bytes, 4+length);
+    SendUARTResponse(i2c_address, bytes, 4+length);
 }
 
-void ServiceCommandLocally(uint8_t *buf)
+uint8_t ServiceCommandLocally(uint8_t *buf)
 {   
     uint8_t address = buf[OFFSET_ADDRESS];
     uint8_t *command = &buf[OFFSET_CMD_START];
@@ -68,50 +68,50 @@ void ServiceCommandLocally(uint8_t *buf)
     case FLASH_LED:
         ES_PostAll((ES_Event){FLASH_REQUESTED,0});
         break;    
-    case SET_TIME_LIMIT:
-        Serial.print(F("New time: "));
-        Serial.println(*((uint32_t *)&command[1]));
-        SetTimeLimitConfig(*((uint32_t *)&command[1]));
-        SendUARTResponse(address,command,5);
-        break;
-    case SET_N_BATTERIES:
-        Serial.print(F("New batteries: "));
-        Serial.println(*((uint32_t *)&command[1]));
-        SetNumBatteriesConfig(*((uint32_t *)&command[1]));
-        response[0] = SET_N_BATTERIES;
-        response[1] = nBatteries;
-        SendUARTResponse(address,response,2);
-        break;
-    case SET_SERIAL_NO:
-        Serial.print(F("New serial: "));
-        Serial.println((char *)&command[1]);
-        response[0] = SET_SERIAL_NO;
-        SetSerialNoConfig(&command[1]);
-        memcpy(&response[1],serial_no,sizeof(serial_no));
-        SendUARTResponse(address,response,sizeof(serial_no)+1);
-        break;
-    case REQUEST_CONFIG:
-        switch (command[1])
-        {
-        case SET_TIME_LIMIT:
-            response[0] = SET_TIME_LIMIT;
-            memcpy(&response[1],&timeLimit,sizeof(uint32_t));
-            SendUARTResponse(address,response,sizeof(uint32_t)+1);
-            break;     
-        case SET_N_BATTERIES:
-            response[0] = SET_N_BATTERIES;
-            response[1] = nBatteries;
-            SendUARTResponse(address,response,2);
-            break;     
-        case SET_SERIAL_NO:
-            response[0] = SET_SERIAL_NO;
-            memcpy(&response[1],serial_no,sizeof(serial_no));
-            SendUARTResponse(address,response,sizeof(serial_no)+1);
-            break;  
-        default:
-            break;
-        }
-        break;
+    // case SET_TIME_LIMIT:
+    //     Serial.print(F("New time: "));
+    //     Serial.println(*((uint32_t *)&command[1]));
+    //     SetTimeLimitConfig(*((uint32_t *)&command[1]));
+    //     SendUARTResponse(address,command,5);
+    //     break;
+    // case SET_N_BATTERIES:
+    //     Serial.print(F("New batteries: "));
+    //     Serial.println(*((uint32_t *)&command[1]));
+    //     SetNumBatteriesConfig(*((uint32_t *)&command[1]));
+    //     response[0] = SET_N_BATTERIES;
+    //     response[1] = nBatteries;
+    //     SendUARTResponse(address,response,2);
+    //     break;
+    // case SET_SERIAL_NO:
+    //     Serial.print(F("New serial: "));
+    //     Serial.println((char *)&command[1]);
+    //     response[0] = SET_SERIAL_NO;
+    //     SetSerialNoConfig(&command[1]);
+    //     memcpy(&response[1],serial_no,sizeof(serial_no));
+    //     SendUARTResponse(address,response,sizeof(serial_no)+1);
+    //     break;
+    // case REQUEST_CONFIG:
+    //     switch (command[1])
+    //     {
+    //     case SET_TIME_LIMIT:
+    //         response[0] = SET_TIME_LIMIT;
+    //         memcpy(&response[1],&timeLimit,sizeof(uint32_t));
+    //         SendUARTResponse(address,response,sizeof(uint32_t)+1);
+    //         break;     
+    //     case SET_N_BATTERIES:
+    //         response[0] = SET_N_BATTERIES;
+    //         response[1] = nBatteries;
+    //         SendUARTResponse(address,response,2);
+    //         break;     
+    //     case SET_SERIAL_NO:
+    //         response[0] = SET_SERIAL_NO;
+    //         memcpy(&response[1],serial_no,sizeof(serial_no));
+    //         SendUARTResponse(address,response,sizeof(serial_no)+1);
+    //         break;  
+    //     default:
+    //         break;
+    //     }
+    //     break;
     case GET_EEPROM:
         TestEEPROMDump(command);
         break;
@@ -120,9 +120,11 @@ void ServiceCommandLocally(uint8_t *buf)
         break;
     default:
         // Error condition
-        Serial.println(F("Invalid serial command."));
+        //Serial.println(F("Invalid serial command."));
+        return 0;
         break;
     }
+    return 1;
 }
 
 void ProcessSerialCommand(uint8_t *buf)
@@ -141,7 +143,15 @@ void ProcessSerialCommand(uint8_t *buf)
 
     if(address == i2c_address)
     {
-        ServiceCommandLocally(buf);
+        // If the command is meant for us, service it locally.
+        if(!ServiceCommandLocally(buf))
+        {
+            // If the command wasn't handled, it's a "normal" 
+            // I2C command rather than a special Serial command
+            for(uint8_t i = 0; i < length; i++)
+                ((uint8_t *)&LastCommand)[i] = command[i];
+            I2C_receive_test(length);
+        }        
         return;
     }
 

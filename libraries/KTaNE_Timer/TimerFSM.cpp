@@ -69,7 +69,8 @@ void initModules(void);
 typedef enum {
     InitPState,
     Idle,
-    Counting,
+    Setup,
+    Running,
     Exploding,
     N_STATES,
 } TimerFSMState_t;
@@ -77,7 +78,8 @@ typedef enum {
 static const char *StateNames[] = {
     "InitPState",
     "Idle",
-    "Counting",
+    "Setup",
+    "Running",
     "Exploding",
     "N_STATES",
 };
@@ -121,11 +123,12 @@ uint8_t InitTimerFSM(uint8_t Priority)
     }
 }
 
-
 uint8_t PostTimerFSM(ES_Event ThisEvent)
 {
     return ES_PostToService(MyPriority, ThisEvent);
 }
+
+
 
 ES_Event RunTimerFSM(ES_Event ThisEvent)
 {
@@ -134,7 +137,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
 
     if(ThisEvent.EventType == ES_ENTRY)
     {
-        Serial.print("Entering state: ");
+        Serial.print(F("Entering state: "));
         Serial.println(StateNames[CurrentState]);
     }
 
@@ -151,54 +154,145 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             makeTransition = TRUE;
             ThisEvent.EventType = ES_NO_EVENT;
         }
+        if(ThisEvent.EventType == ES_EXIT)
+        {
+            ThisEvent.EventType = ES_NO_EVENT;
+        }
         break;
     case Idle:
         switch (ThisEvent.EventType)
         {
-        case I2C_CMD_RECEIVED:
-            if(LastCommand.CommandID == SOLVED)
-            {
-                Serial.print(F("SOLVED signal received from address "));
-                //print2digithex(LastCommand.SenderAddress);
-                Serial.println();
-                ThisEvent.EventType = ES_NO_EVENT;
-            }
-            else if(LastCommand.CommandID == STRIKE)
-            {
-                Serial.print(F("STRIKE signal received from address "));
-                //print2digithex(LastCommand.SenderAddress);
-                Serial.println();
-                ThisEvent.EventType = ES_NO_EVENT;
-            }
-            else
-            {
-                Serial.print(F("Unhandled I2C command."));
-            }
+        case EVENT_START:
+            nextState = Setup;
+            makeTransition = TRUE;
+            ThisEvent.EventType = ES_NO_EVENT;
             break;
         case ES_TIMEOUT:
         case ES_ENTRY:
-            StartPseudoTimer(0, 250);
-            ScanForModules();
-            GetStatusAllModules();
-            for(uint8_t i = 0; i < N_MAX_MODULES; i++)
-            {
-                if(ModList[i].i2c_address > 0)
-                {
-                    Serial.print(ModList[i].i2c_address);
-                    Serial.print(": ");
-                    print2digithex(ModList[i].Status);
-                    Serial.println();
-                }
-            }
+            StartPseudoTimer(0, 200);
+            ScanForModules(); // Detects new modules
+            GetStatusAllModules(); // Detects disconnected modules
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        case MODULE_CONNECTED:
+            Serial.print(F("Module connected at address: "));
+            Serial.println(ThisEvent.EventParam);
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        case MODULE_DISCONNECTED:
+            Serial.print(F("Module disconnected at address: "));
+            Serial.println(ThisEvent.EventParam);
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         case FLASH_REQUESTED:
             FlashBlocking();
             ThisEvent.EventType = ES_NO_EVENT;
             break;
+        case ES_EXIT:
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
         default:
             break;
         }
+        break;
+    case Setup:        
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            nStrikes = 0;
+            StartPseudoTimer(0, 100);
+            StartPseudoTimer(1, 2000);
+            ThisEvent.EventType = ES_NO_EVENT;
+            resetAllModules();
+            break;
+        case ES_TIMEOUT:
+            if(ThisEvent.EventParam == 1)
+            {
+                nextState = Idle;
+                makeTransition = TRUE;
+                ThisEvent.EventType = ES_NO_EVENT;
+            }
+            else
+            {
+                ThisEvent.EventType = ES_NO_EVENT;
+                if(checkAllModulesReady())
+                {
+                    nextState = Running;
+                    makeTransition = TRUE;
+                }     
+                else
+                {
+                    StartPseudoTimer(0, 100);
+                }   
+            }
+            break;
+        case ES_EXIT:
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        default:
+            break;
+        }
+        break;
+    case Running:
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            nStrikes = 0;            
+            broadcastAllModules(REG_CTRL, _BV(CTRL_START));
+            StartPseudoTimer(0, 50);
+            StartPseudoTimer(1, 10000);
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        case ES_TIMEOUT:
+            if(ThisEvent.EventParam == 1)
+            {
+                nextState = Idle;
+                makeTransition = TRUE;
+            }
+            else
+            {
+                StartPseudoTimer(0, 50);
+                GetStatusAllModules();
+                uint8_t allSolved = 1;
+                for(uint8_t i = 0; i < N_MAX_MODULES; i++)
+                {
+                    if(ModList[i].i2c_address > 0)
+                    {
+                        if(!(ModList[i].Status & _BV(STS_SOLVED)))
+                        {
+                            allSolved = 0;
+                        }
+                        if(ModList[i].Status & _BV(STS_STRIKE))
+                        {
+                            Serial.println(F("Strike!"));
+                            nStrikes++;
+                        }
+                        if(ModList[i].Status & _BV(STS_REQUEST))
+                        {
+                            Serial.println(F("Pending request"));
+                        }
+                        if(!(ModList[i].Status & _BV(STS_RUNNING)))
+                        {
+                            Serial.println(F("Not running?"));
+                        }
+                    }
+                }
+                if(allSolved)
+                {
+                    Serial.println(F("All modules solved!"));
+                    nextState = Idle;
+                    makeTransition = TRUE;
+                }
+            }
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        case ES_EXIT:
+            resetAllModules();
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        default:
+            break;
+        }        
         break;
     default: // all unhandled states fall into here
         break;
@@ -228,4 +322,13 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
  * PRIVATE FUNCTIONS                                                           *
  ******************************************************************************/
 
+void ToggleStrikeLED()
+{
+    digitalWrite(STRIKE1_PIN,!digitalRead(STRIKE1_PIN));
+}
+
+void ToggleSolveLED()
+{
+    digitalWrite(STRIKE2_PIN,!digitalRead(STRIKE2_PIN));
+}
 

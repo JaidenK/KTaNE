@@ -52,6 +52,7 @@ namespace KTaNE_Console.ViewModel
         #region Serial Commands
         public RelayCommand TestCmd { get; set; }
         public RelayCommand EEPROMDumpCmd { get; set; }
+        public RelayCommand StartCmd { get; set; }
         public RelayCommand SetEEPROMCmd { get; set; }
         public string TestCommandAddressString { get; set; }
         public string TestCommandBytesString { get; set; }
@@ -193,6 +194,33 @@ namespace KTaNE_Console.ViewModel
                     var bytes2 = TxQueue.Dequeue();
                     serial.Write(bytes2);
                     TxPacketsText += UartPacket.FromFullPacket(bytes2).ToString() + Environment.NewLine;
+                }
+                catch (Exception ex)
+                {
+                    ConsoleWrite(ex.Message + Environment.NewLine);
+                }
+            });
+
+            StartCmd = new RelayCommand((o) =>
+            {
+                try
+                {
+                    int i2c_address = 0x00; // Timer is always 0x00
+
+
+                    byte[] bytes = new byte[13 + 2];
+                    bytes[0] = Serial.SYNC_BYTE;
+                    bytes[1] = Serial.SYNC_BYTE;
+                    bytes[2] = (byte)bytes.Length;
+                    bytes[3] = 1; // Seq Count
+                    bytes[4] = 2; // Seq Count Echo
+                    bytes[9] = 0; // Response length: 0
+                    bytes[10] = (byte)i2c_address;
+                    bytes[11] = (byte)0x11;// CommandID.REG_CTRL;
+                    bytes[12] = 1; // CTRL_START
+
+                    serial.Write(bytes);
+                    TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
                 }
                 catch (Exception ex)
                 {

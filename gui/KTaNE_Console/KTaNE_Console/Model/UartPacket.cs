@@ -5,7 +5,7 @@ namespace KTaNE_Console.Model
     public class UartPacket
     {
         // Addresses
-        public const byte TIMER_ADDRESS = 0x01;
+        public const byte TIMER_ADDRESS = 0x00;
 
         // Array Indices
         public const int DATA_START = 11;

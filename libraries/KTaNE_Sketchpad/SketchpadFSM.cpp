@@ -42,6 +42,7 @@
 
 
 
+
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
@@ -64,16 +65,16 @@
 typedef enum {
     InitPState,
     Idle,
-    Counting,
-    Exploding,
+    Running,
+    Solved,
     N_STATES,
 } TimerFSMState_t;
 
 static const char *StateNames[] = {
     "InitPState",
     "Idle",
-    "Counting",
-    "Exploding",
+    "Running",
+    "Solved",
     "N_STATES",
 };
 
@@ -157,6 +158,32 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
         }
         break;
     case Idle:
+        if(ThisEvent.EventType == ES_ENTRY)
+        {
+            digitalWrite(DISARM_PIN, LOW);
+            digitalWrite(STRIKE_PIN, LOW);
+            STATUS |= _BV(STS_READY);
+            STATUS &= ~_BV(STS_RUNNING);   
+            STATUS &= ~_BV(STS_SOLVED);    
+            STATUS &= ~_BV(STS_STRIKE);    
+        }
+        if(ThisEvent.EventType == EVENT_START)
+        {
+            ThisEvent.EventType = ES_NO_EVENT;
+            nextState = Running;
+            makeTransition = TRUE;
+        }
+        break;
+    case Running:
+        if(ThisEvent.EventType == ES_ENTRY)
+        {
+            STATUS |= _BV(STS_RUNNING);
+            //digitalWrite(DISARM_PIN, HIGH);
+            //digitalWrite(STRIKE_PIN, HIGH);
+            //delay(100);
+            //digitalWrite(DISARM_PIN, LOW);
+            //digitalWrite(STRIKE_PIN, LOW);
+        }
         if(ThisEvent.EventType == BUTTON_EVENT)
         {            
             Serial.print("Param: ");
@@ -179,20 +206,37 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
             }
             else if((ThisEvent.EventParam & 0x0202) == 0x0200)
             {
-                //I2C_SendPacket(TIMER_I2C_ADDRESS, SOLVED);                
-            }
-            
-            // Solved bit always matches LED state
-            if(!disarmState)
-                STATUS |= _BV(STS_SOLVED);
-            else
-                STATUS &= ~_BV(STS_SOLVED);            
+                //I2C_SendPacket(TIMER_I2C_ADDRESS, SOLVED);  
+                ThisEvent.EventType = ES_NO_EVENT;
+                nextState = Solved;
+                makeTransition = TRUE;              
+            }                    
         }
         else if(ThisEvent.EventType == FLASH_REQUESTED)
         {
             FlashBlocking();
             ThisEvent.EventType = ES_NO_EVENT;
         }    
+        else if(ThisEvent.EventType == EVENT_RESET)
+        {
+            ThisEvent.EventType = ES_NO_EVENT;
+            nextState = Idle;
+            makeTransition = TRUE;
+        }
+        break;
+    case Solved:
+        if(ThisEvent.EventType == ES_ENTRY)
+        {            
+            digitalWrite(DISARM_PIN, HIGH);
+            digitalWrite(STRIKE_PIN, LOW);
+            STATUS |= _BV(STS_SOLVED);
+        }
+        else if(ThisEvent.EventType == EVENT_RESET)
+        {
+            ThisEvent.EventType = ES_NO_EVENT;
+            nextState = Idle;
+            makeTransition = TRUE;
+        }
         break;
     default: // all unhandled states fall into here
         break;
@@ -215,6 +259,15 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
     return ThisEvent;
 }
 
+void ToggleStrikeLED()
+{
+    digitalWrite(STRIKE_PIN,!digitalRead(STRIKE_PIN));
+}
+
+void ToggleSolveLED()
+{
+    digitalWrite(DISARM_PIN,!digitalRead(DISARM_PIN));
+}
 
 /*******************************************************************************
  * PRIVATE FUNCTIONS                                                           *

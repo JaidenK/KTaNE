@@ -44,7 +44,12 @@ typedef enum {
     ES_TIMEOUT, /* signals that the timer has expired */
     ES_TIMERACTIVE, /* signals that a timer has become active */
     ES_TIMERSTOPPED, /* signals that a timer has stopped*/
-    /* User-defined events start here */
+    /* KTaNE Common Events */
+    EVENT_START,
+    EVENT_RESET,
+    /* Module custom events */
+    MODULE_CONNECTED,
+    MODULE_DISCONNECTED,
     CONFIGURATION_COMPLETE,
     START_CLOCK,
     CLOCK_EXPIRED,
