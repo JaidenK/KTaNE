@@ -33,7 +33,7 @@
 void BOARD_Init()
 {
     //I2C_Init(TIMER_I2C_ADDRESS);
-    I2C_Init(TIMER_I2C_ADDRESS);
+    I2C_Init(-1);
     Serial.begin(SERIAL_BAUD_RATE); // The baudrate of Serial monitor is set in 9600
     
     //pinMode(SPEAKER_PIN,OUTPUT);

@@ -32,7 +32,10 @@
 void BOARD_Init()
 {
     //I2C_Init(TIMER_I2C_ADDRESS);
-    I2C_Init(analogRead(A3) % 0x7F);
+    //I2C_Init(analogRead(A3) % 0x7F);
+    I2C_Init(0);
+    randomSeed(analogRead(A3));
+
     Serial.begin(SERIAL_BAUD_RATE); // The baudrate of Serial monitor is set in 9600
     
     pinMode(STRIKE_BTN,INPUT_PULLUP);
@@ -41,6 +44,7 @@ void BOARD_Init()
     pinMode(DISARM_PIN,OUTPUT);
     digitalWrite(STRIKE_PIN,1);
     digitalWrite(DISARM_PIN,1);
+    
 }
 
 /**

@@ -159,14 +159,14 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             if(LastCommand.CommandID == SOLVED)
             {
                 Serial.print(F("SOLVED signal received from address "));
-                print2digithex(LastCommand.SenderAddress);
+                //print2digithex(LastCommand.SenderAddress);
                 Serial.println();
                 ThisEvent.EventType = ES_NO_EVENT;
             }
             else if(LastCommand.CommandID == STRIKE)
             {
                 Serial.print(F("STRIKE signal received from address "));
-                print2digithex(LastCommand.SenderAddress);
+                //print2digithex(LastCommand.SenderAddress);
                 Serial.println();
                 ThisEvent.EventType = ES_NO_EVENT;
             }
@@ -177,8 +177,19 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             break;
         case ES_TIMEOUT:
         case ES_ENTRY:
-            StartPseudoTimer(0, 3000);
+            StartPseudoTimer(0, 250);
             ScanForModules();
+            GetStatusAllModules();
+            for(uint8_t i = 0; i < N_MAX_MODULES; i++)
+            {
+                if(ModList[i].i2c_address > 0)
+                {
+                    Serial.print(ModList[i].i2c_address);
+                    Serial.print(": ");
+                    print2digithex(ModList[i].Status);
+                    Serial.println();
+                }
+            }
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         case FLASH_REQUESTED:

@@ -37,5 +37,6 @@ void ReceiveI2CCommand(I2C_CommandPacket *pkt)
     Serial.println(pkt->CommandID,HEX);
     // Adding address and command ID to the event param is more thread-safe than
     // using the global LastCommand. And less coupled to globals.
-    ES_PostAll((ES_Event){I2C_CMD_RECEIVED,(uint16_t)((pkt->SenderAddress << 8) + pkt->CommandID)});
+    //ES_PostAll((ES_Event){I2C_CMD_RECEIVED,(uint16_t)((pkt->SenderAddress << 8) + pkt->CommandID)});
+    ES_PostAll((ES_Event){I2C_CMD_RECEIVED,(uint16_t)(pkt->CommandID)});
 } 

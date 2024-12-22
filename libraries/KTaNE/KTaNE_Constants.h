@@ -15,8 +15,9 @@ Constants used between all modules for KTaNE.
 #define TRUE 1
 #define FALSE 0
 
-#define SYNC_BYTE_A 0xA5 // Byte used to identify if an address is used by multiple modules 
-#define SYNC_BYTE_B 0xF0
+
+//#define SYNC_BYTE_A 0xA5 // Byte used to identify if an address is used by multiple modules 
+//#define SYNC_BYTE_B 0xF0
 #define N_SYNC_BYTES 8 // How many sync bytes to send
 
 #define EEPROM_MODULE_NAME        0x00 // Name of module. 16 ASCII chars. "readonly"
@@ -58,12 +59,12 @@ Constants used between all modules for KTaNE.
 typedef enum
 {
     INVALID_PORT = 0,
-    DVI_D,
-    PARALLEL,
-    PS_2,
-    RJ_45,
-    SERIAL,
-    STEREO_RCA
+    PORT_DVI_D,
+    PORT_PARALLEL,
+    PORT_PS_2,
+    PORT_RJ_45,
+    PORT_SERIAL,
+    PORT_STEREO_RCA
 }
 Port_t;
 

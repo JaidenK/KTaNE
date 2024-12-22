@@ -174,12 +174,19 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
             // check which button changed AND its state
             if((ThisEvent.EventParam & 0x0101) == 0x0100)
             {
-                I2C_SendPacket(TIMER_I2C_ADDRESS, STRIKE);
+                //I2C_SendPacket(TIMER_I2C_ADDRESS, STRIKE);
+                STATUS |= _BV(STS_STRIKE);
             }
             else if((ThisEvent.EventParam & 0x0202) == 0x0200)
             {
-                I2C_SendPacket(TIMER_I2C_ADDRESS, SOLVED);
+                //I2C_SendPacket(TIMER_I2C_ADDRESS, SOLVED);                
             }
+            
+            // Solved bit always matches LED state
+            if(!disarmState)
+                STATUS |= _BV(STS_SOLVED);
+            else
+                STATUS &= ~_BV(STS_SOLVED);            
         }
         else if(ThisEvent.EventType == FLASH_REQUESTED)
         {

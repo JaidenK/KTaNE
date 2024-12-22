@@ -29,13 +29,14 @@ void I2C_Init(int address);
 
 typedef struct
 {
-    uint8_t SenderAddress;
+    //uint8_t SenderAddress;
     uint8_t CommandID;
-    uint8_t data[30];
+    uint8_t data[31];
 }
 I2C_CommandPacket;
 
-extern I2C_CommandPacket LastCommand;
+extern volatile I2C_CommandPacket LastCommand;
+
 
 // The module-specific code must implement these functions.
 // These are called inside of the ISRs
