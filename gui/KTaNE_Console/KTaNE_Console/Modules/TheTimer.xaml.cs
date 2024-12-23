@@ -4,6 +4,7 @@ using KTaNE_Console.ViewModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -18,6 +19,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace KTaNE_Console.Modules
 {
@@ -34,15 +36,16 @@ namespace KTaNE_Console.Modules
         public static readonly ushort D_BATTERIES = 0x63;
         public static readonly ushort PORTS = 0x64;
         public static readonly ushort INDICATORS = 0x70;
-    }
-    public class EEPROM_Timer
-    {
-        public byte[] bytes = new byte[512];
 
-        internal void Update(int eeprom_address, byte[] bytes)
+        public byte[] bytes = new byte[512];
+        public void Update(int eeprom_address, byte[] bytes)
         {
             Array.Copy(bytes, 0, this.bytes, eeprom_address, bytes.Length);
         }
+    }
+    public class EEPROM_Timer : EEPROM
+    {
+
     }
 
     /// <summary>
@@ -85,6 +88,8 @@ namespace KTaNE_Console.Modules
         public bool Port_Spare1_Input { get; set; } = false;
         public bool Port_Spare2_Input { get; set; } = false;
         public string SerialNoFeedback => System.Text.Encoding.ASCII.GetString(Eeprom.bytes, EEPROM.SERIAL_NO, 16).Trim();
+
+        public ObservableCollection<string> StatusList { get; set; } = new ObservableCollection<string>();
         public string SerialNoInput { get; set; } = "0";
         //public RelayCommand SetSerialNoCmd { get; set; }
         public string IndicatorsFeedback
@@ -148,6 +153,7 @@ namespace KTaNE_Console.Modules
         public RelayCommand ReadTimerEEPROMCmd { get; set; }
         public RelayCommand ApplyTimerEEPROMCmd { get; set; }
         private Queue<byte[]> TxQueue { get; set; } = new Queue<byte[]>();
+        public byte Status { get; set; } = 0;
 
         public EEPROM_Timer Eeprom = new EEPROM_Timer();
 
@@ -355,31 +361,39 @@ namespace KTaNE_Console.Modules
                     //SendConfigRequests();
                     // Clear modules list in main view model
                     break;
-                //case CommandID.SET_TIME_LIMIT:
-                //    UInt32 newTimeLimit = BitConverter.ToUInt32(pkt.i2c_bytes, 1);
-                //    TimeLimitString = String.Format("{0:00}:{1:00}", newTimeLimit / 60, newTimeLimit % 60);
-                //    break;
-                //case CommandID.SET_N_BATTERIES:
-                //    NumBatteriesFeedback = pkt.Argument.ToString();
-                //    break;
-                //case CommandID.SET_SERIAL_NO:
-                //    int n = 0;
-                //    for (; pkt.i2c_bytes[n + 1] != 0; n++)
-                //        ;
-                //    SerialNoFeedback = Encoding.ASCII.GetString(pkt.i2c_bytes, 1, n);
-                //    break;
                 case CommandID.GET_EEPROM:
                     int eeprom_address = BitConverter.ToInt16(pkt.i2c_bytes, 1);
                     int length = pkt.i2c_bytes[3];
                     var bytes = new byte[length];
                     Array.Copy(pkt.i2c_bytes, 4, bytes, 0, length);
                     Eeprom.Update(eeprom_address, bytes);
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(""));
+                    break;
+                case CommandID.LIST_MODULES:
+                    int nModules = (pkt.i2c_bytes.Length - 1) / 2;                    
+                    Dispatcher.BeginInvoke((Action)(() =>
+                    {
+                        if (StatusList.Count != nModules)
+                        {
+                            StatusList.Clear();
+                        }
+                        for (int i = 0; i < nModules; i++)
+                        {
+                            if (StatusList.Count <= i)
+                            {
+                                StatusList.Add("");
+                            }
+                            var addr = pkt.i2c_bytes[1 + 2 * i];
+                            var status = pkt.i2c_bytes[1 + 2 * i + 1];
+                            StatusList[i] = $"{addr.ToString("X2")}: {status.ToString("X2")}";
+                        }
+                    }), DispatcherPriority.DataBind);
                     break;
                 default:
                     break;
             }
 
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(""));
+            //PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(""));
         }
 
         public void SendConfigRequests()

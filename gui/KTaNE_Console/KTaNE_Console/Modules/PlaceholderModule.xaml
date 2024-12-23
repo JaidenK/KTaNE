@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="KTaNE_Console.Modules.PlaceholderModule"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KTaNE_Console.Modules"
+             mc:Ignorable="d" 
+             Background="AliceBlue">
+    <Grid>
+        <StackPanel Width="300" HorizontalAlignment="Left" Margin="20">
+            <DockPanel>
+                <TextBlock Text="Serial #" DockPanel.Dock="Right" Width="60" TextAlignment="Right"/>
+                <TextBlock Text="Version" DockPanel.Dock="Right" Width="100" TextAlignment="Center"/>
+                <TextBlock Text="Model ID"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="{Binding Path=ModuleSerialNo}" DockPanel.Dock="Right" Width="60" TextAlignment="Right"/>
+                <TextBlock Text="{Binding Path=ModuleVersion}" DockPanel.Dock="Right" Width="100" TextAlignment="Center"/>
+                <TextBlock Text="{Binding Path=ModuleName}"/>
+            </DockPanel>
+            <Separator/>
+            <TextBlock FontSize="18" Text="Unrecognized Module" TextAlignment="Center" Margin="20"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

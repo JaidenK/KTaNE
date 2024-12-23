@@ -64,7 +64,7 @@ namespace KTaNE_Console.ViewModel
         public Queue<byte[]> TxQueue { get; set; } = new Queue<byte[]>();
         #endregion
 
-        public List<IModule> ModuleList { get; set; } = new List<IModule>();
+        public ObservableCollection<IModule> ModuleList { get; set; } = new ObservableCollection<IModule>();
 
         public MainViewModel()
         {
@@ -247,7 +247,7 @@ namespace KTaNE_Console.ViewModel
                 return;
             nPacketsReceived++;
             OnPropertyChanged("nPacketsReceived");
-            Console.WriteLine(e.packet[e.packet.Length - 1].ToString());
+            //Console.WriteLine(e.packet[e.packet.Length - 1].ToString());
 
             var pkt = UartPacket.FromFullPacket(e.packet);
             ReceivedPackets.Add(pkt);
@@ -279,8 +279,37 @@ namespace KTaNE_Console.ViewModel
                 }
                 ConsoleWrite(s + Environment.NewLine);
             }
+            else if (pkt.i2c_bytes[0] == (byte)CommandID.LIST_MODULES)
+            {
+                int nModules = (pkt.i2c_bytes.Length - 1) / 2;
+                Application.Current?.Dispatcher.BeginInvoke((Action)(() =>
+                {
+                    if (ModuleList.Count != (nModules+1))
+                    {
+                        var timer = ModuleList.First();
+                        ModuleList.Clear();
+                        ModuleList.Add(timer);
+                        ConsoleWrite("New modules." + Environment.NewLine);
+                    }
+                    for (int i = 0; i < nModules; i++)
+                    {
+                        var addr = pkt.i2c_bytes[1 + 2 * i];
+                        var status = pkt.i2c_bytes[1 + 2 * i + 1];
 
-            if (TxQueue.Count > 0)
+                        var mod = ModuleList.SingleOrDefault(x => x.Address == addr);
+                        if (mod != null)
+                        {
+                            mod.Status = status;
+                        }
+                        else
+                        {
+                            ModuleList.Add(new PlaceholderModule(addr, serial, this));
+                        }
+                    }
+                }), DispatcherPriority.DataBind);
+            }
+
+                if (TxQueue.Count > 0)
             {
                 var bytes2 = TxQueue.Dequeue();
                 serial.Write(bytes2);
@@ -302,10 +331,10 @@ namespace KTaNE_Console.ViewModel
         public void Connect()
         {
             serial.Connect(PortName, Baud);
-            foreach (var Module in ModuleList)
-            {
-                Module.SendConfigRequests();
-            }
+            //foreach (var Module in ModuleList)
+            //{
+            //    Module.SendConfigRequests();
+            //}
         }
     }
 }

@@ -12,7 +12,6 @@
         string Name { get; }
         string ModelID { get; }
         SolvedState State { get; }
-
-        void SendConfigRequests();
+        byte Status { get; set; }
     }
 }

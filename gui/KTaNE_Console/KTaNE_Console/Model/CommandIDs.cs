@@ -45,5 +45,6 @@
 
         // Reserved command IDs
         CUSTOM_COMMANDS = 0x70,
+        LIST_MODULES = 0xA0,
     }
 }

@@ -30,7 +30,13 @@
                 <TextBox Text="{Binding ConsoleText}" FontFamily="Consolas" TextChanged="TextBox_ScrollToEnd" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
             </DockPanel>
             <StackPanel>
-                <ItemsControl ItemsSource="{Binding Path=ModuleList}" />
+                <ItemsControl ItemsSource="{Binding Path=ModuleList}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
                 <TextBlock Text="Packets received"/>
                 <TextBlock Text="{Binding nPacketsReceived}"/>
                 <Button Margin="5" Command="{Binding EEPROMDumpCmd}" Content="EEPROM Dump" HorizontalAlignment="Left"/>

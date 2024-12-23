@@ -64,11 +64,18 @@
     <Compile Include="Model\CommandIDs.cs" />
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="Model\UartPacket.cs" />
+    <Compile Include="Modules\PlaceholderModule.xaml.cs">
+      <DependentUpon>PlaceholderModule.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Modules\TheTimer.xaml.cs">
       <DependentUpon>TheTimer.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModel\IConsoleWriter.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
+    <Page Include="Modules\PlaceholderModule.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Modules\TheTimer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
