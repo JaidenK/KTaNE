@@ -34,11 +34,14 @@ void BOARD_Init()
     pinMode(BTN_PIN,INPUT_PULLUP);
     pinMode(STRIKE_PIN,OUTPUT);
     pinMode(DISARM_PIN,OUTPUT);
-    digitalWrite(STRIKE_PIN,1);
-    digitalWrite(DISARM_PIN,1);
     pinMode(PIN_RED,OUTPUT);
     pinMode(PIN_GREEN,OUTPUT);
     pinMode(PIN_BLUE,OUTPUT);
+    digitalWrite(STRIKE_PIN,0);
+    digitalWrite(DISARM_PIN,0);
+    digitalWrite(PIN_RED,0);
+    digitalWrite(PIN_GREEN,0);
+    digitalWrite(PIN_BLUE,0);
     
     randomSeed(analogRead(A3));
     I2C_Init(0);

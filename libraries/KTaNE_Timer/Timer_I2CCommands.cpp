@@ -9,29 +9,29 @@ const char ModuleName[N_MAX_MODULE_NAME_CHARS] = "The Timer";
 
 void ServiceI2CRequest(I2C_CommandPacket *pkt)
 {
-    switch (pkt->CommandID)
-    {
-    case REQUEST_ID:
-        Wire.write(ModelID);
-        break;
-    case REQUEST_NAME:
-        Wire.write(ModuleName);
-        break;
-    case GET_TIME_MS:    
-        uint32_t t = (uint32_t)millis();            
-        Wire.write(((uint8_t *)&t)[0]);             
-        Wire.write(((uint8_t *)&t)[1]);             
-        Wire.write(((uint8_t *)&t)[2]);             
-        Wire.write(((uint8_t *)&t)[3]);      
-    case FLASH_LED:
-        ES_PostAll((ES_Event){FLASH_REQUESTED,0});
-        break;
-    default:
-        break;
-    }
+    // switch (pkt->CommandID)
+    // {
+    // case REQUEST_ID:
+    //     Wire.write(ModelID);
+    //     break;
+    // case REQUEST_NAME:
+    //     Wire.write(ModuleName);
+    //     break;
+    // case GET_TIME_MS:    
+    //     uint32_t t = (uint32_t)millis();            
+    //     Wire.write(((uint8_t *)&t)[0]);             
+    //     Wire.write(((uint8_t *)&t)[1]);             
+    //     Wire.write(((uint8_t *)&t)[2]);             
+    //     Wire.write(((uint8_t *)&t)[3]);      
+    // case FLASH_LED:
+    //     ES_PostAll((ES_Event){FLASH_REQUESTED,0});
+    //     break;
+    // default:
+    //     break;
+    // }
 }
 
-void ReceiveI2CCommand(I2C_CommandPacket *pkt)
+void ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length)
 {
     Serial.print(F("I2C: "));
     Serial.println(pkt->CommandID,HEX);

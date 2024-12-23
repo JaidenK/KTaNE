@@ -191,6 +191,32 @@ void resetAllModules()
     broadcastAllModules(REG_CTRL,_BV(CTRL_RESET));
 }
 
+void ServiceRequest(uint8_t address)
+{
+    uint8_t wire_result = 0;
+    uint8_t request_code = 0;
+    // We assume the request flag is set/already checked
+    Wire.beginTransmission(address);
+    Wire.write(REG_REQUEST);
+    Wire.endTransmission();
+    
+    Wire.requestFrom(address, (uint8_t)1);
+    request_code = Wire.read();
+
+    switch (request_code)
+    {
+    case REQ_DIGITS:
+        Wire.beginTransmission(address);
+        Wire.write(REG_REQUEST);
+        Wire.write((uint8_t)0x12);
+        Wire.write((uint8_t)0x34);
+        Wire.endTransmission();
+        break;    
+    default:
+        break;
+    }
+}
+
 void broadcastAllModules(uint8_t addr, uint8_t value)
 {
     uint8_t wire_result = 6;
@@ -277,8 +303,35 @@ uint8_t ScanForModules()
                 Serial.println(F("Multiple devices detected (invalid sync bytes) at address: 0x"));
                 print2digithex(address);
                 Serial.println();
-                // Send the command to scramble their addressses
-                I2C_SendPacket(address, REASSIGN_I2C_ADDRESS);
+
+                // Confirm device ID
+                Wire.beginTransmission(address);
+                Wire.write(REG_DEVID);
+                Wire.endTransmission();
+                Wire.requestFrom(address,(uint8_t)1);
+                uint8_t their_id = Wire.read();
+
+                if(their_id != DEVID)
+                {
+                    Serial.println(F("Invalid device ID: "));
+                    print2digithex(their_id);
+                    Serial.println();
+                }
+                else
+                {
+                    Serial.println(F("Device ID valid. Re-assigning address."));
+                    Wire.beginTransmission(address);
+                    Wire.write(REG_REJOIN); // Writing to this register triggers a rejoin
+                    // Follow register with values that are not allowed to be used
+                    for(uint8_t i = 0; i < N_MAX_MODULES; i++)
+                    {
+                        if(ModList[i].i2c_address > 0)
+                        {
+                            Wire.write(ModList[i].i2c_address);
+                        }
+                    }
+                    Wire.endTransmission();  
+                }              
             }
             else
             {
@@ -290,7 +343,7 @@ uint8_t ScanForModules()
                 if(!doesModuleAlreadyExist(address))
                 {                
                     ES_PostAll((ES_Event){MODULE_CONNECTED,address});    
-                             
+
                     // Find first available index (or overwrite the last one)
                     uint8_t i = 0;
                     for(;(i<(N_MAX_MODULES-1))&&(ModList[i].i2c_address);i++)

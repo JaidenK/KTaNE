@@ -22,6 +22,7 @@ uint8_t checkAllModulesReady();
 uint8_t ScanForModules(); 
 uint8_t GetStatusAllModules();
 void print2digithex(uint8_t value);
+void ServiceRequest(uint8_t address);
 //uint8_t PingExistingModules();
 
 #endif /* _MODULESINTERACTION_H_ */

@@ -117,6 +117,25 @@ void LoadEEPROMConfig()
     }
 }
 
+void StartupFlash()
+{
+    digitalWrite(STRIKE_PIN,HIGH);     
+    delay(200);
+    digitalWrite(STRIKE_PIN,LOW);  
+    digitalWrite(DISARM_PIN,HIGH);     
+    delay(200);
+    digitalWrite(DISARM_PIN,LOW);  
+    digitalWrite(PIN_RED,HIGH);     
+    delay(200);
+    digitalWrite(PIN_RED,LOW);  
+    digitalWrite(PIN_GREEN,HIGH);      
+    delay(200);
+    digitalWrite(PIN_GREEN,LOW);  
+    digitalWrite(PIN_BLUE,HIGH);     
+    delay(200);
+    digitalWrite(PIN_BLUE,LOW);  
+}
+
 uint8_t PostButtonFSM(ES_Event ThisEvent)
 {
     return ES_PostToService(MyPriority, ThisEvent);
@@ -142,7 +161,9 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
             // now put the machine into the actual initial state
             nextState = Idle;
             makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
+            ThisEvent.EventType = ES_NO_EVENT;      
+            
+            StartupFlash();
         }
         break;
     case Idle:
@@ -154,12 +175,19 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
             STATUS &= ~_BV(STS_RUNNING);   
             STATUS &= ~_BV(STS_SOLVED);    
             STATUS &= ~_BV(STS_STRIKE);    
+            STATUS &= ~_BV(STS_REQUEST);
+            REQUEST = 0;
         }
         if(ThisEvent.EventType == EVENT_START)
         {
             ThisEvent.EventType = ES_NO_EVENT;
             nextState = Running;
             makeTransition = TRUE;
+        }
+        if(ThisEvent.EventType == BUTTON_EVENT)
+        {
+            digitalWrite(STRIKE_PIN,!(ThisEvent.EventParam & 1));
+            digitalWrite(DISARM_PIN,!(ThisEvent.EventParam & 1));
         }
         break;
     case Running:
@@ -169,8 +197,14 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
         }
         if(ThisEvent.EventType == BUTTON_EVENT)
         {       
+            if(ThisEvent.EventParam & 1) // On release
+            {
+                // Request digits
+                STATUS |= _BV(STS_REQUEST);
+                REQUEST = REQ_DIGITS;
+            }
             // Todo
-            STATUS |= _BV(STS_STRIKE);    
+            //STATUS |= _BV(STS_STRIKE);    
             ThisEvent.EventType = ES_NO_EVENT;                    
         } 
         else if(ThisEvent.EventType == EVENT_RESET)

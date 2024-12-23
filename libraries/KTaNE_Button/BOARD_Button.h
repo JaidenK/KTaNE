@@ -39,9 +39,9 @@
 
 #define BTN_PIN 10
 
-#define PIN_RED   5
+#define PIN_RED   9
 #define PIN_GREEN 6
-#define PIN_BLUE  9
+#define PIN_BLUE  5
 
 
 /**

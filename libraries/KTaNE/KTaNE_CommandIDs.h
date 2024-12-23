@@ -54,6 +54,7 @@ typedef enum
 
     // Reserved command IDs
     CUSTOM_COMMANDS = 0x70, 
+    LIST_MODULES = 0xA0,
 }
 I2C_Command_ID;
 
@@ -76,7 +77,10 @@ extern volatile uint8_t CONTROL;
 #define CTRL_LED1  (2)
 #define CTRL_LED2  (3)
 
+extern volatile uint8_t REQUEST;
 #define REG_REQUEST (0x12)
+#define REQ_DIGITS  (0x01)
+
 #define REG_REJOIN  (0x13)
 #define REG_SYNC    (0x14)
 

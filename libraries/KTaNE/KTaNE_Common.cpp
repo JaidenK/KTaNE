@@ -16,6 +16,7 @@
 
 volatile uint8_t STATUS = 0;
 volatile uint8_t CONTROL = 0;
+volatile uint8_t REQUEST = 0;
 
 uint8_t i2c_address = 0;
 volatile I2C_CommandPacket LastCommand = 
@@ -113,6 +114,9 @@ uint8_t ServiceI2CRequest_Common(I2C_CommandPacket *pkt)
         case REG_SYNC:
             writeSyncBytes(pkt->data[0]);
             break;
+        case REG_REQUEST:
+            Wire.write(REQUEST);
+            break;
         case GET_EEPROM:
             ServiceI2C_GetEEPROM(pkt);
             break;
@@ -152,11 +156,42 @@ void ReceiveI2C_SetEEPROM(I2C_CommandPacket *pkt)
     }
 }
 
+void RejoinI2C(I2C_CommandPacket *pkt, uint8_t length)
+{
+    uint8_t isValid = 0;
+    while (!isValid)
+    {
+        isValid = 1;
+        i2c_address = (uint8_t)(random()&0b01111111);
+        if(i2c_address > 127)
+            i2c_address = 127;
+        if(i2c_address < 10) // Arbitrary lower limit
+            i2c_address = 10;
+        for(uint8_t i = 0; i < length-1; i++)
+        {
+            if(i2c_address == pkt->data[i])
+            {
+                isValid = 0;
+                break;
+            }
+        }
+    } 
+        
+    EEPROM.write(EEPROM_I2C_ADDRESS,i2c_address);
+    Wire.begin(i2c_address);
+}
+
 uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt, uint8_t length)
 {
     uint16_t event_param = 0;
     switch (pkt->CommandID)
     {
+    case REG_DEVID:
+        // No reaction to device ID. Just wait for the request.
+        break;
+    case REG_SYNC:
+        // No reaction to sync command. Just wait for the request.
+        break;
     case REG_STATUS:
         // This code is reached when they've indicated that
         // they _will be_ reading the register. The read
@@ -188,10 +223,11 @@ uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt, uint8_t length)
             {
                 CONTROL &= ~_BV(CTRL_LED2);
                 ToggleStrikeLED();
-            }
-            
-            
+            }            
         }
+        break;
+    case REG_REJOIN:
+        RejoinI2C(pkt,length);
         break;
     case SET_EEPROM:
         ReceiveI2C_SetEEPROM(pkt);
@@ -207,7 +243,7 @@ uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt, uint8_t length)
 void I2C_receive_test(uint8_t length)
 {
     if(ReceiveI2CCommand_Common(&LastCommand,length)) return; // Don't do custom responses if it was a default packet
-    ReceiveI2CCommand(&LastCommand);
+    ReceiveI2CCommand(&LastCommand,length);
 }
 
 void I2C_receive(int nBytes) 
@@ -223,13 +259,12 @@ void I2C_receive(int nBytes)
         ((uint8_t *)pkt)[i] = Wire.read();
     }    
     if(ReceiveI2CCommand_Common(pkt,i)) return; // Don't do custom responses if it was a default packet
-    ReceiveI2CCommand(pkt);
+    ReceiveI2CCommand(pkt,i);
 }
 
 uint8_t I2C_SendPacket(uint8_t address, uint8_t command)
 {
     Wire.beginTransmission(address);
-    //Wire.write(i2c_address);
     Wire.write(command); 
     return Wire.endTransmission();
 }
@@ -237,7 +272,6 @@ uint8_t I2C_SendPacket(uint8_t address, uint8_t command)
 uint8_t I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length)
 {
     Wire.beginTransmission(address);
-    //Wire.write(i2c_address);
     for(uint8_t i = 0; i < length; i++)
         Wire.write(command[i]); 
     return Wire.endTransmission();

@@ -96,6 +96,25 @@ static uint8_t moduleI2Crequest = 0;
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
 
+void SendModuleListToPC()
+{  
+
+    uint8_t bytes[N_MAX_MODULES + 1] = {0};
+    bytes[0] = LIST_MODULES;
+    uint8_t nModules = 0;
+    for(uint8_t i = 0; i < N_MAX_MODULES; i++)
+    {
+        if(ModList[i].i2c_address > 0)
+        {
+            bytes[1+(2*nModules)] = ModList[i].i2c_address;
+            bytes[1+(2*nModules)+1] = ModList[i].Status;
+            nModules++;
+        }
+    }
+
+    SendUARTCommand(i2c_address, bytes, 2*nModules+1);
+}
+
 uint8_t InitTimerFSM(uint8_t Priority)
 {
     MyPriority = Priority;
@@ -156,6 +175,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             StartPseudoTimer(0, 200);
             ScanForModules(); // Detects new modules
             GetStatusAllModules(); // Detects disconnected modules
+            SendModuleListToPC();
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         case MODULE_CONNECTED:
@@ -233,6 +253,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             {
                 StartPseudoTimer(0, 50);
                 GetStatusAllModules();
+                SendModuleListToPC();
                 uint8_t allSolved = 1;
                 for(uint8_t i = 0; i < N_MAX_MODULES; i++)
                 {
@@ -249,7 +270,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
                         }
                         if(ModList[i].Status & _BV(STS_REQUEST))
                         {
-                            Serial.println(F("Pending request"));
+                            ServiceRequest(ModList[i].i2c_address);
                         }
                         if(!(ModList[i].Status & _BV(STS_RUNNING)))
                         {

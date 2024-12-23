@@ -32,7 +32,8 @@ Constants used between all modules for KTaNE.
 #define EEPROM_TIMER_N_AA_BATTERIES     0x62 // uint8_t 
 #define EEPROM_TIMER_N_D_BATTERIES      0x63 // uint8_t 
 #define EEPROM_TIMER_PORTS              0x64 // bitfield (6 bits) order matches defusal manual appendix LSB: DVI-D, MSB: Stero RCA
-#define EEPROM_TIMER_INDICATORS         0x70 // null-terminated string
+//#define EEPROM_N_MODULES                0x65 // Number of modules (automatically determined by timer at runtime)
+#define EEPROM_TIMER_INDICATORS         0x70 // null-terminated string. 
 
 #define SERIAL_BAUD_RATE 9600
 
