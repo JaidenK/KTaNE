@@ -6,7 +6,7 @@
 
 uint8_t StrikeButtonCurrentState = 0;
 uint8_t DisarmButtonCurrentState = 0;
-uint8_t StrikeBtnStates = 0;
+uint8_t BtnStates = 0;
 uint8_t DisarmBtnStates = 0;
 
 
@@ -16,12 +16,12 @@ uint8_t CheckButtons(void)
 
     uint16_t eventParam = 0;
 
-    StrikeBtnStates = (StrikeBtnStates << 1) + digitalRead(STRIKE_BTN);
+    BtnStates = (BtnStates << 1) + digitalRead(STRIKE_BTN);
     DisarmBtnStates = (DisarmBtnStates << 1) + digitalRead(DISARM_BTN);
 
     if(StrikeButtonCurrentState)
     {
-        if(StrikeBtnStates == 0)
+        if(BtnStates == 0)
         {
             StrikeButtonCurrentState = 0;
             eventParam |= (1 << 8);
@@ -30,7 +30,7 @@ uint8_t CheckButtons(void)
     }
     else
     {
-        if(StrikeBtnStates == 0xFF)
+        if(BtnStates == 0xFF)
         {
             StrikeButtonCurrentState = 1;
             eventParam |= (1 << 8);
