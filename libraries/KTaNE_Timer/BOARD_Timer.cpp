@@ -13,6 +13,7 @@
 #include "KTaNE_Constants.h"
 #include "KTaNE_Common.h"
 #include "TM1637Display.h"
+#include "ClockEventChecker.h"
 
 /*******************************************************************************
  * PRIVATE #DEFINES                                                            *
@@ -43,6 +44,9 @@ void BOARD_Init()
     pinMode(STRIKE2_PIN,OUTPUT);
     digitalWrite(STRIKE1_PIN,0);
     digitalWrite(STRIKE2_PIN,0);
+
+    ClearClock();
+    showTime(0);
 }
 
 /**

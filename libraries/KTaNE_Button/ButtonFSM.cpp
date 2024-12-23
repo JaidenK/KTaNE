@@ -171,6 +171,9 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
         {
             digitalWrite(DISARM_PIN, LOW);
             digitalWrite(STRIKE_PIN, LOW);
+            digitalWrite(PIN_RED,LOW);  
+            digitalWrite(PIN_GREEN,LOW);  
+            digitalWrite(PIN_BLUE,LOW);  
             STATUS |= _BV(STS_READY);
             STATUS &= ~_BV(STS_RUNNING);   
             STATUS &= ~_BV(STS_SOLVED);    
@@ -191,27 +194,46 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
         }
         break;
     case Running:
-        if(ThisEvent.EventType == ES_ENTRY)
+        switch(ThisEvent.EventType)
         {
-            STATUS |= _BV(STS_RUNNING);
-        }
-        if(ThisEvent.EventType == BUTTON_EVENT)
-        {       
-            if(ThisEvent.EventParam & 1) // On release
-            {
-                // Request digits
-                STATUS |= _BV(STS_REQUEST);
-                REQUEST = REQ_DIGITS;
-            }
-            // Todo
-            //STATUS |= _BV(STS_STRIKE);    
-            ThisEvent.EventType = ES_NO_EVENT;                    
-        } 
-        else if(ThisEvent.EventType == EVENT_RESET)
-        {
-            ThisEvent.EventType = ES_NO_EVENT;
-            nextState = Idle;
-            makeTransition = TRUE;
+            case ES_ENTRY:
+                STATUS |= _BV(STS_RUNNING);
+                digitalWrite(PIN_RED,LOW);  
+                digitalWrite(PIN_GREEN,LOW);  
+                digitalWrite(PIN_BLUE,LOW); 
+                break;
+            case BUTTON_EVENT:  
+                if(ThisEvent.EventParam & 1) // On release
+                {
+                    // Request digits
+                    REQUEST = REQ_DIGITS;
+                    STATUS |= _BV(STS_REQUEST);
+
+                    digitalWrite(PIN_RED,LOW);  
+                    digitalWrite(PIN_GREEN,LOW);  
+                    digitalWrite(PIN_BLUE,LOW); 
+                }
+                else
+                {
+                    // On press
+                    // todo: slight delay?
+                    digitalWrite(PIN_GREEN,HIGH);  
+                    digitalWrite(PIN_BLUE,HIGH); 
+                }
+                // Todo
+                //STATUS |= _BV(STS_STRIKE);    
+                ThisEvent.EventType = ES_NO_EVENT;  
+                break;
+            case EVENT_RESET:
+                ThisEvent.EventType = ES_NO_EVENT;
+                nextState = Idle;
+                makeTransition = TRUE;
+                break;
+            case SOLVED_EVENT:
+                ThisEvent.EventType = ES_NO_EVENT;
+                nextState = Solved;
+                makeTransition = TRUE;
+                break;
         }
         break;
     case Solved:

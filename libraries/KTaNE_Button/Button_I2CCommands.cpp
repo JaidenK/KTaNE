@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include "KTaNE.h"
 #include "ES_Framework.h"
+#include "BOARD_Button.h"
 
 void ServiceI2CRequest(I2C_CommandPacket *pkt)
 {
@@ -17,18 +18,15 @@ void ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length)
     switch (pkt->CommandID)
     {
     case REG_REQUEST:
-        STATUS |= STS_STRIKE;
-        STATUS = STATUS ^ 0b10000000;
         // Check if they're writing to the register
         if(length > 1)
         {
-            STATUS = STATUS ^ 0b01000000;
             switch (REQUEST)
             {
             case REQ_DIGITS:
-                // TEMPORARY
                 // TODO
-                STATUS |= STS_SOLVED;
+                STATUS |= _BV(STS_SOLVED);                
+                ES_PostAll((ES_Event){SOLVED_EVENT,0});
                 break;            
             default:
                 break;

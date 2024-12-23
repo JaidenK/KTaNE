@@ -47,6 +47,8 @@ typedef enum {
     EVENT_RESET,
     /* Module custom events */
     BUTTON_EVENT,
+    SOLVED_EVENT,
+    STRIKE_EVENT,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 
