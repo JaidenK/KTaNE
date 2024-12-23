@@ -68,50 +68,6 @@ uint8_t ServiceCommandLocally(uint8_t *buf)
     case FLASH_LED:
         ES_PostAll((ES_Event){FLASH_REQUESTED,0});
         break;    
-    // case SET_TIME_LIMIT:
-    //     Serial.print(F("New time: "));
-    //     Serial.println(*((uint32_t *)&command[1]));
-    //     SetTimeLimitConfig(*((uint32_t *)&command[1]));
-    //     SendUARTResponse(address,command,5);
-    //     break;
-    // case SET_N_BATTERIES:
-    //     Serial.print(F("New batteries: "));
-    //     Serial.println(*((uint32_t *)&command[1]));
-    //     SetNumBatteriesConfig(*((uint32_t *)&command[1]));
-    //     response[0] = SET_N_BATTERIES;
-    //     response[1] = nBatteries;
-    //     SendUARTResponse(address,response,2);
-    //     break;
-    // case SET_SERIAL_NO:
-    //     Serial.print(F("New serial: "));
-    //     Serial.println((char *)&command[1]);
-    //     response[0] = SET_SERIAL_NO;
-    //     SetSerialNoConfig(&command[1]);
-    //     memcpy(&response[1],serial_no,sizeof(serial_no));
-    //     SendUARTResponse(address,response,sizeof(serial_no)+1);
-    //     break;
-    // case REQUEST_CONFIG:
-    //     switch (command[1])
-    //     {
-    //     case SET_TIME_LIMIT:
-    //         response[0] = SET_TIME_LIMIT;
-    //         memcpy(&response[1],&timeLimit,sizeof(uint32_t));
-    //         SendUARTResponse(address,response,sizeof(uint32_t)+1);
-    //         break;     
-    //     case SET_N_BATTERIES:
-    //         response[0] = SET_N_BATTERIES;
-    //         response[1] = nBatteries;
-    //         SendUARTResponse(address,response,2);
-    //         break;     
-    //     case SET_SERIAL_NO:
-    //         response[0] = SET_SERIAL_NO;
-    //         memcpy(&response[1],serial_no,sizeof(serial_no));
-    //         SendUARTResponse(address,response,sizeof(serial_no)+1);
-    //         break;  
-    //     default:
-    //         break;
-    //     }
-    //     break;
     case GET_EEPROM:
         TestEEPROMDump(command);
         break;
@@ -141,6 +97,9 @@ void ProcessSerialCommand(uint8_t *buf)
     uint8_t length = buf[OFFSET_LENGTH] - OFFSET_CMD_START - 2; // extra -1 for CRC
     uint8_t nResponseBytes = buf[OFFSET_RESPONSE_LENGTH];
 
+    // A command has been received from the PC. If it's addressed to
+    // us, the Timer, then service it locally. If it's not for us,
+    // then just send it along via I2C.
     if(address == i2c_address)
     {
         // If the command is meant for us, service it locally.
@@ -152,32 +111,23 @@ void ProcessSerialCommand(uint8_t *buf)
                 ((uint8_t *)&LastCommand)[i] = command[i];
             I2C_receive_test(length);
         }        
-        return;
     }
-
-    I2C_SendPacketEx(address,command,length);
-
-    if(nResponseBytes > 0)
+    else
     {
-        // TODO: forward the response to the GUI as a packet?        
-        
-        Wire.requestFrom((uint8_t)address, nResponseBytes); 
+        I2C_SendPacketEx(address,command,length);
 
-        for(uint8_t i = 0; i < nResponseBytes && Wire.available(); i++)
-        {
-            uint8_t c = (uint8_t)Wire.read();
-            responseBuf[i] = c;
-            
-            // I2C interface pads data with 0xFF after slave stops transmitting
-            if(c == 0xFF)
-                continue;
+        if(nResponseBytes > 0)
+        {        
+            Wire.requestFrom((uint8_t)address, nResponseBytes); 
 
-            //Serial.print((char)c);
+            for(uint8_t i = 0; i < nResponseBytes && Wire.available(); i++)
+            {
+                uint8_t c = (uint8_t)Wire.read();
+                responseBuf[i] = c;            
+            }
+            while(Wire.available()) Wire.read(); // Consume extra characters if any where sent
+
+            SendUARTResponse(address, responseBuf, nResponseBytes);
         }
-        while(Wire.available()) Wire.read(); // Consume extra characters
-
-        //Serial.println();
-        
-        SendUARTResponse(address, responseBuf, nResponseBytes);
     }
 }

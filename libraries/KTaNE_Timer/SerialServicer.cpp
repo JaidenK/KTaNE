@@ -32,10 +32,6 @@ void ServiceSerial()
 
     while((newData = Serial.read()) > -1)
     {
-        // Print for debug purposes
-        //Serial.print(newData);
-        //Serial.print(' ');
-
         switch (rxState)
         {
         case SearchingForSync1:

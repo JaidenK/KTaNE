@@ -84,7 +84,6 @@ static const char *StateNames[] = {
     "N_STATES",
 };
 
-
 TimerFSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
 static uint8_t MyPriority;
 
@@ -97,22 +96,9 @@ static uint8_t moduleI2Crequest = 0;
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
 
-void FlashBlocking()
-{
-    for (int i = 0; i < 5; i++)
-    {
-        digitalWrite(STRIKE1_PIN,1);
-        delay(200);
-        digitalWrite(STRIKE1_PIN,0);
-        delay(200);
-    }
-    
-}
-
 uint8_t InitTimerFSM(uint8_t Priority)
 {
     MyPriority = Priority;
-    // put us into the Initial PseudoState
     CurrentState = InitPState;
 
     // post the initial transition event
@@ -123,12 +109,10 @@ uint8_t InitTimerFSM(uint8_t Priority)
     }
 }
 
-uint8_t PostTimerFSM(ES_Event ThisEvent)
+uint8_t PostTimerFSM(ES_Event ThisEvent) 
 {
     return ES_PostToService(MyPriority, ThisEvent);
 }
-
-
 
 ES_Event RunTimerFSM(ES_Event ThisEvent)
 {
@@ -182,10 +166,6 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         case MODULE_DISCONNECTED:
             Serial.print(F("Module disconnected at address: "));
             Serial.println(ThisEvent.EventParam);
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case FLASH_REQUESTED:
-            FlashBlocking();
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         case ES_EXIT:

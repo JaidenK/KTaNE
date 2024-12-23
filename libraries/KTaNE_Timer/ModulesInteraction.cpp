@@ -220,10 +220,6 @@ uint8_t checkAllModulesReady()
     {
         if(ModList[i].i2c_address > 0)
         {
-            //Serial.print(ModList[i].i2c_address);
-            //Serial.print(": ");
-            //print2digithex(ModList[i].Status);
-            //Serial.println();
             toggleLEDs(ModList[i].i2c_address);
 
             
@@ -290,29 +286,17 @@ uint8_t ScanForModules()
                 #ifdef VERBOSE_BUS_SCAN
                 RequestAndPrintModuleName(address);
                 #endif
-                //char IDbuf[N_MAX_MODULE_ID_CHARS] = {0};
-                //GetModuleID(address,IDbuf,sizeof(IDbuf));     
 
                 if(!doesModuleAlreadyExist(address))
                 {                
                     ES_PostAll((ES_Event){MODULE_CONNECTED,address});    
-
-                    // New module
-                    //Serial.print(F(" (New module!): "));
-                    //print2digithex(address);
-                    //Serial.println();
-                    
-                                        
+                             
                     // Find first available index (or overwrite the last one)
                     uint8_t i = 0;
                     for(;(i<(N_MAX_MODULES-1))&&(ModList[i].i2c_address);i++)
                         ;
 
                     ModList[i].i2c_address = address;
-                    //ModList[i].isDisarmed = 0;
-                    //memcpy(ModList[i].model_id,IDbuf,N_MAX_MODULE_ID_CHARS);
-                    //Serial.print("model id: ");
-                    //Serial.println(ModList[i].model_id);
                 }
                 #ifdef VERBOSE_BUS_SCAN
                 Serial.println();
@@ -321,11 +305,15 @@ uint8_t ScanForModules()
         }
         else if (wire_result == 4)
         {
-            Serial.println(F("Unknown error wire_result=4"));
+            Serial.print(F("Unknown error wire_result=4 at address "));
+            print2digithex(address);
+            Serial.println();
         }
         else if (wire_result == 3)
         {
-            Serial.println(F("Error wire_result=3"));
+            Serial.println(F("Error wire_result=3 at address"));
+            print2digithex(address);
+            Serial.println();
         }
         else
         {
