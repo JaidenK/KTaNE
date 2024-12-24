@@ -44,7 +44,7 @@
 #define LIGHT_PIN A3
 
 #define STRIKE1_PIN 12
-#define STRIKE2_PIN 15
+#define STRIKE2_PIN 13
 
 
 /**

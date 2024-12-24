@@ -151,6 +151,8 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         {            
             LoadAllEepromConfigInfo();
             SendUARTCommandByte(i2c_address,RESET);
+            display.setBrightness(5);
+            display.clear();
 
             // now put the machine into the actual initial state
             nextState = Idle;
@@ -172,13 +174,13 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             break;
         case ES_TIMEOUT:
         case ES_ENTRY:
+            digitalWrite(STRIKE1_PIN,LOW);
+            digitalWrite(STRIKE2_PIN,LOW);
             StartPseudoTimer(0, 200);
             ScanForModules(); // Detects new modules
             GetStatusAllModules(); // Detects disconnected modules
             SendModuleListToPC();
-            display.setBrightness(5);
-            display.clear();
-            display.showNumberDec(10,false,2,0);
+            showTime(((uint32_t)getTimeLimist_s()) * 1000);
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         case MODULE_CONNECTED:
@@ -203,6 +205,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         {
         case ES_ENTRY:
             nStrikes = 0;
+            SetTimeLimit(getTimeLimist_s());
             StartPseudoTimer(0, 100);
             StartPseudoTimer(1, 2000);
             ThisEvent.EventType = ES_NO_EVENT;
@@ -245,6 +248,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             broadcastAllModules(REG_CTRL, _BV(CTRL_START));
             StartPseudoTimer(0, 50);
             StartPseudoTimer(1, 10000);
+            StartClock();
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         case ES_TIMEOUT:
@@ -291,13 +295,38 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             }
             ThisEvent.EventType = ES_NO_EVENT;
             break;
+        case CLOCK_EXPIRED:
+            nextState = Exploding;
+            makeTransition = TRUE;
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
         case ES_EXIT:
+            StopClock();
             resetAllModules();
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         default:
             break;
         }        
+        break;
+    case Exploding:
+        switch (ThisEvent.EventType)
+        {
+        case ES_ENTRY:
+            digitalWrite(STRIKE1_PIN,HIGH);
+            digitalWrite(STRIKE2_PIN,HIGH);
+            ThisEvent.EventType = ES_NO_EVENT;
+            StopPseudoTimer(0);
+            StopPseudoTimer(1);
+            StartPseudoTimer(0, 3000);
+            break;        
+        case ES_TIMEOUT:
+            nextState = Idle;
+            makeTransition = TRUE;
+            break;
+        default:
+            break;
+        }
         break;
     default: // all unhandled states fall into here
         break;

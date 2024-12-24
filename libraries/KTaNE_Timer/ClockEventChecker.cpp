@@ -211,17 +211,26 @@ void clockDisplayTest()
   }
 }
 
-
+// t = time in milliseconds
 void showTime(int32_t t)
 {
-  if(t > 60000)
+  uint8_t firstNumber = 0;
+  uint8_t secondNumber = 0;
+  if(t >= 60000)
   {
-    display.showNumberDecEx(t/60000,0b01000000, TRUE, 2, 0);
-    display.showNumberDec((t / 1000) % 60, TRUE, 2, 2);
+    firstNumber = t/60000;
+    secondNumber = (t / 1000) % 60;
   }
   else
   {
-    display.showNumberDecEx(t/1000,0b01000000, TRUE, 2, 0);
-    display.showNumberDec((t / 10) % 100, TRUE, 2, 2);
+    firstNumber = t/1000;
+    secondNumber = (t / 10) % 100;
   }
+  display.showNumberDecEx(firstNumber,0b01000000, TRUE, 2, 0);
+  display.showNumberDec(secondNumber, TRUE, 2, 2);
+}
+
+uint16_t getDisplayedDigits()
+{  
+  return 0;
 }
