@@ -28,6 +28,8 @@
                 <TextBlock Text="{Binding Path=Status,StringFormat=X2}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Blink" Width="50" Margin="0,0,20,0" Command="{Binding BlinkCmd}"/>
+                <Grid Width="20"/>
                 <Button Content="Read" Width="50" Margin="0,0,20,0" Command="{Binding ReadEEPROMCmd}"/>
                 <Button Content="Apply" Width="50" Command="{Binding ApplyEEPROMCmd}"/>
             </StackPanel>

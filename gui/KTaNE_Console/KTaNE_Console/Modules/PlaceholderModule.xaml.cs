@@ -140,6 +140,7 @@ namespace KTaNE_Console.Modules
 
         private Serial serial;
         private IConsoleWriter CW;
+        public RelayCommand BlinkCmd { get; set; }
         public RelayCommand ReadEEPROMCmd { get; set; }
         public RelayCommand ApplyEEPROMCmd { get; set; }
         private Queue<byte[]> TxQueue { get; set; } = new Queue<byte[]>();
@@ -167,6 +168,20 @@ namespace KTaNE_Console.Modules
                 {
                     CW.ConsoleWrite(ex.Message + Environment.NewLine);
                 }
+            });
+
+            BlinkCmd = new RelayCommand((o) =>
+            {
+                Task.Run(() =>
+                {
+                    for(int i = 0; i < 3; i++)
+                    {
+                        serial.SendCommand(0, Address, new byte[] { (byte)Registers.REG_CTRL, (byte)0x0C });
+                        Thread.Sleep(100);
+                        serial.SendCommand(0, Address, new byte[] { (byte)Registers.REG_CTRL, (byte)0x0C });
+                        Thread.Sleep(100);
+                    }
+                });
             });
 
             ApplyEEPROMCmd = new RelayCommand((o) =>

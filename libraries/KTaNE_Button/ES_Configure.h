@@ -52,30 +52,6 @@ typedef enum {
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 
-/*static const char *EventNames[] = {
-    "ES_NO_EVENT",
-    "ES_ERROR",
-    "ES_INIT",
-    "ES_ENTRY",
-    "ES_EXIT",
-    "ES_KEYINPUT",
-    "ES_LISTEVENTS",
-    "ES_TIMEOUT",
-    "ES_TIMERACTIVE",
-    "ES_TIMERSTOPPED",
-    "CONFIGURATION_COMPLETE",
-    "START_CLOCK",
-    "CLOCK_EXPIRED",
-    "MODULE_DISARMED",
-    "MODULE_STRIKE",
-    "LIGHT_LEVEL_CHANGED",
-    "START_REQUESTED",
-    "NUMBEROFEVENTS",
-};*/
-
-
-
-
 /****************************************************************************/
 // This are the name of the Event checking function header file.
 #define EVENT_CHECK_HEADER "KeyboardEventChecker.h"
