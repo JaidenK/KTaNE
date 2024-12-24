@@ -35,6 +35,11 @@ Constants used between all modules for KTaNE.
 //#define EEPROM_N_MODULES                0x65 // Number of modules (automatically determined by timer at runtime)
 #define EEPROM_TIMER_INDICATORS         0x70 // null-terminated string. 
 
+// This block of the Timer's EEPROM will be replicated on
+// all modules to provide bomb config info.
+#define EEPROM_REPEATED_MEMORY_START 0x50
+#define REPEATED_MEMORY_LENGTH 0x40
+
 #define SERIAL_BAUD_RATE 9600
 
 #define GENERAL_CALL_I2C_ADDRESS 0x00

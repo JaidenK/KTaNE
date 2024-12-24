@@ -8,7 +8,9 @@
 #include "ES_Configure.h"
 
 #include "KTaNE.h"
+#include "KTaNE_Constants.h"
 #include "ModulesInteraction.h"
+#include "EEPROM.h"
 
 //#define VERBOSE_BUS_SCAN
 
@@ -56,53 +58,6 @@ uint8_t ValidateSyncBytes(uint8_t address)
     }
     return (!isValid || (nBytesRead != 2*N_SYNC_BYTES));
 }
-
-
-//void RequestAndPrintModuleName(uint8_t address)
-//{
-//    // Device is a valid module!
-//    // Ask for its name
-//    I2C_SendPacket(address, REQUEST_NAME);
-//    Wire.requestFrom((uint8_t)address, (uint8_t)N_MAX_MODULE_NAME_CHARS); 
-//    
-//    // Read the name
-//    for(uint8_t i = 0; i < N_MAX_MODULE_NAME_CHARS && Wire.available(); i++)
-//    {
-//        uint8_t c = (uint8_t)Wire.read();
-//        
-//        // I2C interface pads data with 0xFF after slave stops transmitting
-//        if(c == 0xFF)
-//            break;
-//
-//        Serial.print((char)c);
-//    }
-//    while(Wire.available()) Wire.read(); // Consume extra characters
-//}
-
-// void GetModuleID(uint8_t address, char *IDbuf, uint8_t length)
-// {    
-//     // Device is a valid module!
-//     // Ask for its name
-//     Wire.beginTransmission(address);
-//     Wire.write(i2c_address);
-//     Wire.write(REQUEST_ID);
-//     Wire.endTransmission();
-//     Wire.requestFrom((uint8_t)address, length); 
-    
-//     // Read the name
-//     for(uint8_t i = 0; i < length && Wire.available(); i++)
-//     {
-//         uint8_t c = (uint8_t)Wire.read();
-        
-//         // I2C interface pads data with 0xFF after slave stops transmitting
-//         if(c == 0xFF)
-//             break;
-
-//         IDbuf[i] = (char)c;
-//         // Serial.print((char)c);
-//     }
-//     while(Wire.available()) Wire.read(); // Consume extra characters
-// }
 
 uint8_t doesModuleAlreadyExist(uint8_t address)
 {    
@@ -233,6 +188,36 @@ void broadcastAllModules(uint8_t addr, uint8_t value)
                 // Missing module
                 ES_PostAll((ES_Event){MODULE_DISCONNECTED,ModList[i].i2c_address});
                 ModList[i].i2c_address = 0;
+            }
+        }
+    }
+}
+
+void ReplicateConfigInfo()
+{
+    uint8_t wire_result = 0;
+    for(uint8_t i = 0; i < N_MAX_MODULES; i++)
+    {
+        if(ModList[i].i2c_address > 0)
+        {
+            uint16_t eeprom_addr = EEPROM_REPEATED_MEMORY_START;
+            uint8_t bytesRemaining = REPEATED_MEMORY_LENGTH;
+
+            while(bytesRemaining > 0)
+            {
+                Wire.beginTransmission(ModList[i].i2c_address);   
+                Wire.write(SET_EEPROM);         
+                Wire.write(((uint8_t *)&eeprom_addr)[0]);      
+                Wire.write(((uint8_t *)&eeprom_addr)[1]);    
+                Wire.write((uint8_t)16);
+                for(uint8_t j = 0; j < 16; j++)
+                {
+                    Wire.write(EEPROM.read(eeprom_addr));
+                    eeprom_addr++;
+                    if(bytesRemaining > 0)
+                        bytesRemaining--;
+                }
+                wire_result = Wire.endTransmission();
             }
         }
     }

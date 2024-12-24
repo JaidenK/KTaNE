@@ -203,6 +203,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             StartPseudoTimer(0, 100);
             StartPseudoTimer(1, 2000);
             ThisEvent.EventType = ES_NO_EVENT;
+            ReplicateConfigInfo();
             resetAllModules();
             break;
         case ES_TIMEOUT:
