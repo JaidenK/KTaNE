@@ -176,6 +176,9 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             ScanForModules(); // Detects new modules
             GetStatusAllModules(); // Detects disconnected modules
             SendModuleListToPC();
+            display.setBrightness(5);
+            display.clear();
+            display.showNumberDec(10,false,2,0);
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         case MODULE_CONNECTED:

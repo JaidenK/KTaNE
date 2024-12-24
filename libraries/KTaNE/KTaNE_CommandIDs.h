@@ -64,18 +64,19 @@ I2C_Command_ID;
 
 extern volatile uint8_t STATUS;
 #define REG_STATUS  (0x10)
-#define STS_STRIKE (0)
-#define STS_SOLVED (1)
+#define STS_STRIKE  (0)
+#define STS_SOLVED  (1)
 #define STS_RUNNING (2)
 #define STS_REQUEST (3)
 #define STS_READY   (4)
 
 extern volatile uint8_t CONTROL;
-#define REG_CTRL    (0x11)
-#define CTRL_START (0)
-#define CTRL_RESET (1)
-#define CTRL_LED1  (2)
-#define CTRL_LED2  (3)
+#define REG_CTRL      (0x11)
+#define CTRL_START    (0)
+#define CTRL_RESET    (1)
+#define CTRL_LED1     (2)
+#define CTRL_LED2     (3)
+#define CTRL_DETONATE (4)
 
 extern volatile uint8_t REQUEST;
 #define REG_REQUEST (0x12)

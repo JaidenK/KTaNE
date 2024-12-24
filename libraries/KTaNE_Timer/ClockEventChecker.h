@@ -27,6 +27,7 @@
  ******************************************************************************/
 
 #include "ES_Configure.h"   // defines ES_Event, INIT_EVENT, ENTRY_EVENT, and EXIT_EVENT
+#include "TM1637Display.h"
 
 
 /*******************************************************************************
@@ -44,6 +45,8 @@
  ******************************************************************************/
 extern uint32_t timeLimit_ms;
 extern int32_t timeRemaining;
+
+extern TM1637Display display;
 
 void SetTimeLimit(uint32_t newLimit_s);
 void StartClock(void);

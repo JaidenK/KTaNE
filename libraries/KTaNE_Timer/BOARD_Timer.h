@@ -38,13 +38,13 @@
 #define SPEAKER_PIN 9
 #define START_BTN 12
 
-#define TM1637_CLK 8
-#define TM1637_DIO 7
+#define TM1637_CLK 2
+#define TM1637_DIO 3
 
 #define LIGHT_PIN A3
 
-#define STRIKE1_PIN 2
-#define STRIKE2_PIN 3
+#define STRIKE1_PIN 12
+#define STRIKE2_PIN 15
 
 
 /**
