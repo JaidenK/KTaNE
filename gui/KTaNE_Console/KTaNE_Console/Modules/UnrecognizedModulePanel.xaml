@@ -1,0 +1,11 @@
+﻿<UserControl x:Class="KTaNE_Console.Modules.UnrecognizedModulePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KTaNE_Console.Modules"
+             mc:Ignorable="d" >
+    <Grid>
+        <TextBlock FontSize="18" Text="Unrecognized Module" TextAlignment="Center" Margin="20"/>
+    </Grid>
+</UserControl>

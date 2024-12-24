@@ -37,15 +37,15 @@ namespace KTaNE_Console.Modules
         public static readonly ushort PORTS = 0x64;
         public static readonly ushort INDICATORS = 0x70;
 
+        public static readonly ushort BUTTON_LABEL = 0x1E0;
+        public static readonly ushort BUTTON_BTN_COLOR = 0x1D0;
+        public static readonly ushort BUTTON_STRIP_COLOR = 0x1C0;
+
         public byte[] bytes = new byte[512];
         public void Update(int eeprom_address, byte[] bytes)
         {
             Array.Copy(bytes, 0, this.bytes, eeprom_address, bytes.Length);
         }
-    }
-    public class EEPROM_Timer : EEPROM
-    {
-
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ namespace KTaNE_Console.Modules
         private Queue<byte[]> TxQueue { get; set; } = new Queue<byte[]>();
         public byte Status { get; set; } = 0;
 
-        public EEPROM_Timer Eeprom = new EEPROM_Timer();
+        public EEPROM Eeprom { get; set; } = new EEPROM();
 
         public List<byte[]> BuildGetEEPROMPackets(byte i2c_address, ushort eeprom_address, UInt16 length)
         {
@@ -260,14 +260,12 @@ namespace KTaNE_Console.Modules
             });
         }
 
-        private byte[] buildSetEEPROMPacket(ushort eeprom_addr, byte b)
+        public static byte[] buildSetEEPROMPacket(byte i2c_address, ushort eeprom_addr, byte b)
         {
-            return buildSetEEPROMPacket(eeprom_addr, new byte[] { b });
+            return buildSetEEPROMPacket(i2c_address, eeprom_addr, new byte[] { b });
         }
-        private byte[] buildSetEEPROMPacket(ushort eeprom_addr, byte[] bytes_to_write)
+        public static byte[] buildSetEEPROMPacket(byte i2c_address, ushort eeprom_addr, byte[] bytes_to_write)
         {
-
-            byte i2c_address = Address;
             var eeprom_addr_bytes = BitConverter.GetBytes(eeprom_addr);
 
             byte[] bytes = new byte[13 + 4 + bytes_to_write.Length];
@@ -304,10 +302,10 @@ namespace KTaNE_Console.Modules
                 serial += ' ';
             }
 
-            list.Add(buildSetEEPROMPacket(EEPROM.SERIAL_NO, Encoding.ASCII.GetBytes(serial)));
-            list.Add(buildSetEEPROMPacket(EEPROM.TIME_LIMIT, BitConverter.GetBytes(ushort.Parse(TimeLimitInput))));
-            list.Add(buildSetEEPROMPacket(EEPROM.AA_BATTERIES, byte.Parse(NumAABatteriesInput)));
-            list.Add(buildSetEEPROMPacket(EEPROM.D_BATTERIES, byte.Parse(NumDBatteriesInput)));
+            list.Add(buildSetEEPROMPacket(Address, EEPROM.SERIAL_NO, Encoding.ASCII.GetBytes(serial)));
+            list.Add(buildSetEEPROMPacket(Address, EEPROM.TIME_LIMIT, BitConverter.GetBytes(ushort.Parse(TimeLimitInput))));
+            list.Add(buildSetEEPROMPacket(Address, EEPROM.AA_BATTERIES, byte.Parse(NumAABatteriesInput)));
+            list.Add(buildSetEEPROMPacket(Address, EEPROM.D_BATTERIES, byte.Parse(NumDBatteriesInput)));
 
             // Ports
             byte ports = 0;
@@ -321,15 +319,15 @@ namespace KTaNE_Console.Modules
             ports |= (byte)(Port_Spare1_Input ? (1 << 6) : 0);
             ports |= (byte)(Port_Spare2_Input ? (1 << 7) : 0);
 
-            list.Add(buildSetEEPROMPacket(EEPROM.PORTS, ports));
+            list.Add(buildSetEEPROMPacket(Address, EEPROM.PORTS, ports));
 
             // Indicators
             string indicators = IndicatorsInput ?? "";
             int i = 0;
-            while(indicators.Length > 0)
+            while (indicators.Length > 0)
             {
                 string sub = indicators;
-                if(indicators.Length > 16)
+                if (indicators.Length > 16)
                 {
                     sub = indicators.Substring(0, 16);
                     indicators = indicators.Substring(16, indicators.Length - 16);
@@ -338,7 +336,7 @@ namespace KTaNE_Console.Modules
                 {
                     indicators = "";
                 }
-                list.Add(buildSetEEPROMPacket((ushort)(EEPROM.INDICATORS + (i * 0x10)), Encoding.ASCII.GetBytes(sub)));
+                list.Add(buildSetEEPROMPacket(Address, (ushort)(EEPROM.INDICATORS + (i * 0x10)), Encoding.ASCII.GetBytes(sub)));
                 i++;
             }
 
@@ -370,7 +368,7 @@ namespace KTaNE_Console.Modules
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(""));
                     break;
                 case CommandID.LIST_MODULES:
-                    int nModules = (pkt.i2c_bytes.Length - 1) / 2;                    
+                    int nModules = (pkt.i2c_bytes.Length - 1) / 2;
                     Dispatcher.BeginInvoke((Action)(() =>
                     {
                         if (StatusList.Count != nModules)

@@ -335,6 +335,7 @@ namespace KTaNE_Console.ViewModel
             //{
             //    Module.SendConfigRequests();
             //}
+            ((TheTimer)(ModuleList[0])).ReadTimerEEPROMCmd.Execute(null);
         }
     }
 }

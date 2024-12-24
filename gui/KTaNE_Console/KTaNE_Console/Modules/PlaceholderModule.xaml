@@ -5,7 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:KTaNE_Console.Modules"
              mc:Ignorable="d" 
-             Background="AliceBlue">
+             Background="AliceBlue"
+             BorderThickness="1"
+             BorderBrush="Black">
     <Grid>
         <StackPanel Width="300" HorizontalAlignment="Left" Margin="20">
             <DockPanel>
@@ -19,7 +21,16 @@
                 <TextBlock Text="{Binding Path=ModuleName}"/>
             </DockPanel>
             <Separator/>
-            <TextBlock FontSize="18" Text="Unrecognized Module" TextAlignment="Center" Margin="20"/>
+            <UserControl Content="{Binding Path=ModulePanel}"/>
+            <Separator/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Status: "/>
+                <TextBlock Text="{Binding Path=Status,StringFormat=X2}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button Content="Read" Width="50" Margin="0,0,20,0" Command="{Binding ReadEEPROMCmd}"/>
+                <Button Content="Apply" Width="50" Command="{Binding ApplyEEPROMCmd}"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </UserControl>

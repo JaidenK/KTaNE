@@ -62,21 +62,44 @@
     <Compile Include="Core\SerialTextReceivedEventArgs.cs" />
     <Compile Include="Model\BombConfig.cs" />
     <Compile Include="Model\CommandIDs.cs" />
+    <Compile Include="Modules\ButtonModulePanel.xaml.cs">
+      <DependentUpon>ButtonModulePanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="Model\UartPacket.cs" />
+    <Compile Include="Modules\IModulePanel.cs" />
+    <Compile Include="Modules\ModuleFactory.cs" />
     <Compile Include="Modules\PlaceholderModule.xaml.cs">
       <DependentUpon>PlaceholderModule.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Modules\SketchpadModulePanel.xaml.cs">
+      <DependentUpon>SketchpadModulePanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="Modules\TheTimer.xaml.cs">
       <DependentUpon>TheTimer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Modules\UnrecognizedModulePanel.xaml.cs">
+      <DependentUpon>UnrecognizedModulePanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModel\IConsoleWriter.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
+    <Page Include="Modules\ButtonModulePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Modules\PlaceholderModule.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Modules\SketchpadModulePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Modules\TheTimer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Modules\UnrecognizedModulePanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

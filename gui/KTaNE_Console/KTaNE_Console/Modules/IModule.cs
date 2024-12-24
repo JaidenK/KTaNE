@@ -13,5 +13,6 @@
         string ModelID { get; }
         SolvedState State { get; }
         byte Status { get; set; }
+        EEPROM Eeprom { get; set; }
     }
 }
