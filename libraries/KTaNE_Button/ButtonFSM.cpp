@@ -88,6 +88,139 @@ static uint8_t moduleI2Crequest = 0;
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
  
+typedef enum 
+{
+    RELEASE_IMMEDIATELY,
+    RELEASE_DIGIT_5,
+    RELEASE_DIGIT_4,
+    RELEASE_DIGIT_1,
+}
+ButtonRule_t;
+
+ButtonRule_t btn_rule = 0;
+
+uint8_t strip_red_value = 0;
+uint8_t strip_green_value = 0;
+uint8_t strip_blue_value = 0;
+
+void SetStripValuesFromColor(uint8_t strip_color)
+{
+    switch (strip_color)
+    {
+    case STRIP_COLOR_RED:     strip_red_value = 255; strip_green_value =   0; strip_blue_value =   0; break;
+    case STRIP_COLOR_YELLOW:  strip_red_value = 255; strip_green_value = 255; strip_blue_value =   0; break;
+    case STRIP_COLOR_GREEN:   strip_red_value =   0; strip_green_value = 255; strip_blue_value =   0; break;
+    case STRIP_COLOR_CYAN:    strip_red_value =   0; strip_green_value = 255; strip_blue_value = 255; break;
+    case STRIP_COLOR_BLUE:    strip_red_value =   0; strip_green_value =   0; strip_blue_value = 255; break;
+    case STRIP_COLOR_MAGENTA: strip_red_value = 255; strip_green_value =   0; strip_blue_value = 255; break;
+    default: strip_red_value = 255; strip_green_value = 255; strip_blue_value = 255; break;
+    }
+}
+
+ButtonRule_t releasingAHeldButton(uint8_t strip_color)
+{
+    if(strip_color == STRIP_COLOR_BLUE)
+        return RELEASE_DIGIT_4;
+    if(strip_color == STRIP_COLOR_YELLOW)
+        return RELEASE_DIGIT_5;
+}
+
+ButtonRule_t calculateRule()
+{
+    uint8_t nBatteries = EEPROM.read(EEPROM_TIMER_N_AA_BATTERIES) + EEPROM.read(EEPROM_TIMER_N_D_BATTERIES);
+    uint8_t indicator_CAR = 0;
+    uint8_t indicator_FRK = 0;
+    char buf[] = {0,0,0};
+    for(uint8_t i = 0; i < 16; i++) // No consistent max # of indicators has been set yet TODO 
+    {
+        uint16_t addr = EEPROM_TIMER_INDICATORS + 4*i;
+        char c = EEPROM.read(addr);
+        if(c == '+')
+        {
+            // Lit indicator
+            buf[0] = EEPROM.read(addr + 1);
+            buf[1] = EEPROM.read(addr + 2);
+            buf[2] = EEPROM.read(addr + 3);
+            if(buf[0] == 'F' && buf[1] == 'R' && buf[2] == 'K')
+                indicator_FRK = 1;
+            if(buf[0] == 'C' && buf[1] == 'A' && buf[2] == 'R')
+                indicator_CAR = 1;
+        }
+        else if(c == '-')
+        {
+            // Unlit indicator
+        }
+        else
+        {
+            // Garbage memory. End of indicators.
+            break;
+        }
+    }
+
+    uint8_t label = EEPROM.read(EEPROM_BUTTON_LABEL);
+    uint8_t btn_color = EEPROM.read(EEPROM_BUTTON_BTN_COLOR);
+    uint8_t strip_color = EEPROM.read(EEPROM_BUTTON_STRIP_COLOR);
+
+    if(strip_color == STRIP_COLOR_RANDOM || strip_color > STRIP_COLOR_WHITE)
+    {
+        strip_color = random(6) + 1;        
+    }
+    SetStripValuesFromColor(strip_color);
+
+    ButtonRule_t rule = 0;
+
+    // 1. If the button is blue and the button says "Abort", hold the button and refer to "Releasing a Held Button".
+    if(btn_color == BTN_COLOR_BLUE && label == BTN_LABEL_ABORT)
+    {
+        rule = releasingAHeldButton(strip_color);
+    }
+    // 2. If there is more than 1 battery on the bomb and the button says "Detonate", press and immediately release the button.
+    else if(nBatteries > 1 && label == BTN_LABEL_DETONATE)
+    {
+        rule = RELEASE_IMMEDIATELY;
+    }
+    // 3. If the button is white and there is a lit indicator with label CAR, hold the button and refer to "Releasing a Held Button".
+    else if(btn_color == BTN_COLOR_WHITE && indicator_CAR)
+    {
+        rule = releasingAHeldButton(strip_color);
+    }
+    // 4. If there are more than 2 batteries on the bomb and there is a lit indicator with label FRK, press and immediately release the button.
+    else if(nBatteries > 2 && indicator_FRK)
+    {
+        rule = RELEASE_IMMEDIATELY;
+    }
+    // 5. If the button is yellow, hold the button and refer to "Releasing a Held Button"
+    else if(btn_color == BTN_COLOR_YELLOW)
+    {
+        rule = releasingAHeldButton(strip_color);
+    }
+    // 6. If the button is red and the button says "Hold", press and immediately release the button.
+    else if(btn_color == BTN_COLOR_RED && label == BTN_LABEL_HOLD)
+    {
+        rule = RELEASE_IMMEDIATELY;
+    }
+    // 7. If none of the above apply, hold the button and refer to "Releasing a Held Button".
+    else
+    {
+        rule = releasingAHeldButton(strip_color);
+    }
+    
+
+    
+    Serial.print('Z'); // ZZ for triggering logic analzyer
+    Serial.print('Z');
+    Serial.write(nBatteries);
+    Serial.write(indicator_CAR);
+    Serial.write(indicator_FRK);
+    Serial.write(label);
+    Serial.write(btn_color);
+    Serial.write(strip_color);
+    Serial.write(rule);
+    Serial.print('Z');
+
+    return rule;
+}
+
 uint8_t InitButtonFSM(uint8_t Priority)
 {
     MyPriority = Priority;
@@ -197,6 +330,7 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
         switch(ThisEvent.EventType)
         {
             case ES_ENTRY:
+                calculateRule();
                 STATUS |= _BV(STS_RUNNING);
                 digitalWrite(PIN_RED,LOW);  
                 digitalWrite(PIN_GREEN,LOW);  
@@ -217,8 +351,9 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
                 {
                     // On press
                     // todo: slight delay?
-                    digitalWrite(PIN_GREEN,HIGH);  
-                    digitalWrite(PIN_BLUE,HIGH); 
+                    analogWrite(PIN_RED,strip_red_value);  
+                    analogWrite(PIN_GREEN,strip_green_value);  
+                    analogWrite(PIN_BLUE,strip_blue_value);  
                 }
                 // Todo
                 //STATUS |= _BV(STS_STRIKE);    

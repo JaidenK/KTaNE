@@ -38,8 +38,8 @@ namespace KTaNE_Console.Modules
         public static readonly ushort INDICATORS = 0x70;
 
         public static readonly ushort BUTTON_LABEL = 0x1E0;
-        public static readonly ushort BUTTON_BTN_COLOR = 0x1D0;
-        public static readonly ushort BUTTON_STRIP_COLOR = 0x1C0;
+        public static readonly ushort BUTTON_BTN_COLOR = 0x1E1;
+        public static readonly ushort BUTTON_STRIP_COLOR = 0x1E2;
 
         public byte[] bytes = new byte[512];
         public void Update(int eeprom_address, byte[] bytes)

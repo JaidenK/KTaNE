@@ -29,27 +29,53 @@ namespace KTaNE_Console.Modules
             {
                 if (module is null)
                     return "NULL";
-                return Encoding.ASCII.GetString(module.Eeprom.bytes, EEPROM.BUTTON_LABEL, 16).Trim();
+                switch(module.Eeprom.bytes[EEPROM.BUTTON_LABEL])
+                {
+                    case 0: return "(other)";
+                    case 1: return "ABORT";
+                    case 2: return "DETONATE";
+                    case 3: return "HOLD";
+                }
+                return "NULL";
             }
         }
-        public string LabelInput { get; set; } = "";
+        public int LabelInput { get; set; } = 0; // Why does this get reset when EEPROM is read?
         public string ButtonColorFeedback
         {
             get
             {
                 if (module is null)
                     return "NULL";
-                return Encoding.ASCII.GetString(module.Eeprom.bytes, EEPROM.BUTTON_BTN_COLOR, 16).Trim();
+                switch (module.Eeprom.bytes[EEPROM.BUTTON_BTN_COLOR])
+                {
+                    case 0: return "(other)";
+                    case 1: return "Blue";
+                    case 2: return "White";
+                    case 3: return "Yellow";
+                    case 4: return "Red";
+                }
+                return "NULL";
             }
         }
-        public string ButtonColorInput { get; set; } = "";
+        public int ButtonColorInput { get; set; } = 0;
         public string StripColorFeedback
         {
             get
             {
                 if (module is null)
                     return "NULL";
-                return Encoding.ASCII.GetString(module.Eeprom.bytes, EEPROM.BUTTON_STRIP_COLOR, 16).Trim();
+                switch (module.Eeprom.bytes[EEPROM.BUTTON_STRIP_COLOR])
+                {
+                    case 0: return "(random)";
+                    case 1: return "Red";
+                    case 2: return "Yellow";
+                    case 3: return "Green";
+                    case 4: return "Cyan";
+                    case 5: return "Blue";
+                    case 6: return "Magenta";
+                    case 7: return "White";
+                }
+                return "NULL";
             }
         }
 
@@ -81,7 +107,7 @@ namespace KTaNE_Console.Modules
                         {
                             if (str[0] == '+')
                             {
-                                s += str.Substring(1, 3) + ", ";
+                                s += str.Substring(1, 3) + " ";
                             }
                             continue;
                         }
@@ -92,7 +118,7 @@ namespace KTaNE_Console.Modules
             }
         }
 
-        public string StripColorInput { get; set; } = "";
+        public int StripColorInput { get; set; } = 0;
 
         public ButtonModulePanel(IModule module)
         {
@@ -110,9 +136,9 @@ namespace KTaNE_Console.Modules
 
             var list = new List<byte[]>();
 
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM.BUTTON_LABEL, Encoding.ASCII.GetBytes(LabelInput.ToUpper().Trim())));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM.BUTTON_BTN_COLOR, Encoding.ASCII.GetBytes(ButtonColorInput.ToUpper().Trim())));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM.BUTTON_STRIP_COLOR, Encoding.ASCII.GetBytes(StripColorInput.ToUpper().Trim())));
+            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM.BUTTON_LABEL, (byte)LabelInput));
+            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM.BUTTON_BTN_COLOR, (byte)ButtonColorInput));
+            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM.BUTTON_STRIP_COLOR, (byte)StripColorInput));
 
             return list;
         }

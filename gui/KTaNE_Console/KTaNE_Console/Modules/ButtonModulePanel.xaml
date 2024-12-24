@@ -12,17 +12,37 @@
 
             <DockPanel>
                 <TextBlock Text="Button Label" Width="80"/>
-                <TextBox Text="{Binding Path=LabelInput}" Width="80" DockPanel.Dock="Right"/>
+                <ComboBox SelectedIndex="{Binding Path=LabelInput}" Width="80" DockPanel.Dock="Right">
+                    <ComboBoxItem Content="(other)"/>
+                    <ComboBoxItem Content="ABORT"/>
+                    <ComboBoxItem Content="DETONATE"/>
+                    <ComboBoxItem Content="HOLD"/>
+                </ComboBox>
                 <TextBlock Text="{Binding Path=LabelFeedback}" TextAlignment="Right"/>
             </DockPanel>
             <DockPanel>
                 <TextBlock Text="Button Color" Width="80"/>
-                <TextBox Text="{Binding Path=ButtonColorInput}" Width="80" DockPanel.Dock="Right"/>
+                <ComboBox SelectedIndex="{Binding Path=ButtonColorInput}" Width="80" DockPanel.Dock="Right">
+                    <ComboBoxItem Content="(other)"/>
+                    <ComboBoxItem Content="Blue"/>
+                    <ComboBoxItem Content="White"/>
+                    <ComboBoxItem Content="Yellow"/>
+                    <ComboBoxItem Content="Red"/>
+                </ComboBox>
                 <TextBlock Text="{Binding Path=ButtonColorFeedback}" TextAlignment="Right"/>
             </DockPanel>
             <DockPanel>
                 <TextBlock Text="Strip Color" Width="80"/>
-                <TextBox Text="{Binding Path=StripColorInput}" Width="80" DockPanel.Dock="Right"/>
+                <ComboBox SelectedIndex="{Binding Path=StripColorInput}" Width="80" DockPanel.Dock="Right">
+                    <ComboBoxItem Content="(random)"/>
+                    <ComboBoxItem Content="Red"/>
+                    <ComboBoxItem Content="Yellow"/>
+                    <ComboBoxItem Content="Green"/>
+                    <ComboBoxItem Content="Cyan"/>
+                    <ComboBoxItem Content="Blue"/>
+                    <ComboBoxItem Content="Magenta"/>
+                    <ComboBoxItem Content="White"/>
+                </ComboBox>
                 <TextBlock Text="{Binding Path=StripColorFeedback}" TextAlignment="Right"/>
             </DockPanel>
 
