@@ -53,7 +53,7 @@ void StartClock(void);
 void StopClock(void);
 void OffsetLimit(uint8_t deltaSeconds);
 void ClearClock(void);
-void showTime(int32_t t);
+uint16_t showTime(int32_t t);
 uint16_t getDisplayedDigits();
 
 

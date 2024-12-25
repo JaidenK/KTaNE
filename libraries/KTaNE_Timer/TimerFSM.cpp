@@ -63,6 +63,8 @@ void initModules(void);
  * PRIVATE MODULE VARIABLES                                                    *
  ******************************************************************************/
 
+#define STRIKE_LIMIT 3
+
 /* You will need MyPriority and the state variable; you may need others as well.
  * The type of state variable should match that of enum in header file. */
 
@@ -206,8 +208,8 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         case ES_ENTRY:
             nStrikes = 0;
             SetTimeLimit(getTimeLimist_s());
-            StartPseudoTimer(0, 100);
-            StartPseudoTimer(1, 2000);
+            StartPseudoTimer(0, 100);  // Polling rate
+            StartPseudoTimer(1, 2000); // Safety timeout
             ThisEvent.EventType = ES_NO_EVENT;
             ReplicateConfigInfo();
             resetAllModules();
@@ -246,8 +248,8 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         case ES_ENTRY:
             nStrikes = 0;            
             broadcastAllModules(REG_CTRL, _BV(CTRL_START));
-            StartPseudoTimer(0, 50);
-            StartPseudoTimer(1, 10000);
+            StartPseudoTimer(0, 50); // Polling rate
+            StopPseudoTimer(1);
             StartClock();
             ThisEvent.EventType = ES_NO_EVENT;
             break;
@@ -275,6 +277,21 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
                         {
                             Serial.println(F("Strike!"));
                             nStrikes++;
+                            if(nStrikes == 1)
+                            {
+                                digitalWrite(STRIKE1_PIN,HIGH);
+                            }     
+                            else if(nStrikes == 2)
+                            {
+                                digitalWrite(STRIKE1_PIN,HIGH);
+                                digitalWrite(STRIKE2_PIN,HIGH);
+                            }                       
+                            else if(nStrikes >= STRIKE_LIMIT)
+                            {
+                                nextState = Exploding;
+                                makeTransition = TRUE;
+                                ThisEvent.EventType = ES_NO_EVENT;
+                            }
                         }
                         if(ModList[i].Status & _BV(STS_REQUEST))
                         {

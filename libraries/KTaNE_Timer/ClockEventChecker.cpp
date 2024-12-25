@@ -211,8 +211,10 @@ void clockDisplayTest()
   }
 }
 
-// t = time in milliseconds
-void showTime(int32_t t)
+// t = time in milliseconds.
+// Returns the four digits shown on the display encoded
+// within the 4-bit nibbles of the 2 byte return value.
+uint16_t showTime(int32_t t)
 {
   uint8_t firstNumber = 0;
   uint8_t secondNumber = 0;
@@ -228,9 +230,23 @@ void showTime(int32_t t)
   }
   display.showNumberDecEx(firstNumber,0b01000000, TRUE, 2, 0);
   display.showNumberDec(secondNumber, TRUE, 2, 2);
+
+  uint8_t nibble1 = firstNumber / 10;
+  uint8_t nibble2 = firstNumber - 10 * nibble1;
+  uint8_t nibble3 = secondNumber / 10;
+  uint8_t nibble4 = secondNumber - 10 * nibble3;
+  
+  uint16_t retVal = (nibble1 << 12) | (nibble2 << 8) | (nibble3 << 4) | nibble4;
+  //Serial.print(F("digits"));
+  //Serial.println(nibble1);
+  //Serial.println(nibble2);
+  //Serial.println(nibble3);
+  //Serial.println(nibble4);
+
+  return retVal;
 }
 
 uint16_t getDisplayedDigits()
 {  
-  return 0;
+  return showTime(timeRemaining);
 }

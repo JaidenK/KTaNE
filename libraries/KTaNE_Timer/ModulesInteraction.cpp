@@ -11,6 +11,7 @@
 #include "KTaNE_Constants.h"
 #include "ModulesInteraction.h"
 #include "EEPROM.h"
+#include "ClockEventChecker.h"
 
 //#define VERBOSE_BUS_SCAN
 
@@ -161,10 +162,11 @@ void ServiceRequest(uint8_t address)
     switch (request_code)
     {
     case REQ_DIGITS:
+        uint16_t digits = getDisplayedDigits();
         Wire.beginTransmission(address);
         Wire.write(REG_REQUEST);
-        Wire.write((uint8_t)0x12);
-        Wire.write((uint8_t)0x34);
+        Wire.write(((uint8_t *)&digits)[0]);
+        Wire.write(((uint8_t *)&digits)[1]);
         Wire.endTransmission();
         break;    
     default:
