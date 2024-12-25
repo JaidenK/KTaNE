@@ -25,8 +25,29 @@ void ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length)
             {
             case REQ_DIGITS:
                 // TODO
-                STATUS |= _BV(STS_SOLVED);                
-                ES_PostAll((ES_Event){SOLVED_EVENT,0});
+                STATUS |= _BV(STS_SOLVED);       
+
+                // ChatGPT Suggestions:
+                    //    uint16_t value;
+                    //    memcpy(&value, &pkt->data[0], sizeof(value)); 
+                // Or
+                    //union PacketData {
+                    //    uint8_t bytes[2];
+                    //    uint16_t value;
+                    //};
+                    //
+                    //union PacketData *p = (union PacketData *)&pkt->data[0];
+                    //uint16_t value = p->value;
+                // Or
+                    //struct __attribute__((packed)) Packet {
+                    //    uint16_t value;
+                    //};
+                    //
+                    //struct Packet *p = (struct Packet *)&pkt->data[0];
+                    //uint16_t value = p->value;
+                // Or
+                    // uint16_t value = (pkt->data[0] << 8) | pkt->data[1];
+                ES_PostAll((ES_Event){DIGITS_RECEIVED,*(uint16_t *)(&pkt->data[0])});
                 break;            
             default:
                 break;

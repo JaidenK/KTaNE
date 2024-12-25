@@ -49,6 +49,7 @@ typedef enum {
     BUTTON_EVENT,
     SOLVED_EVENT,
     STRIKE_EVENT,
+    DIGITS_RECEIVED,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 

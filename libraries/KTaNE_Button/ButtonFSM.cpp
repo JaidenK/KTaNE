@@ -338,7 +338,13 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
                 break;
             case BUTTON_EVENT:  
                 if(ThisEvent.EventParam & 1) // On release
-                {
+                {        
+                    if(btn_rule == RELEASE_IMMEDIATELY)
+                    {
+                        ThisEvent.EventType = ES_NO_EVENT;
+                        nextState = Solved;
+                        makeTransition = TRUE;
+                    }
                     // Request digits
                     REQUEST = REQ_DIGITS;
                     STATUS |= _BV(STS_REQUEST);
@@ -346,18 +352,25 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
                     digitalWrite(PIN_RED,LOW);  
                     digitalWrite(PIN_GREEN,LOW);  
                     digitalWrite(PIN_BLUE,LOW); 
+
+                    StopPseudoTimer(0);
                 }
                 else
                 {
                     // On press
-                    // todo: slight delay?
-                    analogWrite(PIN_RED,strip_red_value);  
-                    analogWrite(PIN_GREEN,strip_green_value);  
-                    analogWrite(PIN_BLUE,strip_blue_value);  
+                    StartPseudoTimer(0,500);
                 }
                 // Todo
                 //STATUS |= _BV(STS_STRIKE);    
                 ThisEvent.EventType = ES_NO_EVENT;  
+                break;
+            case DIGITS_RECEIVED:
+
+                break;
+            case ES_TIMEOUT:
+                analogWrite(PIN_RED,strip_red_value);  
+                analogWrite(PIN_GREEN,strip_green_value);  
+                analogWrite(PIN_BLUE,strip_blue_value);  
                 break;
             case EVENT_RESET:
                 ThisEvent.EventType = ES_NO_EVENT;
