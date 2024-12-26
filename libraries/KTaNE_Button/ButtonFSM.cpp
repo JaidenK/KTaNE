@@ -103,6 +103,10 @@ uint8_t strip_red_value = 0;
 uint8_t strip_green_value = 0;
 uint8_t strip_blue_value = 0;
 
+#define BUTTON_RELEASE_TIME_WINDOW_MS 500
+#define STRIKE_LED_PULSE_DURATION_MS 1000
+uint32_t tPress = 0;
+
 void SetStripValuesFromColor(uint8_t strip_color)
 {
     switch (strip_color)
@@ -123,6 +127,7 @@ ButtonRule_t releasingAHeldButton(uint8_t strip_color)
         return RELEASE_DIGIT_4;
     if(strip_color == STRIP_COLOR_YELLOW)
         return RELEASE_DIGIT_5;
+    return RELEASE_DIGIT_1;
 }
 
 ButtonRule_t calculateRule()
@@ -269,6 +274,32 @@ void StartupFlash()
     digitalWrite(PIN_BLUE,LOW);  
 }
 
+uint8_t nibbleContainsDigit(uint16_t nibbles, uint8_t digit)
+{
+    // Original code:
+    //if(((nibbles >> 12) & 0x0F) == digit) return 1;
+    //if(((nibbles >> 8)  & 0x0F) == digit) return 1;
+    //if(((nibbles >> 4)  & 0x0F) == digit) return 1;
+    //if(((nibbles >> 0)  & 0x0F) == digit) return 1;
+    //return 0;
+
+    // ChatGPT re-write:
+    for (uint8_t i = 0; i < 4; i++) 
+    {
+        if (((nibbles >> (i * 4)) & 0x0F) == digit) 
+        {
+            Serial.print(F("ZZNib"));
+            Serial.write(':');
+            Serial.write(nibbles >> 8);
+            Serial.write(nibbles);
+            Serial.write(':');
+            Serial.write(digit);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 uint8_t PostButtonFSM(ES_Event ThisEvent)
 {
     return ES_PostToService(MyPriority, ThisEvent);
@@ -330,7 +361,7 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
         switch(ThisEvent.EventType)
         {
             case ES_ENTRY:
-                calculateRule();
+                btn_rule = calculateRule();
                 STATUS |= _BV(STS_RUNNING);
                 digitalWrite(PIN_RED,LOW);  
                 digitalWrite(PIN_GREEN,LOW);  
@@ -341,13 +372,26 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
                 {        
                     if(btn_rule == RELEASE_IMMEDIATELY)
                     {
-                        ThisEvent.EventType = ES_NO_EVENT;
-                        nextState = Solved;
-                        makeTransition = TRUE;
+                        if(millis() - tPress > BUTTON_RELEASE_TIME_WINDOW_MS)
+                        {
+                            // They were supposed to release immediately, but they didn't. Strike!
+                            STATUS |= _BV(STS_STRIKE);
+                            StartPseudoTimer(1,STRIKE_LED_PULSE_DURATION_MS);
+                            digitalWrite(STRIKE_PIN,HIGH); 
+                        }
+                        else
+                        {
+                            Serial.print(F("ZZ2NULL"));
+                            nextState = Solved;
+                            makeTransition = TRUE;
+                        }
                     }
-                    // Request digits
-                    REQUEST = REQ_DIGITS;
-                    STATUS |= _BV(STS_REQUEST);
+                    else
+                    {
+                        // Request digits
+                        REQUEST = REQ_DIGITS;
+                        STATUS |= _BV(STS_REQUEST);
+                    }
 
                     digitalWrite(PIN_RED,LOW);  
                     digitalWrite(PIN_GREEN,LOW);  
@@ -358,19 +402,45 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
                 else
                 {
                     // On press
-                    StartPseudoTimer(0,500);
-                }
-                // Todo
-                //STATUS |= _BV(STS_STRIKE);    
+                    tPress = millis();
+                    StartPseudoTimer(0,BUTTON_RELEASE_TIME_WINDOW_MS);
+                } 
                 ThisEvent.EventType = ES_NO_EVENT;  
                 break;
-            case DIGITS_RECEIVED:
-
+            case DIGITS_RECEIVED:        
+                if(    ((btn_rule == RELEASE_DIGIT_1) && (nibbleContainsDigit(ThisEvent.EventParam,(uint8_t)1)))
+                    || ((btn_rule == RELEASE_DIGIT_4) && (nibbleContainsDigit(ThisEvent.EventParam,(uint8_t)4)))
+                    || ((btn_rule == RELEASE_DIGIT_5) && (nibbleContainsDigit(ThisEvent.EventParam,(uint8_t)5))))
+                {
+                    //Serial.write('Z');
+                    //Serial.write('Z');
+                    //Serial.print(F("Digits: "));
+                    //Serial.print((uint16_t)ThisEvent.EventParam);
+                    
+                    Serial.print(F("ZZDigSolve"));
+                    nextState = Solved;
+                    makeTransition = TRUE;
+                }
+                else
+                {
+                    STATUS |= _BV(STS_STRIKE);
+                    StartPseudoTimer(1,STRIKE_LED_PULSE_DURATION_MS);
+                    digitalWrite(STRIKE_PIN,HIGH); 
+                }
+                ThisEvent.EventType = ES_NO_EVENT;
                 break;
             case ES_TIMEOUT:
-                analogWrite(PIN_RED,strip_red_value);  
-                analogWrite(PIN_GREEN,strip_green_value);  
-                analogWrite(PIN_BLUE,strip_blue_value);  
+                if(ThisEvent.EventParam == 1)
+                {
+                    digitalWrite(STRIKE_PIN,LOW); 
+                }
+                else
+                {
+                    analogWrite(PIN_RED,strip_red_value);  
+                    analogWrite(PIN_GREEN,strip_green_value);  
+                    analogWrite(PIN_BLUE,strip_blue_value);  
+                }
+                ThisEvent.EventType = ES_NO_EVENT;
                 break;
             case EVENT_RESET:
                 ThisEvent.EventType = ES_NO_EVENT;
@@ -378,6 +448,7 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
                 makeTransition = TRUE;
                 break;
             case SOLVED_EVENT:
+                Serial.print(F("ZZ1NULL"));
                 ThisEvent.EventType = ES_NO_EVENT;
                 nextState = Solved;
                 makeTransition = TRUE;

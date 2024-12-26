@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -330,12 +331,19 @@ namespace KTaNE_Console.ViewModel
 
         public void Connect()
         {
+            ConsoleWrite("Connecting..." + Environment.NewLine);
             serial.Connect(PortName, Baud);
             //foreach (var Module in ModuleList)
             //{
             //    Module.SendConfigRequests();
             //}
-            ((TheTimer)(ModuleList[0])).ReadTimerEEPROMCmd.Execute(null);
+            Task.Run(() =>
+            {
+                Thread.Sleep(500);
+                ConsoleWrite("Getting Timer config..." + Environment.NewLine);
+                Thread.Sleep(500);
+                ((TheTimer)(ModuleList[0])).ReadTimerEEPROMCmd.Execute(null);
+            });
         }
     }
 }
