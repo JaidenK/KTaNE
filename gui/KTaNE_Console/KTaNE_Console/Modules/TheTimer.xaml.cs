@@ -23,7 +23,7 @@ using System.Windows.Threading;
 
 namespace KTaNE_Console.Modules
 {
-    public class EEPROM
+    public class EEPROM : INotifyPropertyChanged
     {
         // This must match KTaNE_Constants.h
         public static readonly ushort MODULE_NAME = 0x00;
@@ -42,9 +42,13 @@ namespace KTaNE_Console.Modules
         public static readonly ushort BUTTON_STRIP_COLOR = 0x1E2;
 
         public byte[] bytes = new byte[512];
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public void Update(int eeprom_address, byte[] bytes)
         {
             Array.Copy(bytes, 0, this.bytes, eeprom_address, bytes.Length);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(""));
         }
     }
 

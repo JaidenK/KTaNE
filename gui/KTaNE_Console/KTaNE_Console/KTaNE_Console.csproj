@@ -68,6 +68,9 @@
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="Model\UartPacket.cs" />
     <Compile Include="Modules\IModulePanel.cs" />
+    <Compile Include="Modules\KeypadsModulePanel.xaml.cs">
+      <DependentUpon>KeypadsModulePanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Modules\ModuleFactory.cs" />
     <Compile Include="Modules\PlaceholderModule.xaml.cs">
       <DependentUpon>PlaceholderModule.xaml</DependentUpon>
@@ -84,6 +87,10 @@
     <Compile Include="ViewModel\IConsoleWriter.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Page Include="Modules\ButtonModulePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Modules\KeypadsModulePanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -142,6 +149,39 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="images\keypads\1-copyright.png" />
+    <Resource Include="images\keypads\10-teepee.png" />
+    <Resource Include="images\keypads\11-six.png" />
+    <Resource Include="images\keypads\12-squigglyn.png" />
+    <Resource Include="images\keypads\13-at.png" />
+    <Resource Include="images\keypads\14-ae.png" />
+    <Resource Include="images\keypads\15-meltedthree.png" />
+    <Resource Include="images\keypads\16-euro.png" />
+    <Resource Include="images\keypads\17-circle.png" />
+    <Resource Include="images\keypads\18-nwithhat.png" />
+    <Resource Include="images\keypads\19-dragon.png" />
+    <Resource Include="images\keypads\2-filledstar.png" />
+    <Resource Include="images\keypads\20-questionmark.png" />
+    <Resource Include="images\keypads\21-paragraph.png" />
+    <Resource Include="images\keypads\22-rightc.png" />
+    <Resource Include="images\keypads\23-leftc.png" />
+    <Resource Include="images\keypads\24-pitchfork.png" />
+    <Resource Include="images\keypads\25-tripod.png" />
+    <Resource Include="images\keypads\26-cursive.png" />
+    <Resource Include="images\keypads\27-tracks.png" />
+    <Resource Include="images\keypads\28-balloon.png" />
+    <Resource Include="images\keypads\29-weirdnose.png" />
+    <Resource Include="images\keypads\3-hollowstar.png" />
+    <Resource Include="images\keypads\30-upsidedowny.png" />
+    <Resource Include="images\keypads\31-bt.png" />
+    <Resource Include="images\keypads\4-smileyface.png" />
+    <Resource Include="images\keypads\5-doublek.png" />
+    <Resource Include="images\keypads\6-omega.png" />
+    <Resource Include="images\keypads\7-squidknife.png" />
+    <Resource Include="images\keypads\8-pumpkin.png" />
+    <Resource Include="images\keypads\9-hookn.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

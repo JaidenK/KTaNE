@@ -78,11 +78,121 @@ static const char *StateNames[] = {
     "N_STATES",
 };
 
+#define STRIKE_LED_PULSE_DURATION_MS 1000
 
 FSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
 static uint8_t MyPriority;
 
-//static uint8_t moduleI2Crequest = 0; 
+struct keystruct
+{
+    uint8_t param_mask;
+    uint8_t symbol;
+    uint8_t row_index;
+    uint8_t original_index;
+};
+
+#define N_ROWS 7
+#define N_COLS 6
+
+uint8_t whichColumn = 0;
+uint8_t currentStep = 0;
+struct keystruct keys[4] = {0};
+
+uint8_t symbols[N_COLS][N_ROWS] =
+{
+    {28, 13, 30, 12, 7, 9, 23},
+    {16, 28, 23, 26, 3, 9, 20},
+    {1, 8, 26, 5, 15, 30, 3},
+    {11, 21, 31, 7, 5, 20, 4},
+    {24, 4, 31, 22, 21, 19, 2},
+    {11, 16, 27, 14, 24, 18, 6}
+};
+uint8_t LED_pins[4] = {LED1_PIN, LED2_PIN, LED3_PIN, LED4_PIN};
+
+
+uint8_t columnHasSymbol(uint8_t col, struct keystruct *key)
+{
+    for(uint8_t r = 0; r < N_ROWS; r++)
+    {
+        if(symbols[col][r] == key->symbol)
+        {
+            key->row_index = r;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void bubbleSort(struct keystruct *arr) {
+    uint8_t swapped;
+    uint8_t tmp;
+  
+    for (uint8_t i = 0; i < 4 - 1; i++) {
+        swapped = 0;
+        for (uint8_t j = 0; j < 4 - i - 1; j++) {
+            if ((arr[j].row_index) > (arr[j + 1].row_index)) {
+                tmp = arr[j].row_index;
+                arr[j].row_index = arr[j + 1].row_index;
+                arr[j + 1].row_index = tmp;
+                tmp = arr[j].symbol;
+                arr[j].symbol = arr[j + 1].symbol;
+                arr[j + 1].symbol = tmp;
+                tmp = arr[j].param_mask;
+                arr[j].param_mask = arr[j + 1].param_mask;
+                arr[j + 1].param_mask = tmp;
+                tmp = arr[j].original_index;
+                arr[j].original_index = arr[j + 1].original_index;
+                arr[j + 1].original_index = tmp;
+                swapped = 1;
+            }
+        }
+      
+        // If no two elements were swapped, then break
+        if (!swapped)
+            break;
+    }
+}
+
+void calculateRule()
+{
+    for(uint8_t i = 0; i < 4; i++)
+    {
+        keys[i].symbol = EEPROM.read(EEPROM_KEY1 + i);
+        keys[i].param_mask = 1 << i;
+        keys[i].original_index = i;
+    }
+
+    for(whichColumn = 0; whichColumn < N_COLS; whichColumn++)
+    {
+        if(columnHasSymbol(whichColumn,&keys[0])
+        && columnHasSymbol(whichColumn,&keys[1])
+        && columnHasSymbol(whichColumn,&keys[2])
+        && columnHasSymbol(whichColumn,&keys[3]))
+        {
+            break;
+        }
+    }
+
+    Serial.write('Z');
+    Serial.write('Z');
+    Serial.write(whichColumn);
+
+    bubbleSort(keys);
+
+    Serial.write(keys[0].symbol);
+    Serial.write(keys[1].symbol);
+    Serial.write(keys[2].symbol);
+    Serial.write(keys[3].symbol);
+
+
+    // Check for no valid column found
+    if(whichColumn >= N_COLS)
+    {
+        digitalWrite(STRIKE_PIN,HIGH);
+        delay(2500);
+        ES_PostAll((ES_Event_t){EVENT_RESET,0});
+    }
+}
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
@@ -161,8 +271,7 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
     
             KTaNE_InitEEPROM("KEYPADS         ",
                              "KEY001          ",
-                             "12/26/2024 19:30");   
-            
+                             "12/26/2024 19:30");               
             StartupFlash();
         }
         break;
@@ -208,20 +317,58 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
         switch(ThisEvent.EventType)
         {
             case ES_ENTRY:
-                // TODO calculate rule
-                //btn_rule = calculateRule();
-                STATUS |= _BV(STS_RUNNING);
                 digitalWrite(DISARM_PIN, LOW);
                 digitalWrite(STRIKE_PIN, LOW);
                 digitalWrite(LED1_PIN,LOW);  
                 digitalWrite(LED2_PIN,LOW);  
                 digitalWrite(LED3_PIN,LOW);  
                 digitalWrite(LED4_PIN,LOW);  
+
+                currentStep = 0;
+                calculateRule();
+                STATUS |= _BV(STS_RUNNING);
                 break;
             case BUTTON_EVENT:  
-                // TODO check if they pressed the correct key
+                // Check if event is a PRESS. Nothing happens on release.
+                uint8_t pressed_buttons = (ThisEvent.EventParam >> 8) & (ThisEvent.EventParam & 0xFF);
+                if(pressed_buttons)
+                {
+                    uint8_t mask = keys[currentStep].param_mask;
+                    
+                    Serial.write('Z');
+                    Serial.write('Z');
+                    Serial.write(pressed_buttons);
+                    Serial.write(mask);
+
+
+                    // Check if the correct button was pressed
+                    if(pressed_buttons & mask)
+                    {
+                        digitalWrite(LED_pins[keys[currentStep].original_index],HIGH);
+                        currentStep++;
+
+                        if(currentStep >= 4)
+                        {
+                            // Solved!
+                            nextState = Solved;
+                            makeTransition = TRUE;
+                        }
+                    }
+                    // Check if the WRONG button was pressed
+                    if(pressed_buttons & ~mask)
+                    {
+                        STATUS |= _BV(STS_STRIKE);
+                        digitalWrite(STRIKE_PIN,HIGH); 
+                        StartPseudoTimer(1,STRIKE_LED_PULSE_DURATION_MS);
+                    }
+                }               
+
                 ThisEvent.EventType = ES_NO_EVENT;  
-                break;                        
+                break;          
+            case ES_TIMEOUT:
+                digitalWrite(STRIKE_PIN,LOW); 
+                ThisEvent.EventType = ES_NO_EVENT;
+                break;              
             case EVENT_RESET:
                 ThisEvent.EventType = ES_NO_EVENT;
                 nextState = Idle;

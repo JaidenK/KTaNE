@@ -1,0 +1,777 @@
+﻿<UserControl x:Class="KTaNE_Console.Modules.KeypadsModulePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KTaNE_Console.Modules"
+             mc:Ignorable="d"  
+             d:DesignWidth="300">
+    <Grid>
+        <StackPanel>
+            <TextBlock FontSize="18" Text="Keypads" TextAlignment="Center" Margin="10"/>
+
+            <Grid Width="200" Height="200">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <ComboBox SelectedIndex="{Binding Path=Pad1}" Grid.Row="0" Grid.Column="0">
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="1"/>
+                            <Image Source="../images/keypads/1-copyright.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="2"/>
+                            <Image Source="../images/keypads/2-filledstar.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="3"/>
+                            <Image Source="../images/keypads/3-hollowstar.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="4"/>
+                            <Image Source="../images/keypads/4-smileyface.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="5"/>
+                            <Image Source="../images/keypads/5-doublek.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="6"/>
+                            <Image Source="../images/keypads/6-omega.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="7"/>
+                            <Image Source="../images/keypads/7-squidknife.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="8"/>
+                            <Image Source="../images/keypads/8-pumpkin.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="9"/>
+                            <Image Source="../images/keypads/9-hookn.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="10"/>
+                            <Image Source="../images/keypads/10-teepee.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="11"/>
+                            <Image Source="../images/keypads/11-six.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="12"/>
+                            <Image Source="../images/keypads/12-squigglyn.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="13"/>
+                            <Image Source="../images/keypads/13-at.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="14"/>
+                            <Image Source="../images/keypads/14-ae.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="15"/>
+                            <Image Source="../images/keypads/15-meltedthree.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="16"/>
+                            <Image Source="../images/keypads/16-euro.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="17"/>
+                            <Image Source="../images/keypads/17-circle.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="18"/>
+                            <Image Source="../images/keypads/18-nwithhat.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="19"/>
+                            <Image Source="../images/keypads/19-dragon.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="20"/>
+                            <Image Source="../images/keypads/20-questionmark.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="21"/>
+                            <Image Source="../images/keypads/21-paragraph.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="22"/>
+                            <Image Source="../images/keypads/22-rightc.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="23"/>
+                            <Image Source="../images/keypads/23-leftc.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="24"/>
+                            <Image Source="../images/keypads/24-pitchfork.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="25"/>
+                            <Image Source="../images/keypads/25-tripod.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="26"/>
+                            <Image Source="../images/keypads/26-cursive.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="27"/>
+                            <Image Source="../images/keypads/27-tracks.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="28"/>
+                            <Image Source="../images/keypads/28-balloon.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="29"/>
+                            <Image Source="../images/keypads/29-weirdnose.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="30"/>
+                            <Image Source="../images/keypads/30-upsidedowny.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="31"/>
+                            <Image Source="../images/keypads/31-bt.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                </ComboBox>
+                <ComboBox SelectedIndex="{Binding Path=Pad2}" Grid.Row="0" Grid.Column="1">
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="1"/>
+                            <Image Source="../images/keypads/1-copyright.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="2"/>
+                            <Image Source="../images/keypads/2-filledstar.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="3"/>
+                            <Image Source="../images/keypads/3-hollowstar.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="4"/>
+                            <Image Source="../images/keypads/4-smileyface.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="5"/>
+                            <Image Source="../images/keypads/5-doublek.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="6"/>
+                            <Image Source="../images/keypads/6-omega.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="7"/>
+                            <Image Source="../images/keypads/7-squidknife.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="8"/>
+                            <Image Source="../images/keypads/8-pumpkin.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="9"/>
+                            <Image Source="../images/keypads/9-hookn.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="10"/>
+                            <Image Source="../images/keypads/10-teepee.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="11"/>
+                            <Image Source="../images/keypads/11-six.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="12"/>
+                            <Image Source="../images/keypads/12-squigglyn.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="13"/>
+                            <Image Source="../images/keypads/13-at.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="14"/>
+                            <Image Source="../images/keypads/14-ae.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="15"/>
+                            <Image Source="../images/keypads/15-meltedthree.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="16"/>
+                            <Image Source="../images/keypads/16-euro.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="17"/>
+                            <Image Source="../images/keypads/17-circle.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="18"/>
+                            <Image Source="../images/keypads/18-nwithhat.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="19"/>
+                            <Image Source="../images/keypads/19-dragon.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="20"/>
+                            <Image Source="../images/keypads/20-questionmark.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="21"/>
+                            <Image Source="../images/keypads/21-paragraph.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="22"/>
+                            <Image Source="../images/keypads/22-rightc.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="23"/>
+                            <Image Source="../images/keypads/23-leftc.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="24"/>
+                            <Image Source="../images/keypads/24-pitchfork.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="25"/>
+                            <Image Source="../images/keypads/25-tripod.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="26"/>
+                            <Image Source="../images/keypads/26-cursive.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="27"/>
+                            <Image Source="../images/keypads/27-tracks.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="28"/>
+                            <Image Source="../images/keypads/28-balloon.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="29"/>
+                            <Image Source="../images/keypads/29-weirdnose.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="30"/>
+                            <Image Source="../images/keypads/30-upsidedowny.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="31"/>
+                            <Image Source="../images/keypads/31-bt.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                </ComboBox>
+                <ComboBox SelectedIndex="{Binding Path=Pad3}" Grid.Row="1" Grid.Column="0">
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="1"/>
+                            <Image Source="../images/keypads/1-copyright.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="2"/>
+                            <Image Source="../images/keypads/2-filledstar.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="3"/>
+                            <Image Source="../images/keypads/3-hollowstar.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="4"/>
+                            <Image Source="../images/keypads/4-smileyface.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="5"/>
+                            <Image Source="../images/keypads/5-doublek.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="6"/>
+                            <Image Source="../images/keypads/6-omega.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="7"/>
+                            <Image Source="../images/keypads/7-squidknife.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="8"/>
+                            <Image Source="../images/keypads/8-pumpkin.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="9"/>
+                            <Image Source="../images/keypads/9-hookn.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="10"/>
+                            <Image Source="../images/keypads/10-teepee.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="11"/>
+                            <Image Source="../images/keypads/11-six.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="12"/>
+                            <Image Source="../images/keypads/12-squigglyn.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="13"/>
+                            <Image Source="../images/keypads/13-at.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="14"/>
+                            <Image Source="../images/keypads/14-ae.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="15"/>
+                            <Image Source="../images/keypads/15-meltedthree.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="16"/>
+                            <Image Source="../images/keypads/16-euro.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="17"/>
+                            <Image Source="../images/keypads/17-circle.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="18"/>
+                            <Image Source="../images/keypads/18-nwithhat.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="19"/>
+                            <Image Source="../images/keypads/19-dragon.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="20"/>
+                            <Image Source="../images/keypads/20-questionmark.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="21"/>
+                            <Image Source="../images/keypads/21-paragraph.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="22"/>
+                            <Image Source="../images/keypads/22-rightc.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="23"/>
+                            <Image Source="../images/keypads/23-leftc.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="24"/>
+                            <Image Source="../images/keypads/24-pitchfork.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="25"/>
+                            <Image Source="../images/keypads/25-tripod.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="26"/>
+                            <Image Source="../images/keypads/26-cursive.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="27"/>
+                            <Image Source="../images/keypads/27-tracks.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="28"/>
+                            <Image Source="../images/keypads/28-balloon.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="29"/>
+                            <Image Source="../images/keypads/29-weirdnose.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="30"/>
+                            <Image Source="../images/keypads/30-upsidedowny.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="31"/>
+                            <Image Source="../images/keypads/31-bt.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                </ComboBox>
+                <ComboBox SelectedIndex="{Binding Path=Pad4}" Grid.Row="1" Grid.Column="1">
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="1"/>
+                            <Image Source="../images/keypads/1-copyright.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="2"/>
+                            <Image Source="../images/keypads/2-filledstar.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="3"/>
+                            <Image Source="../images/keypads/3-hollowstar.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="4"/>
+                            <Image Source="../images/keypads/4-smileyface.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="5"/>
+                            <Image Source="../images/keypads/5-doublek.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="6"/>
+                            <Image Source="../images/keypads/6-omega.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="7"/>
+                            <Image Source="../images/keypads/7-squidknife.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="8"/>
+                            <Image Source="../images/keypads/8-pumpkin.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="9"/>
+                            <Image Source="../images/keypads/9-hookn.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="10"/>
+                            <Image Source="../images/keypads/10-teepee.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="11"/>
+                            <Image Source="../images/keypads/11-six.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="12"/>
+                            <Image Source="../images/keypads/12-squigglyn.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="13"/>
+                            <Image Source="../images/keypads/13-at.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="14"/>
+                            <Image Source="../images/keypads/14-ae.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="15"/>
+                            <Image Source="../images/keypads/15-meltedthree.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="16"/>
+                            <Image Source="../images/keypads/16-euro.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="17"/>
+                            <Image Source="../images/keypads/17-circle.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="18"/>
+                            <Image Source="../images/keypads/18-nwithhat.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="19"/>
+                            <Image Source="../images/keypads/19-dragon.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="20"/>
+                            <Image Source="../images/keypads/20-questionmark.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="21"/>
+                            <Image Source="../images/keypads/21-paragraph.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="22"/>
+                            <Image Source="../images/keypads/22-rightc.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="23"/>
+                            <Image Source="../images/keypads/23-leftc.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="24"/>
+                            <Image Source="../images/keypads/24-pitchfork.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="25"/>
+                            <Image Source="../images/keypads/25-tripod.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="26"/>
+                            <Image Source="../images/keypads/26-cursive.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="27"/>
+                            <Image Source="../images/keypads/27-tracks.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="28"/>
+                            <Image Source="../images/keypads/28-balloon.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="29"/>
+                            <Image Source="../images/keypads/29-weirdnose.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="30"/>
+                            <Image Source="../images/keypads/30-upsidedowny.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                    <ComboBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="31"/>
+                            <Image Source="../images/keypads/31-bt.png"/>
+                        </StackPanel>
+                    </ComboBoxItem>
+                </ComboBox>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</UserControl>

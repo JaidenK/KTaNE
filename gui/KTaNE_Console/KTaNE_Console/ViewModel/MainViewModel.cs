@@ -79,7 +79,11 @@ namespace KTaNE_Console.ViewModel
             ClearConsoleCmd = new RelayCommand((o) =>
             {
                 ConsoleText = "";
+                TxPacketsText = "";
+                RxPacketsText = "";
                 OnPropertyChanged("ConsoleText");
+                OnPropertyChanged("TxPacketsText");
+                OnPropertyChanged("RxPacketsText");
             });
 
             TestCmd = new RelayCommand((o) =>

@@ -125,6 +125,9 @@ namespace KTaNE_Console.Modules
                 var name = ModuleName.Trim().ToUpper();
                 switch (name)
                 {
+                    case "KEYPADS":
+                        ModulePanel = new KeypadsModulePanel(this);
+                        break;
                     case "THE BUTTON":
                         ModulePanel = new ButtonModulePanel(this);
                         break;
@@ -237,7 +240,7 @@ namespace KTaNE_Console.Modules
                     var bytes = new byte[length];
                     Array.Copy(pkt.i2c_bytes, 4, bytes, 0, length);
                     Eeprom.Update(eeprom_address, bytes);
-                    UpdatePanel();
+                    UpdatePanel(); // This makes a new object every single time we read back the eeprom? I think that's why the forms reset
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(""));
                     break;
                 default:
