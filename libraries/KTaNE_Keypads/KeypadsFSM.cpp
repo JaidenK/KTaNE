@@ -198,6 +198,10 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
             // TODO turn on each keypad's LED if its button is pressed
             //digitalWrite(STRIKE_PIN,!(ThisEvent.EventParam & 1));
             //digitalWrite(DISARM_PIN,!(ThisEvent.EventParam & 1));
+            digitalWrite(LED1_PIN,ThisEvent.EventParam & 0x01);
+            digitalWrite(LED2_PIN,ThisEvent.EventParam & 0x02);
+            digitalWrite(LED3_PIN,ThisEvent.EventParam & 0x04);
+            digitalWrite(LED4_PIN,ThisEvent.EventParam & 0x08);
         }
         break;
     case Running:

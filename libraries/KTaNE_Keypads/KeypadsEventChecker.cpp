@@ -10,8 +10,10 @@
 // Posts: BUTTON_EVENT
 //
 
-uint8_t ButtonCurrentState = 0; // Active low
-uint8_t BtnStateRegister = 0; // Shift register
+#define N_BUTTONS 4
+
+uint8_t ButtonEstimatedState[N_BUTTONS] = { 0 }; // Active low
+uint8_t BtnStateRegister[N_BUTTONS] = { 0 }; // Shift register
 
 #define POLLING_PERIOD_MS 1
 
@@ -30,44 +32,50 @@ uint8_t CheckButtons(void)
 
     // Perform sample.
     // Shift in current button state.
-    BtnStateRegister = (BtnStateRegister << 1) + digitalRead(BTN1_PIN);
+    BtnStateRegister[0] = (BtnStateRegister[0] << 1) + digitalRead(BTN1_PIN);
+    BtnStateRegister[1] = (BtnStateRegister[1] << 1) + digitalRead(BTN2_PIN);
+    BtnStateRegister[2] = (BtnStateRegister[2] << 1) + digitalRead(BTN3_PIN);
+    BtnStateRegister[3] = (BtnStateRegister[3] << 1) + digitalRead(BTN4_PIN);
 
     uint8_t hasEventOccurred = 0;
     uint16_t eventParam = 0;
 
     // Check for a change
-    if(ButtonCurrentState)
+    for(uint8_t i = 0; i < N_BUTTONS; i++)
     {
-        // We think the button is currently released.
-        // Check for a falling edge on the register
-        if(BtnStateRegister == 0xF0)
+        if(ButtonEstimatedState[i])
         {
-            // Shift register is all low. The button has
-            // been pressed.
-            ButtonCurrentState = 0;
-            eventParam |= (1 << 8);
-            hasEventOccurred = 1;
+            // We think the button is currently pressed.
+            // Check for a falling edge on the register
+            if(BtnStateRegister[i] == 0xF0)
+            {
+                // Falling edge detected. The button has
+                // been released.
+                ButtonEstimatedState[i] = 0;
+                eventParam |= (1 << (8 + i));
+                hasEventOccurred = 1;
+            }
         }
-    }
-    else
-    {
-        // Button is currently pressed.
-        // Check for a rising edge on the register
-        if(BtnStateRegister == 0x0F)
+        else
         {
-            // Button was previously released.
-            ButtonCurrentState = 1;
-            eventParam |= (1 << 8);
-            hasEventOccurred = 1;
+            // We think the button is currently released.
+            // Check for a rising edge on the register
+            if(BtnStateRegister[i] == 0x0F)
+            {
+                // Rising edge detected. The button has
+                // been pressed.
+                ButtonEstimatedState[i] = 1;
+                eventParam |= (1 << (8 + i));
+                hasEventOccurred = 1;
+            }
         }
+        eventParam |= ((ButtonEstimatedState[i] & 1) << i);
     }
 
     if(hasEventOccurred)
     {
-        // Event param has "which button" in bit    0b00010000
-        // and the pin's current logic level in bit 0b00000001
-        if(ButtonCurrentState)
-            eventParam |= (1 << 0);
+        // Event param has "which button" in bits    0b0000111100000000
+        // and the pin's current logic level in bits 0b0000000000001111
         ES_PostAll((ES_Event){BUTTON_EVENT,eventParam});
     }
 
