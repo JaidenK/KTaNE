@@ -364,7 +364,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         CurrentState = nextState;
         RunTimerFSM(ENTRY_EVENT);
     }
-    ES_Tail(); // trace call stack end
+    //ES_Tail(); // trace call stack end
     return ThisEvent;
 }
 

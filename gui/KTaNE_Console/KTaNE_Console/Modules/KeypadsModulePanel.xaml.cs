@@ -38,10 +38,14 @@ namespace KTaNE_Console.Modules
             this.module = module;
             this.DataContext = this;
 
-            Pad1 = (module.Eeprom.bytes[EEPROM_KEY1] - 1);
-            Pad2 = (module.Eeprom.bytes[EEPROM_KEY2] - 1);
-            Pad3 = (module.Eeprom.bytes[EEPROM_KEY3] - 1);
-            Pad4 = (module.Eeprom.bytes[EEPROM_KEY4] - 1);
+            byte val = (byte)(module.Eeprom.bytes[EEPROM_KEY1] - 1);
+            Pad1 = val < 31 ? val : 22; // Default to Left C
+            val = (byte)(module.Eeprom.bytes[EEPROM_KEY2] - 1);
+            Pad2 = val < 31 ? val : 27; // Default to Balloon
+            val = (byte)(module.Eeprom.bytes[EEPROM_KEY3] - 1);
+            Pad3 = val < 31 ? val : 6; // Default to Squid Knife
+            val = (byte)(module.Eeprom.bytes[EEPROM_KEY4] - 1);
+            Pad4 = val < 31 ? val : 29; // Default to Upsidedown Y
 
             InitializeComponent();
         }

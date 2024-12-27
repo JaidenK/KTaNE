@@ -23,7 +23,7 @@ uint8_t CheckButtons(void)
 {
     // Limit sample rate
     if(millis() < t_nextSample)
-        return;
+        return 0;
     // Initialization. 
     if(t_nextSample == 0)
         t_nextSample = millis();

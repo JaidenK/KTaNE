@@ -34,17 +34,17 @@
 /****************************************************************************/
 typedef enum {
     ES_NO_EVENT, ES_ERROR, /* used to indicate an error from the service */
-    ES_INIT, /* used to transition from initial pseudo-state */
-    ES_ENTRY, /* used to enter a state*/
-    ES_EXIT, /* used to exit a state*/
+    ES_INIT, /* 2: used to transition from initial pseudo-state */
+    ES_ENTRY, /* 3: used to enter a state*/
+    ES_EXIT, /* 4: used to exit a state*/
     ES_KEYINPUT, /* used to signify a key has been pressed*/
     ES_LISTEVENTS, /* used to list events in keyboard input, does not get posted to fsm*/
-    ES_TIMEOUT, /* signals that the timer has expired */
+    ES_TIMEOUT, /* 7: signals that the timer has expired */ 
     ES_TIMERACTIVE, /* signals that a timer has become active */
     ES_TIMERSTOPPED, /* signals that a timer has stopped*/
     /* KTaNE Common Events */
-    EVENT_START,
-    EVENT_RESET,
+    EVENT_START, // 10
+    EVENT_RESET, // 11
     /* Module custom events */
     BUTTON_EVENT,
     SOLVED_EVENT,
