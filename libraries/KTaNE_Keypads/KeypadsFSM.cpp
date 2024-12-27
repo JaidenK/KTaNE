@@ -184,6 +184,11 @@ void calculateRule()
     Serial.write(keys[2].symbol);
     Serial.write(keys[3].symbol);
 
+    // Combine the masks so that repeated button presses don't cause problems
+    keys[1].param_mask |= keys[0].param_mask;
+    keys[2].param_mask |= keys[1].param_mask;
+    keys[3].param_mask |= keys[2].param_mask;
+
 
     // Check for no valid column found
     if(whichColumn >= N_COLS)
@@ -251,8 +256,9 @@ uint8_t PostKeypadsFSM(ES_Event ThisEvent)
 
 ES_Event RunKeypadsFSM(ES_Event ThisEvent)
 {
-    uint8_t pressed_buttons;
-    uint8_t mask;
+    uint8_t pressed_buttons = 0;
+    uint8_t target_mask = 0;
+    static uint8_t runningMask = 0;
 
     uint8_t makeTransition = FALSE; // use to flag transition
     FSMState_t nextState; // <- need to change enum type here
@@ -334,24 +340,26 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
                 digitalWrite(LED4_PIN,LOW);  
                 currentStep = 0;
                 calculateRule();
+                runningMask = 0;
                 STATUS |= _BV(STS_RUNNING);
                 break;
             case BUTTON_EVENT:  
                 // Check if event is a PRESS. Nothing happens on release.
                 pressed_buttons = (ThisEvent.EventParam >> 8) & (ThisEvent.EventParam & 0xFF);
                 if(pressed_buttons)
-                {
-                    mask = keys[currentStep].param_mask;
+                {                    
+                    target_mask = keys[currentStep].param_mask;
                     
                     Serial.print("ZZ");
                     Serial.write(pressed_buttons);
-                    Serial.write(mask);
+                    Serial.write(target_mask);
                     Serial.write(ThisEvent.EventParam);
 
 
                     // Check if the correct button was pressed
-                    if(pressed_buttons & mask)
+                    if((runningMask | pressed_buttons) == target_mask)
                     {
+                        runningMask |= pressed_buttons;
                         digitalWrite(LED_pins[keys[currentStep].original_index],HIGH);
                         currentStep++;
 
@@ -363,7 +371,7 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
                         }
                     }
                     // Check if the WRONG button was pressed. Can happen simultaneously.
-                    if(pressed_buttons & ~mask)
+                    if(pressed_buttons & ~target_mask)
                     {
                         STATUS |= _BV(STS_STRIKE); 
                         digitalWrite(STRIKE_PIN,HIGH); 
@@ -373,6 +381,7 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
                         digitalWrite(LED3_PIN,LOW);  
                         digitalWrite(LED4_PIN,LOW);  
                         currentStep = 0;
+                        runningMask = 0;
                         StartPseudoTimer(0,1000); // Not working???
                         //StartupFlash();
                         //if(!ES_PostAll((ES_Event){BUTTON_EVENT,0x66})) // Not working??? But also not getting a fail return value?
