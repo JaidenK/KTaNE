@@ -116,7 +116,7 @@ void FlashBlocking()
     
 }
 
-void LoadEEPROMConfig()
+void InitializeEEPROM()
 {
     char *moduleName =  "SKETCHPAD       ";
     char *serialNo =    "SKC001          "; // This should be unique for every individual module. IDK how to ensure that right now.
@@ -150,7 +150,7 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
         if (ThisEvent.EventType == ES_ENTRY || 
             ThisEvent.EventType == ES_INIT)// only respond to ES_Init
         {
-            LoadEEPROMConfig();
+            InitializeEEPROM();
             // now put the machine into the actual initial state
             nextState = Idle;
             makeTransition = TRUE;

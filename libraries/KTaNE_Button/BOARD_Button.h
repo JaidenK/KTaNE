@@ -27,8 +27,8 @@
 /*****************************************************************************/
 // Boolean defines for TRUE, FALSE, SUCCESS and ERROR
 #ifndef FALSE
-//#define FALSE ((int8_t) 0)
-//#define TRUE ((int8_t) 1)
+#define FALSE ((int8_t) 0)
+#define TRUE ((int8_t) 1)
 #endif
 #define ERROR ((int8_t) -1)
 #define SUCCESS ((int8_t) 1)
@@ -39,10 +39,12 @@
 
 #define BTN_PIN 10
 
+// RGB LED pins
 #define PIN_RED   9
 #define PIN_GREEN 6
 #define PIN_BLUE  5
 
+/* EEPROM ADDRESSES */
 #define EEPROM_BUTTON_LABEL 0x1E0
 #define BTN_LABEL_OTHER    0
 #define BTN_LABEL_ABORT    1

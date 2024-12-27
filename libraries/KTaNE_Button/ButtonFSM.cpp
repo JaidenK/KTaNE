@@ -238,23 +238,11 @@ uint8_t InitButtonFSM(uint8_t Priority)
     } else {
         return FALSE;
     }
-    
+
     Serial.println(F("Button FSM Initialized"));
 }
 
-void LoadEEPROMConfig()
-{
-    char *moduleName =  "THE BUTTON      ";
-    char *serialNo =    "BTN001          "; // This should be unique for every individual module. IDK how to ensure that right now.
-    char *buildDate =   "12/22/2024 17:30"; // Bless your heart if you actually remember to update this datetime each time the code changes.
-    for(uint8_t i=0; i<16; i++)
-    {
-        EEPROM.update(EEPROM_MODULE_NAME+i,moduleName[i]);
-        EEPROM.update(EEPROM_REAL_MODULE_SERIAL+i,serialNo[i]); 
-        EEPROM.update(EEPROM_BUILD_DATE+i,buildDate[i]); 
-    }
-}
-
+// Startup flash Red-Green-Red-Green-Blue
 void StartupFlash()
 {
     digitalWrite(STRIKE_PIN,HIGH);     
@@ -288,12 +276,6 @@ uint8_t nibbleContainsDigit(uint16_t nibbles, uint8_t digit)
     {
         if (((nibbles >> (i * 4)) & 0x0F) == digit) 
         {
-            Serial.print(F("ZZNib"));
-            Serial.write(':');
-            Serial.write(nibbles >> 8);
-            Serial.write(nibbles);
-            Serial.write(':');
-            Serial.write(digit);
             return 1;
         }
     }
@@ -321,11 +303,14 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
         if (ThisEvent.EventType == ES_ENTRY || 
             ThisEvent.EventType == ES_INIT)// only respond to ES_Init
         {
-            LoadEEPROMConfig();
             // now put the machine into the actual initial state
             nextState = Idle;
             makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;      
+            ThisEvent.EventType = ES_NO_EVENT;   
+    
+            KTaNE_InitEEPROM("THE BUTTON      ",
+                             "BTN001          ",
+                             "12/26/2024 18:00");   
             
             StartupFlash();
         }
@@ -381,7 +366,6 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
                         }
                         else
                         {
-                            Serial.print(F("ZZ2NULL"));
                             nextState = Solved;
                             makeTransition = TRUE;
                         }
@@ -412,12 +396,6 @@ ES_Event RunButtonFSM(ES_Event ThisEvent)
                     || ((btn_rule == RELEASE_DIGIT_4) && (nibbleContainsDigit(ThisEvent.EventParam,(uint8_t)4)))
                     || ((btn_rule == RELEASE_DIGIT_5) && (nibbleContainsDigit(ThisEvent.EventParam,(uint8_t)5))))
                 {
-                    //Serial.write('Z');
-                    //Serial.write('Z');
-                    //Serial.print(F("Digits: "));
-                    //Serial.print((uint16_t)ThisEvent.EventParam);
-                    
-                    Serial.print(F("ZZDigSolve"));
                     nextState = Solved;
                     makeTransition = TRUE;
                 }

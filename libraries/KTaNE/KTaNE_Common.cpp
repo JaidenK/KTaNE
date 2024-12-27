@@ -86,15 +86,26 @@ void I2C_Init(int address)
 void ServiceI2C_GetEEPROM(I2C_CommandPacket *pkt)
 {
     Wire.write(pkt->CommandID); // GET_EEPROM
-    Wire.write(pkt->data[0]);   // EEPROM Address Lo
-    Wire.write(pkt->data[1]);   // EEPROM Address Hi
-    Wire.write(pkt->data[2]);   // Length
-    uint16_t eeprom_addr = *(uint16_t *)(&pkt->data[0]);
-    uint8_t length = pkt->data[2];
+    Wire.write(pkt->data.u8[0]);   // EEPROM Address Lo
+    Wire.write(pkt->data.u8[1]);   // EEPROM Address Hi
+    Wire.write(pkt->data.u8[2]);   // Length
+    uint16_t eeprom_addr = pkt->data.u16[0];
+    uint8_t length = pkt->data.u8[2];
     uint8_t byte = 0xFF;
     for(uint8_t i = 0; i < length; i++)
     {
         Wire.write(EEPROM.get(eeprom_addr+i,byte));
+    }
+}
+
+void KTaNE_InitEEPROM(char *moduleName, char *serialNo, char *buildDate)
+{    
+    // TODO safety check the string lengths
+    for(uint8_t i = 0; i < 16; i++)
+    {
+        EEPROM.update(EEPROM_MODULE_NAME+i,moduleName[i]);
+        EEPROM.update(EEPROM_REAL_MODULE_SERIAL+i,serialNo[i]); 
+        EEPROM.update(EEPROM_BUILD_DATE+i,buildDate[i]); 
     }
 }
 
@@ -112,7 +123,7 @@ uint8_t ServiceI2CRequest_Common(I2C_CommandPacket *pkt)
             STATUS &= ~_BV(STS_STRIKE);
             break;
         case REG_SYNC:
-            writeSyncBytes(pkt->data[0]);
+            writeSyncBytes(pkt->data.u8[0]);
             break;
         case REG_REQUEST:
             Wire.write(REQUEST);
@@ -136,8 +147,8 @@ void I2C_request()
 
 void ReceiveI2C_SetEEPROM(I2C_CommandPacket *pkt)
 {
-    uint16_t eeprom_addr = *(uint16_t *)(&pkt->data[0]);
-    uint8_t length = pkt->data[2];
+    uint16_t eeprom_addr = pkt->data.u16[0];
+    uint8_t length = pkt->data.u8[2];
 
     if(eeprom_addr < END_OF_PROTECTED_EEPROM)
     {
@@ -152,7 +163,7 @@ void ReceiveI2C_SetEEPROM(I2C_CommandPacket *pkt)
 
     for(uint8_t i = 0; i < length; i++)
     {
-        EEPROM.update(eeprom_addr+i, pkt->data[3+i]);
+        EEPROM.update(eeprom_addr+i, pkt->data.u8[3+i]);
     }
 }
 
@@ -169,7 +180,7 @@ void RejoinI2C(I2C_CommandPacket *pkt, uint8_t length)
             i2c_address = 10;
         for(uint8_t i = 0; i < length-1; i++)
         {
-            if(i2c_address == pkt->data[i])
+            if(i2c_address == pkt->data.u8[i])
             {
                 isValid = 0;
                 break;
@@ -201,7 +212,7 @@ uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt, uint8_t length)
         if(length > 1)
         {
             event_param = CONTROL << 8;
-            CONTROL = pkt->data[0];
+            CONTROL = pkt->data.u8[0];
             event_param |= CONTROL;
             
             if(CONTROL & _BV(CTRL_START))
