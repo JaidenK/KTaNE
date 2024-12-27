@@ -32,12 +32,12 @@
 #include <EEPROM.h>
 #include <Wire.h>
 
-#include "BOARD_Sketchpad.h"
+#include "BOARD_Keypads.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 
-#include "SketchpadFSM.h"
+#include "KeypadsFSM.h"
 #include "KTaNE.h"
 
 
@@ -82,13 +82,13 @@ static const char *StateNames[] = {
 FSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
 static uint8_t MyPriority;
 
-static uint8_t moduleI2Crequest = 0; 
+//static uint8_t moduleI2Crequest = 0; 
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
  
-uint8_t InitSketchpadFSM(uint8_t Priority)
+uint8_t InitKeypadsFSM(uint8_t Priority)
 {
     MyPriority = Priority;
     // put us into the Initial PseudoState
@@ -100,41 +100,45 @@ uint8_t InitSketchpadFSM(uint8_t Priority)
     } else {
         return FALSE;
     }
-    
-    Serial.println(F("Sketchpad FSM Initialized"));
+
+    Serial.println(F("Keypads FSM Initialized"));
 }
 
-void FlashBlocking()
+// Startup flash Red-Green-Red-Green-Blue
+void StartupFlash()
 {
-    for (int i = 0; i < 5; i++)
-    {
-        digitalWrite(STRIKE_PIN,1);
-        delay(200);
-        digitalWrite(STRIKE_PIN,0);
-        delay(200);
-    }
-    
+    digitalWrite(STRIKE_PIN,HIGH);     
+    delay(200);
+    digitalWrite(STRIKE_PIN,LOW);  
+
+    digitalWrite(DISARM_PIN,HIGH);     
+    delay(200);
+    digitalWrite(DISARM_PIN,LOW);  
+
+    digitalWrite(LED1_PIN,HIGH);     
+    delay(200);
+    digitalWrite(LED1_PIN,LOW); 
+
+    digitalWrite(LED2_PIN,HIGH);     
+    delay(200);
+    digitalWrite(LED2_PIN,LOW);  
+
+    digitalWrite(LED3_PIN,HIGH);     
+    delay(200);
+    digitalWrite(LED3_PIN,LOW); 
+
+    digitalWrite(LED4_PIN,HIGH);     
+    delay(200);
+    digitalWrite(LED4_PIN,LOW); 
+      
 }
 
-void InitializeEEPROM()
-{
-    char *moduleName =  "SKETCHPAD       ";
-    char *serialNo =    "SKC001          "; // This should be unique for every individual module. IDK how to ensure that right now.
-    char *buildDate =   "12/18/2024 15:30"; // Bless your heart if you actually remember to update this datetime each time the code changes.
-    for(uint8_t i=0; i<16; i++)
-    {
-        EEPROM.update(EEPROM_MODULE_NAME+i,moduleName[i]);
-        EEPROM.update(EEPROM_REAL_MODULE_SERIAL+i,serialNo[i]); 
-        EEPROM.update(EEPROM_BUILD_DATE+i,buildDate[i]); 
-    }
-}
-
-uint8_t PostSketchpadFSM(ES_Event ThisEvent)
+uint8_t PostKeypadsFSM(ES_Event ThisEvent)
 {
     return ES_PostToService(MyPriority, ThisEvent);
 }
 
-ES_Event RunSketchpadFSM(ES_Event ThisEvent)
+ES_Event RunKeypadsFSM(ES_Event ThisEvent)
 {
     uint8_t makeTransition = FALSE; // use to flag transition
     FSMState_t nextState; // <- need to change enum type here
@@ -150,22 +154,38 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
         if (ThisEvent.EventType == ES_ENTRY || 
             ThisEvent.EventType == ES_INIT)// only respond to ES_Init
         {
-            InitializeEEPROM();
             // now put the machine into the actual initial state
             nextState = Idle;
             makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
+            ThisEvent.EventType = ES_NO_EVENT;   
+    
+            KTaNE_InitEEPROM("KEYPADS         ",
+                             "KEY001          ",
+                             "12/26/2024 19:30");   
+            
+            StartupFlash();
         }
         break;
     case Idle:
         if(ThisEvent.EventType == ES_ENTRY)
         {
+            // Turn off LEDs
             digitalWrite(DISARM_PIN, LOW);
             digitalWrite(STRIKE_PIN, LOW);
+            digitalWrite(LED1_PIN,LOW);  
+            digitalWrite(LED2_PIN,LOW);  
+            digitalWrite(LED3_PIN,LOW);  
+            digitalWrite(LED4_PIN,LOW);  
+
+            // Reset status
             STATUS |= _BV(STS_READY);
             STATUS &= ~_BV(STS_RUNNING);   
             STATUS &= ~_BV(STS_SOLVED);    
             STATUS &= ~_BV(STS_STRIKE);    
+            STATUS &= ~_BV(STS_REQUEST);
+
+            // Clear pending request
+            REQUEST = 0;
         }
         if(ThisEvent.EventType == EVENT_START)
         {
@@ -173,55 +193,42 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
             nextState = Running;
             makeTransition = TRUE;
         }
+        if(ThisEvent.EventType == BUTTON_EVENT)
+        {
+            // TODO turn on each keypad's LED if its button is pressed
+            //digitalWrite(STRIKE_PIN,!(ThisEvent.EventParam & 1));
+            //digitalWrite(DISARM_PIN,!(ThisEvent.EventParam & 1));
+        }
         break;
     case Running:
-        if(ThisEvent.EventType == ES_ENTRY)
+        switch(ThisEvent.EventType)
         {
-            STATUS |= _BV(STS_RUNNING);
-            //digitalWrite(DISARM_PIN, HIGH);
-            //digitalWrite(STRIKE_PIN, HIGH);
-            //delay(100);
-            //digitalWrite(DISARM_PIN, LOW);
-            //digitalWrite(STRIKE_PIN, LOW);
-        }
-        if(ThisEvent.EventType == BUTTON_EVENT)
-        {            
-            Serial.print("Param: ");
-            Serial.println(ThisEvent.EventParam,HEX);
-            uint8_t strikeState = (ThisEvent.EventParam & 0x0001);
-            uint8_t disarmState = (ThisEvent.EventParam & 0x0002);
-            Serial.print("State: ");
-            Serial.println(strikeState);
-            Serial.println(disarmState);
-            
-            // Buttons are active low, LEDs are active high
-            digitalWrite(DISARM_PIN,!disarmState);
-            digitalWrite(STRIKE_PIN,!strikeState);
-
-            // check which button changed AND its state
-            if((ThisEvent.EventParam & 0x0101) == 0x0100)
-            {
-                //I2C_SendPacket(TIMER_I2C_ADDRESS, STRIKE);
-                STATUS |= _BV(STS_STRIKE);
-            }
-            else if((ThisEvent.EventParam & 0x0202) == 0x0200)
-            {
-                //I2C_SendPacket(TIMER_I2C_ADDRESS, SOLVED);  
+            case ES_ENTRY:
+                // TODO calculate rule
+                //btn_rule = calculateRule();
+                STATUS |= _BV(STS_RUNNING);
+                digitalWrite(DISARM_PIN, LOW);
+                digitalWrite(STRIKE_PIN, LOW);
+                digitalWrite(LED1_PIN,LOW);  
+                digitalWrite(LED2_PIN,LOW);  
+                digitalWrite(LED3_PIN,LOW);  
+                digitalWrite(LED4_PIN,LOW);  
+                break;
+            case BUTTON_EVENT:  
+                // TODO check if they pressed the correct key
+                ThisEvent.EventType = ES_NO_EVENT;  
+                break;                        
+            case EVENT_RESET:
+                ThisEvent.EventType = ES_NO_EVENT;
+                nextState = Idle;
+                makeTransition = TRUE;
+                break;
+            case SOLVED_EVENT:
+                Serial.print(F("ZZ1NULL"));
                 ThisEvent.EventType = ES_NO_EVENT;
                 nextState = Solved;
-                makeTransition = TRUE;              
-            }                    
-        }
-        else if(ThisEvent.EventType == FLASH_REQUESTED)
-        {
-            FlashBlocking();
-            ThisEvent.EventType = ES_NO_EVENT;
-        }    
-        else if(ThisEvent.EventType == EVENT_RESET)
-        {
-            ThisEvent.EventType = ES_NO_EVENT;
-            nextState = Idle;
-            makeTransition = TRUE;
+                makeTransition = TRUE;
+                break;
         }
         break;
     case Solved:
@@ -251,9 +258,9 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
 
     if (makeTransition == TRUE) { // making a state transition, send EXIT and ENTRY
         // recursively call the current state with an exit event
-        RunSketchpadFSM(EXIT_EVENT);
+        RunKeypadsFSM(EXIT_EVENT);
         CurrentState = nextState;
-        RunSketchpadFSM(ENTRY_EVENT);
+        RunKeypadsFSM(ENTRY_EVENT);
     }
     ES_Tail(); // trace call stack end
     return ThisEvent;

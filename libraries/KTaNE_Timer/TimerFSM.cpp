@@ -75,7 +75,7 @@ typedef enum {
     Running,
     Exploding,
     N_STATES,
-} TimerFSMState_t;
+} FSMState_t;
 
 static const char *StateNames[] = {
     "InitPState",
@@ -86,7 +86,7 @@ static const char *StateNames[] = {
     "N_STATES",
 };
 
-TimerFSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
+FSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
 static uint8_t MyPriority;
 
 static uint8_t nStrikes = 0;
@@ -138,7 +138,7 @@ uint8_t PostTimerFSM(ES_Event ThisEvent)
 ES_Event RunTimerFSM(ES_Event ThisEvent)
 {
     uint8_t makeTransition = FALSE; // use to flag transition
-    TimerFSMState_t nextState; // <- need to change enum type here
+    FSMState_t nextState; // <- need to change enum type here
 
     if(ThisEvent.EventType == ES_ENTRY)
     {
