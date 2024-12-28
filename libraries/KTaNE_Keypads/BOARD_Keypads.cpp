@@ -21,10 +21,9 @@
  * @function BOARD_Init(void)
  * @param None
  * @return None
- * @brief Set the clocks up for the board, initializes the serial port, and turns on the A/D
- *        subsystem for battery monitoring
- * @author Max Dunne, 2013.09.15  */
-void BOARD_Init()
+ * @brief Sets up the pins and peripherals. 
+ */
+void BOARD_Init(void)
 {
     // Configure pin directions
     pinMode(BTN1_PIN,INPUT_PULLUP);
@@ -56,27 +55,4 @@ void BOARD_Init()
 
     // Join the bus
     I2C_Init(0);
-}
-
-/**
- * @function BOARD_End(void)
- * @param None
- * @return None
- * @brief Shuts down all peripherals except for serial and A/D. Turns all pins into input
- * @author Max Dunne, 2013.09.20  */
-void BOARD_End()
-{
-
-}
-
-/**
- * @function BOARD_GetPBClock(void)
- * @param None
- * @return PB_CLOCK - Speed the peripheral clock is running in hertz
- * @brief Returns the speed of the peripheral clock.  Nominally at 40Mhz
- * @author Max Dunne, 2013.09.01  */
-unsigned int BOARD_GetPBClock()
-{
-    //return PB_CLOCK;
-    return 0;
 }

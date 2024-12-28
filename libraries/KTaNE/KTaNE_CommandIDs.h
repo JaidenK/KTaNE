@@ -69,6 +69,7 @@ extern volatile uint8_t STATUS;
 #define STS_RUNNING (2)
 #define STS_REQUEST (3)
 #define STS_READY   (4)
+#define STS_FAULT   (5)
 
 extern volatile uint8_t CONTROL;
 #define REG_CTRL      (0x11)
