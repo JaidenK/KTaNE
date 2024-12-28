@@ -173,22 +173,12 @@ void calculateRule()
         }
     }
 
-    Serial.write('Z');
-    Serial.write('Z');
-    Serial.write(whichColumn);
-
     bubbleSort(keys);
-
-    Serial.write(keys[0].symbol);
-    Serial.write(keys[1].symbol);
-    Serial.write(keys[2].symbol);
-    Serial.write(keys[3].symbol);
 
     // Combine the masks so that repeated button presses don't cause problems
     keys[1].param_mask |= keys[0].param_mask;
     keys[2].param_mask |= keys[1].param_mask;
     keys[3].param_mask |= keys[2].param_mask;
-
 
     // Check for no valid column found
     if(whichColumn >= N_COLS)
@@ -250,7 +240,6 @@ void StartupFlash()
 
 uint8_t PostKeypadsFSM(ES_Event ThisEvent)
 {
-    Serial.print("ZZ3"); // REMOVE when done debugging
     return ES_PostToService(MyPriority, ThisEvent);
 }
 
@@ -263,14 +252,10 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
     uint8_t makeTransition = FALSE; // use to flag transition
     FSMState_t nextState; // <- need to change enum type here
 
-    Serial.print("ES"); // remove when done debugging
-    Serial.write(CurrentState); // remove when done debugging
-    Serial.write(ThisEvent.EventType); // remove when done debugging
-
     if(ThisEvent.EventType == ES_ENTRY)
     {
-        Serial.print(F("Entering state: "));
-        Serial.println(StateNames[CurrentState]);
+        //Serial.print(F("Entering state: "));
+        //Serial.println(StateNames[CurrentState]);
     }
 
     switch (CurrentState) {
@@ -318,9 +303,6 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
         }
         if(ThisEvent.EventType == BUTTON_EVENT)
         {
-            // TODO turn on each keypad's LED if its button is pressed
-            //digitalWrite(STRIKE_PIN,!(ThisEvent.EventParam & 1));
-            //digitalWrite(DISARM_PIN,!(ThisEvent.EventParam & 1));
             digitalWrite(LED1_PIN,ThisEvent.EventParam & 0x01);
             digitalWrite(LED2_PIN,ThisEvent.EventParam & 0x02);
             digitalWrite(LED3_PIN,ThisEvent.EventParam & 0x04);
@@ -328,7 +310,6 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
         }
         break;
     case Running:
-        Serial.print(F("ZZ6"));
         switch(ThisEvent.EventType)
         {
             case ES_ENTRY:
@@ -349,12 +330,6 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
                 if(pressed_buttons)
                 {                    
                     target_mask = keys[currentStep].param_mask;
-                    
-                    Serial.print("ZZ");
-                    Serial.write(pressed_buttons);
-                    Serial.write(target_mask);
-                    Serial.write(ThisEvent.EventParam);
-
 
                     // Check if the correct button was pressed
                     if((runningMask | pressed_buttons) == target_mask)
@@ -374,27 +349,20 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
                     if(pressed_buttons & ~target_mask)
                     {
                         STATUS |= _BV(STS_STRIKE); 
-                        digitalWrite(STRIKE_PIN,HIGH); 
-                        Serial.print("ZZQ");
+                        digitalWrite(STRIKE_PIN,HIGH);                         
                         digitalWrite(LED1_PIN,LOW);  
                         digitalWrite(LED2_PIN,LOW);  
                         digitalWrite(LED3_PIN,LOW);  
                         digitalWrite(LED4_PIN,LOW);  
                         currentStep = 0;
                         runningMask = 0;
-                        StartPseudoTimer(0,1000); // Not working???
-                        //StartupFlash();
-                        //if(!ES_PostAll((ES_Event){BUTTON_EVENT,0x66})) // Not working??? But also not getting a fail return value?
-                        //{
-                        //    Serial.print("ZZS");
-                        //}
+                        StartPseudoTimer(0,STRIKE_LED_PULSE_DURATION_MS);
                     }
                 }               
 
                 ThisEvent.EventType = ES_NO_EVENT;  
                 break;          
             case ES_TIMEOUT:
-                Serial.print("ZZR");
                 digitalWrite(STRIKE_PIN,LOW); 
                 ThisEvent.EventType = ES_NO_EVENT;
                 break;              
@@ -404,13 +372,11 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
                 makeTransition = TRUE;
                 break;
             case SOLVED_EVENT:
-                Serial.print(F("ZZ1NULL"));
                 ThisEvent.EventType = ES_NO_EVENT;
                 nextState = Solved;
                 makeTransition = TRUE;
                 break;
             default:
-                Serial.print(F("ZZ4"));
                 break;
         }
         break;
@@ -429,7 +395,6 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
         }
         break;
     default: // all unhandled states fall into here
-        Serial.print(F("ZZ5"));
         break;
     } // end switch on Current State
 

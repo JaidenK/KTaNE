@@ -44,7 +44,6 @@ uint8_t checkPseudoTimers(void)
   {
     if(millis() >= timer0ExpirationTime)
     {
-      Serial.print("ZZ2"); // REMOVE when done debugging. Confirmed we're getting here.
       is0TimerRunning = 0;
       ES_PostAll((ES_Event){ES_TIMEOUT,0});
       returnVal = 1;
@@ -66,7 +65,6 @@ uint8_t checkPseudoTimers(void)
 
 void StartPseudoTimer(uint8_t whichTimer, uint16_t duration)
 {
-  Serial.print("ZZ1"); // REMOVE when done debugging
   if(whichTimer == 0)
   {
     timer0ExpirationTime = millis() + duration;
