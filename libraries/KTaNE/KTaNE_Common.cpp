@@ -16,6 +16,7 @@
 volatile uint8_t STATUS = 0;
 volatile uint8_t CONTROL = 0;
 volatile uint8_t REQUEST = 0;
+volatile uint8_t TEST_RESULTS = 0;
 
 uint8_t i2c_address = 0;
 volatile I2C_CommandPacket LastCommand = 

@@ -420,6 +420,8 @@ void Module_PerformSelfTest()
     delay(200);
     digitalWrite(STRIKE2_PIN,LOW);  
 
+    Serial.println(F("Self test performed."));
+
     TEST_RESULTS = SELFTEST_SUCCESS;
     STATUS |= _BV(STS_RESULT_READY);
 }
