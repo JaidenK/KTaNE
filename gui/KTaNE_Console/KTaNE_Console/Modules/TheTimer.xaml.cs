@@ -154,6 +154,7 @@ namespace KTaNE_Console.Modules
         }
         public string IndicatorsInput { get; set; }
 
+        public RelayCommand SelfTestCmd { get; set; }
         public RelayCommand ReadTimerEEPROMCmd { get; set; }
         public RelayCommand ApplyTimerEEPROMCmd { get; set; }
         private Queue<byte[]> TxQueue { get; set; } = new Queue<byte[]>();
@@ -223,6 +224,18 @@ namespace KTaNE_Console.Modules
             //    bytes[bytes.Length - 1] = 0; // Force null terminator
             //    serial.SendCommand(0, Address, bytes);
             //});
+            SelfTestCmd = new RelayCommand((o) =>
+            {
+                try
+                {
+
+                    serial.SendCommand(0, Address, new byte[] { (byte)Registers.REG_CTRL, (byte)(1 << 5) });
+                }
+                catch (Exception ex)
+                {
+                    CW.ConsoleWrite(ex.Message + Environment.NewLine);
+                }
+            });
 
             ReadTimerEEPROMCmd = new RelayCommand((o) =>
             {
