@@ -409,16 +409,32 @@ void Module_Detonate()
 
 void Module_PerformSelfTest()
 {
-    showTime(754000);
-    delay(1000);
+    display.setBrightness(5);
+    display.clear();
+    digitalWrite(STRIKE1_PIN,LOW);  
+    digitalWrite(STRIKE2_PIN,LOW); 
+
+    for(uint8_t pos = 0; pos < 4; pos++)
+    {
+        for(uint8_t i = 0; i < 10; i++)
+        {
+            display.showNumberDec(i, 0, 1, pos);
+            delay(100);
+        }
+    }
+
+    showTime(754000); // 1234
     
     digitalWrite(STRIKE1_PIN,HIGH);     
-    delay(200);
+    delay(500);
     digitalWrite(STRIKE1_PIN,LOW);  
 
     digitalWrite(STRIKE2_PIN,HIGH);     
-    delay(200);
+    delay(500);
     digitalWrite(STRIKE2_PIN,LOW);  
+
+    // TODO: Buzzer
+    // TODO: Consequence Relay
 
     Serial.println(F("Self test performed."));
 
