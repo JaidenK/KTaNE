@@ -35,13 +35,13 @@
 #define SUCCESS ((int8_t) 1)
 
 /* IO PINS */
-#define SPEAKER_PIN 9
-#define START_BTN 12
+#define SPEAKER_PIN 8
+//#define START_BTN 12
 
 #define TM1637_CLK 2
 #define TM1637_DIO 3
 
-#define LIGHT_PIN A3
+//#define LIGHT_PIN A3
 
 #define STRIKE1_PIN 12
 #define STRIKE2_PIN 13

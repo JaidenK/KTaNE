@@ -2,7 +2,7 @@
 #include <Wire.h>
 #include "SerialCommandProcessor.h"
 #include "SerialManager.h"
-#include "KTaNE_Common.h"
+#include "KTaNE.h"
 #include "ES_Framework.h"
 #include "Timer_Configure.h"
 #include <string.h>
@@ -109,12 +109,12 @@ void ProcessSerialCommand(uint8_t *buf)
             // I2C command rather than a special Serial command
             for(uint8_t i = 0; i < length; i++)
                 ((uint8_t *)&LastCommand)[i] = command[i];
-            I2C_receive_test(length);
+            KTaNE_I2C_receive_test(length);
         }        
     }
     else
     {
-        I2C_SendPacketEx(address,command,length);
+        KTaNE_I2C_SendPacketEx(address,command,length);
 
         if(nResponseBytes > 0)
         {        

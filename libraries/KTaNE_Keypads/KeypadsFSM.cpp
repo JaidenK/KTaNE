@@ -76,7 +76,6 @@ static const char *StateNames[] = {
     "N_STATES",
 };
 
-#define STRIKE_LED_PULSE_DURATION_MS 1000
 
 FSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
 static uint8_t MyPriority;
@@ -236,6 +235,17 @@ void StartupFlash()
       
 }
 
+
+void ResetAllOutputs()
+{
+    digitalWrite(DISARM_PIN, LOW);
+    digitalWrite(STRIKE_PIN, LOW);
+    digitalWrite(LED1_PIN,LOW);  
+    digitalWrite(LED2_PIN,LOW);  
+    digitalWrite(LED3_PIN,LOW);  
+    digitalWrite(LED4_PIN,LOW);  
+}
+
 uint8_t PostKeypadsFSM(ES_Event ThisEvent)
 {
     return ES_PostToService(MyPriority, ThisEvent);
@@ -276,12 +286,7 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
         if(ThisEvent.EventType == ES_ENTRY)
         {
             // Turn off LEDs
-            digitalWrite(DISARM_PIN, LOW);
-            digitalWrite(STRIKE_PIN, LOW);
-            digitalWrite(LED1_PIN,LOW);  
-            digitalWrite(LED2_PIN,LOW);  
-            digitalWrite(LED3_PIN,LOW);  
-            digitalWrite(LED4_PIN,LOW);  
+            ResetAllOutputs();
 
             // Reset status
             STATUS |= _BV(STS_READY);
@@ -311,12 +316,7 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
         switch(ThisEvent.EventType)
         {
             case ES_ENTRY:
-                digitalWrite(DISARM_PIN, LOW);
-                digitalWrite(STRIKE_PIN, LOW);
-                digitalWrite(LED1_PIN,LOW);  
-                digitalWrite(LED2_PIN,LOW);  
-                digitalWrite(LED3_PIN,LOW);  
-                digitalWrite(LED4_PIN,LOW);  
+                ResetAllOutputs(); 
                 currentStep = 0;
                 calculateRule();
                 runningMask = 0;
@@ -347,11 +347,8 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
                     if(pressed_buttons & ~target_mask)
                     {
                         STATUS |= _BV(STS_STRIKE); 
-                        digitalWrite(STRIKE_PIN,HIGH);                         
-                        digitalWrite(LED1_PIN,LOW);  
-                        digitalWrite(LED2_PIN,LOW);  
-                        digitalWrite(LED3_PIN,LOW);  
-                        digitalWrite(LED4_PIN,LOW);  
+                        ResetAllOutputs();
+                        digitalWrite(STRIKE_PIN,HIGH);   
                         currentStep = 0;
                         runningMask = 0;
                         StartPseudoTimer(0,STRIKE_LED_PULSE_DURATION_MS);

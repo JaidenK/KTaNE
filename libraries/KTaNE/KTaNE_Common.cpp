@@ -6,13 +6,12 @@
 
 #include <stdint.h>
 
-#include "KTaNE_Constants.h"
-#include "KTaNE_Common.h"
-#include "KTaNE_CommandIDs.h"
+#include "KTaNE.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 
+#define N_SYNC_BYTES 8 // How many sync bytes to send
 
 volatile uint8_t STATUS = 0;
 volatile uint8_t CONTROL = 0;
@@ -21,7 +20,6 @@ volatile uint8_t REQUEST = 0;
 uint8_t i2c_address = 0;
 volatile I2C_CommandPacket LastCommand = 
 {
-    //.SenderAddress = 0,
     .CommandID = 0,
     .data = {0}
 };
@@ -54,7 +52,7 @@ void reassignI2C(uint8_t reserved[], uint8_t nReserved)
 // address = -1: Join as master
 // address = 0:  Get address from EEPROM
 // address > 0:  Use parameter value
-void I2C_Init(int address)
+void KTaNE_I2C_Init(int address)
 {    
     if(address < 0)
     {
@@ -142,7 +140,7 @@ void I2C_request()
 {
     I2C_CommandPacket* pkt = &LastCommand;   
     if(ServiceI2CRequest_Common(pkt)) return; // Don't do custom responses if it was a default packet        
-    ServiceI2CRequest(pkt);   
+    Module_ServiceI2CRequest(pkt);   
 }
 
 void ReceiveI2C_SetEEPROM(I2C_CommandPacket *pkt)
@@ -228,12 +226,12 @@ uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt, uint8_t length)
             if(CONTROL & _BV(CTRL_LED1))
             {
                 CONTROL &= ~_BV(CTRL_LED1);
-                ToggleSolveLED();
+                Module_ToggleSolveLED();
             }
             if(CONTROL & _BV(CTRL_LED2))
             {
                 CONTROL &= ~_BV(CTRL_LED2);
-                ToggleStrikeLED();
+                Module_ToggleStrikeLED();
             }            
         }
         break;
@@ -251,10 +249,10 @@ uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt, uint8_t length)
 }
 
 // This can be used if LastCommand is manually populated elsewhere
-void I2C_receive_test(uint8_t length)
+void KTaNE_I2C_receive_test(uint8_t length)
 {
     if(ReceiveI2CCommand_Common(&LastCommand,length)) return; // Don't do custom responses if it was a default packet
-    ReceiveI2CCommand(&LastCommand,length);
+    Module_ReceiveI2CCommand(&LastCommand,length);
 }
 
 void I2C_receive(int nBytes) 
@@ -270,17 +268,17 @@ void I2C_receive(int nBytes)
         ((uint8_t *)pkt)[i] = Wire.read();
     }    
     if(ReceiveI2CCommand_Common(pkt,i)) return; // Don't do custom responses if it was a default packet
-    ReceiveI2CCommand(pkt,i);
+    Module_ReceiveI2CCommand(pkt,i);
 }
 
-uint8_t I2C_SendPacket(uint8_t address, uint8_t command)
+uint8_t KTaNE_I2C_SendPacket(uint8_t address, uint8_t command)
 {
     Wire.beginTransmission(address);
     Wire.write(command); 
     return Wire.endTransmission();
 }
 
-uint8_t I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length)
+uint8_t KTaNE_I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length)
 {
     Wire.beginTransmission(address);
     for(uint8_t i = 0; i < length; i++)

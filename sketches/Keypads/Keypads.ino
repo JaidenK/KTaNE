@@ -20,7 +20,7 @@ void setup()
 
     BOARD_Init();
   
-    Serial.println("Board initialized.");
+    //Serial.println("Board initialized.");
 
     // Initialize the framework
     ErrorType = ES_Initialize();

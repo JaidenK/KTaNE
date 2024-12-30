@@ -43,6 +43,7 @@
 #include "KTaNE.h"
 #include "ClockEventChecker.h"
 #include "SerialManager.h"
+//#include "pitches.h"
 
 #include "frequencies.h"
 
@@ -50,6 +51,12 @@
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
+
+
+#define NOTE_C7  2093
+#define NOTE_AS6 1865
+
+#define STRIKE_LIMIT 3
 
 
 /*******************************************************************************
@@ -63,7 +70,6 @@ void initModules(void);
  * PRIVATE MODULE VARIABLES                                                    *
  ******************************************************************************/
 
-#define STRIKE_LIMIT 3
 
 /* You will need MyPriority and the state variable; you may need others as well.
  * The type of state variable should match that of enum in header file. */
@@ -97,6 +103,16 @@ static uint8_t moduleI2Crequest = 0;
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
+
+void beep_blocking()
+{    
+    Serial.println(NOTE_C7);
+    tone(SPEAKER_PIN, NOTE_C7, 150);
+    delay(300);
+    Serial.println(NOTE_AS6);
+    tone(SPEAKER_PIN, NOTE_AS6, 50);
+    delay(700);
+}
 
 void SendModuleListToPC()
 {  
@@ -155,6 +171,8 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             SendUARTCommandByte(i2c_address,RESET);
             display.setBrightness(5);
             display.clear();
+            
+            tone(SPEAKER_PIN, NOTE_C7, 100);
 
             // now put the machine into the actual initial state
             nextState = Idle;
@@ -373,12 +391,12 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
  * PRIVATE FUNCTIONS                                                           *
  ******************************************************************************/
 
-void ToggleStrikeLED()
+void Module_ToggleStrikeLED()
 {
     digitalWrite(STRIKE1_PIN,!digitalRead(STRIKE1_PIN));
 }
 
-void ToggleSolveLED()
+void Module_ToggleSolveLED()
 {
     digitalWrite(STRIKE2_PIN,!digitalRead(STRIKE2_PIN));
 }

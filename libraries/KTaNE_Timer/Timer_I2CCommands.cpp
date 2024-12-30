@@ -4,14 +4,14 @@
 #include "ES_Framework.h"
 
 
-const char ModelID[N_MAX_MODULE_ID_CHARS] = "VALK_TIMER_000";
-const char ModuleName[N_MAX_MODULE_NAME_CHARS] = "The Timer";
+//const char ModelID[N_MAX_MODULE_ID_CHARS] = "VALK_TIMER_000";
+//const char ModuleName[N_MAX_MODULE_NAME_CHARS] = "The Timer";
 
-void ServiceI2CRequest(I2C_CommandPacket *pkt)
+void Module_ServiceI2CRequest(I2C_CommandPacket *pkt)
 {
 }
 
-void ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length)
+void Module_ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length)
 {
     Serial.print(F("I2C: "));
     Serial.println(pkt->CommandID,HEX);

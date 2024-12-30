@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <string.h>
 
-#include "KTaNE_Constants.h"
+#include "KTaNE.h"
 #include "Timer_Configure.h"
 
 
