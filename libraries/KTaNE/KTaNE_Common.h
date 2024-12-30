@@ -54,5 +54,7 @@ void Module_ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length);
 
 void Module_ToggleStrikeLED(void);
 void Module_ToggleSolveLED(void);
+void Module_Detonate(void);
+void Module_PerformSelfTest(void); // If they don't set the STS_RESULT_READY flag, you'll have to account for a timeout.
 
 #endif

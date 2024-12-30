@@ -401,3 +401,26 @@ void Module_ToggleSolveLED()
     digitalWrite(STRIKE2_PIN,!digitalRead(STRIKE2_PIN));
 }
 
+void Module_Detonate()
+{
+    digitalWrite(STRIKE1_PIN,HIGH);
+    digitalWrite(STRIKE2_PIN,HIGH);
+}
+
+void Module_PerformSelfTest()
+{
+    showTime(754000);
+    delay(1000);
+    
+    digitalWrite(STRIKE1_PIN,HIGH);     
+    delay(200);
+    digitalWrite(STRIKE1_PIN,LOW);  
+
+    digitalWrite(STRIKE2_PIN,HIGH);     
+    delay(200);
+    digitalWrite(STRIKE2_PIN,LOW);  
+
+    TEST_RESULTS = SELFTEST_SUCCESS;
+    STATUS |= _BV(STS_RESULT_READY);
+}
+

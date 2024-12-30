@@ -129,6 +129,10 @@ uint8_t ServiceI2CRequest_Common(I2C_CommandPacket *pkt)
         case GET_EEPROM:
             ServiceI2C_GetEEPROM(pkt);
             break;
+        case REG_TEST_RESULTS:
+            Wire.write(TEST_RESULTS);
+            // Clear results ready flag when they read results
+            STATUS &= ~_BV(STS_RESULT_READY);
         default:
             // Module-specific or invalid command ID
             return 0;
@@ -232,7 +236,19 @@ uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt, uint8_t length)
             {
                 CONTROL &= ~_BV(CTRL_LED2);
                 Module_ToggleStrikeLED();
-            }            
+            }       
+            if(CONTROL & _BV(CTRL_DETONATE))
+            {
+                CONTROL &= ~_BV(CTRL_DETONATE);
+                Module_Detonate();
+            }     
+            if(CONTROL & _BV(CTRL_SEFLTEST))
+            {
+                CONTROL &= ~_BV(CTRL_SEFLTEST);
+                TEST_RESULTS = SELFTEST_NOT_PERFORMED;
+                STATUS &= ~_BV(STS_RESULT_READY);
+                Module_PerformSelfTest();                
+            }      
         }
         break;
     case REG_REJOIN:

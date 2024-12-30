@@ -74,6 +74,14 @@ uint8_t ServiceCommandLocally(uint8_t *buf)
     case SET_EEPROM:
         SetEEPROMCmd(command);
         break;
+    case REG_CTRL:  
+        if(command[0] & _BV(CTRL_SEFLTEST))
+        {
+            TEST_RESULTS = SELFTEST_NOT_PERFORMED;
+            STATUS &= ~_BV(STS_RESULT_READY);
+            Module_PerformSelfTest();                
+        }  
+        break;
     default:
         // Error condition
         //Serial.println(F("Invalid serial command."));
