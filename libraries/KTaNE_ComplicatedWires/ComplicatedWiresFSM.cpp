@@ -80,6 +80,18 @@ static const char *StateNames[] = {
 FSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
 static uint8_t MyPriority;
 
+uint8_t pinsAsArray[6] = 
+    {
+        LED1_PIN,
+        LED2_PIN,
+        LED3_PIN,
+        LED4_PIN,
+        LED5_PIN,
+        LED6_PIN
+    };
+
+uint8_t cutRules = 0;
+uint8_t strikeMask = 0;
 
 uint8_t get_isDigitEven()
 {
@@ -133,74 +145,81 @@ uint8_t calculateRule()
     uint8_t cut = 0;    
     uint8_t letter = 'X'; // X is an invalid letter
 
-    // Wire Selector
-    uint8_t whichWire = 0;
-    uint8_t mask = 1 << whichWire;
-
-    // Input definition
-    isWireRed =  (EEPROM[EEPROM_REDWIRES]  & mask) > 0;
-    isWireBlue = (EEPROM[EEPROM_BLUEWIRES] & mask) > 0;
-    hasStar =    (EEPROM[EEPROM_STARS]     & mask) > 0;
-    isLEDOn =    (EEPROM[EEPROM_LEDS]      & mask) > 0;
     isDigitEven = get_isDigitEven();
     hasParallelPort = get_hasParallelPort();
     has2Batteries = get_has2Batteries();
 
-    uint8_t letter_bitfield = (isWireRed  << 3) 
-                            | (isWireBlue << 2)
-                            | (hasStar    << 1)
-                            | (isLEDOn    << 0);
-                            
+    // Wire Selector
+    for(uint8_t whichWire = 0; whichWire < 6; whichWire++)
+    {        
+        uint8_t mask = 1 << whichWire;
 
-    // See truth table
-    switch (letter_bitfield)
-    {
-    case 0b0011:
-    case 0b1001:
-    case 0b1010:
-    case 0b1011:
-        letter = 'B';
-        break;
-    case 0b0000:
-    case 0b0010:
-        letter = 'C';
-        break;
-    case 0b0001:
-    case 0b0110:
-    case 0b1111:
-        letter = 'D';
-        break;
-    case 0b0101:
-    case 0b0111:
-    case 0b1110:
-        letter = 'P';
-        break;
-    case 0b0100:
-    case 0b1000:
-    case 0b1100:
-    case 0b1101:
-        letter = 'S';
-        break;
-    default:
-        letter = 'Y'; // Set to a different invalid character to know a case was missed. That shouldn't be possible.
-        break;
+        // Input definition
+        isWireRed =  (EEPROM[EEPROM_REDWIRES]  & mask) > 0;
+        isWireBlue = (EEPROM[EEPROM_BLUEWIRES] & mask) > 0;
+        hasStar =    (EEPROM[EEPROM_STARS]     & mask) > 0;
+        isLEDOn =    (EEPROM[EEPROM_LEDS]      & mask) > 0;
+
+        uint8_t letter_bitfield = (isWireRed  << 3) 
+                                | (isWireBlue << 2)
+                                | (hasStar    << 1)
+                                | (isLEDOn    << 0);
+                                
+
+        // See truth table
+        switch (letter_bitfield)
+        {
+        case 0b0011:
+        case 0b1001:
+        case 0b1010:
+        case 0b1011:
+            letter = 'B';
+            break;
+        case 0b0000:
+        case 0b0010:
+            letter = 'C';
+            break;
+        case 0b0001:
+        case 0b0110:
+        case 0b1111:
+            letter = 'D';
+            break;
+        case 0b0101:
+        case 0b0111:
+        case 0b1110:
+            letter = 'P';
+            break;
+        case 0b0100:
+        case 0b1000:
+        case 0b1100:
+        case 0b1101:
+            letter = 'S';
+            break;
+        default:
+            letter = 'Y'; // Set to a different invalid character to know a case was missed. That shouldn't be possible.
+            break;
+        }
+
+        EEPROM[EEPROM_LETTER] = letter;
+
+        switch (letter)
+        {
+        case 'C': cut = 1; break;
+        case 'D': cut = 0; break;
+        case 'S': cut = isDigitEven; break;
+        case 'P': cut = hasParallelPort; break;
+        case 'B': cut = has2Batteries; break;
+        default:
+            letter = 'Z'; // Set to a different invalid character to know a case was missed. That shouldn't be possible.
+            break;
+        }
+        
+        cutRules |= cut << whichWire;
     }
-
-    EEPROM[EEPROM_LETTER] = letter;
-
-    switch (letter)
-    {
-    case 'C': cut = 1; break;
-    case 'D': cut = 0; break;
-    case 'S': cut = isDigitEven; break;
-    case 'P': cut = hasParallelPort; break;
-    case 'B': cut = has2Batteries; break;
-    default:
-        letter = 'Z'; // Set to a different invalid character to know a case was missed. That shouldn't be possible.
-        break;
-    }
-
-    return cut;
+    
+    EEPROM[EEPROM_LETTER+1] = cutRules;
+    
+    return cutRules;
 }
 
 /*******************************************************************************
@@ -261,15 +280,7 @@ void StartupFlash()
 void turnOnConfiguredLEDs()
 {
     uint8_t leds = EEPROM[EEPROM_LEDS];
-    uint8_t pinsAsArray[6] = 
-    {
-        LED1_PIN,
-        LED2_PIN,
-        LED3_PIN,
-        LED4_PIN,
-        LED5_PIN,
-        LED6_PIN
-    };
+    
     for(uint8_t i = 0; i < 6; i++)
     {
         digitalWrite(pinsAsArray[i],(leds & (1 << i)) > 0);
@@ -295,6 +306,8 @@ uint8_t PostComplicatedWiresFSM(ES_Event ThisEvent)
 
 ES_Event RunComplicatedWiresFSM(ES_Event ThisEvent)
 {
+    uint8_t whichWire = 0;
+
     uint8_t makeTransition = FALSE; // use to flag transition
     FSMState_t nextState; // <- need to change enum type here
 
@@ -325,6 +338,7 @@ ES_Event RunComplicatedWiresFSM(ES_Event ThisEvent)
         {
             // Turn off LEDs
             ResetAllOutputs();
+            turnOnConfiguredLEDs();
 
             // Reset status
             STATUS |= _BV(STS_READY);
@@ -342,8 +356,24 @@ ES_Event RunComplicatedWiresFSM(ES_Event ThisEvent)
             nextState = Running;
             makeTransition = TRUE;
         }
-        // TODO: A way to test leds if they mess with 
-        // wires while Idle
+
+        // Basic functionality Idle test
+        if(ThisEvent.EventType == DIGITAL_INPUT_EVENT)
+        {
+            ThisEvent.EventType = ES_NO_EVENT;
+            
+            for(whichWire = 0; whichWire < 6; whichWire++)
+            {
+                if(ThisEvent.EventParam & (1 << (8+whichWire)))
+                {
+                    break;
+                }
+            }
+            if(whichWire < 6)
+            {
+                digitalWrite(pinsAsArray[whichWire],!digitalRead(pinsAsArray[whichWire]));
+            }
+        }
         break;
     case Running:
         switch(ThisEvent.EventType)
@@ -352,12 +382,49 @@ ES_Event RunComplicatedWiresFSM(ES_Event ThisEvent)
                 ResetAllOutputs(); 
                 turnOnConfiguredLEDs();
                 calculateRule();
+                strikeMask = 0;
                 STATUS |= _BV(STS_RUNNING);
                 break;
             case DIGITAL_INPUT_EVENT:  
-
-                // TODO              
-
+                if(ThisEvent.EventType == DIGITAL_INPUT_EVENT)
+                {
+                    ThisEvent.EventType = ES_NO_EVENT;
+                    
+                    for(whichWire = 0; whichWire < 6; whichWire++)
+                    {
+                        // Check if this wire changed
+                        if(ThisEvent.EventParam & (1 << (8+whichWire)))
+                        {
+                            // Check if it has been cut. HIGH is cut
+                            if(ThisEvent.EventParam & (1 << whichWire))
+                            {
+                                // Check if it was supposed to be cut
+                                if(cutRules & (1 << whichWire))
+                                {
+                                    // Check if all were cut
+                                    if((ThisEvent.EventParam & cutRules) == cutRules)
+                                    {
+                                        // Solved!
+                                        nextState = Solved;
+                                        makeTransition = TRUE;
+                                    }
+                                }
+                                else
+                                {
+                                    // Strike. Make sure this wire hasn't already
+                                    // been cut to avoid double strike
+                                    if(!(strikeMask & (1 << whichWire)))
+                                    {
+                                        strikeMask |= (1 << whichWire);
+                                        STATUS |= _BV(STS_STRIKE);                         
+                                        digitalWrite(STRIKE_PIN,HIGH);   
+                                        StartPseudoTimer(0,STRIKE_LED_PULSE_DURATION_MS);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 ThisEvent.EventType = ES_NO_EVENT;  
                 break;          
             case ES_TIMEOUT:

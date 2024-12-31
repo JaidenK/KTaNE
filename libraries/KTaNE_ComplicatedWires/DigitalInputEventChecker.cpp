@@ -49,7 +49,7 @@ uint8_t CheckDigitalInputs(void)
         {
             // We think the button is currently pressed.
             // Check for a falling edge on the register
-            if(BtnStateRegister[i] == 0xF0)
+            if(BtnStateRegister[i] == 0x00)
             {
                 // Falling edge detected. The button has
                 // been released.
@@ -62,7 +62,7 @@ uint8_t CheckDigitalInputs(void)
         {
             // We think the button is currently released.
             // Check for a rising edge on the register
-            if(BtnStateRegister[i] == 0x0F)
+            if(BtnStateRegister[i] == 0xFF)
             {
                 // Rising edge detected. The button has
                 // been pressed.
