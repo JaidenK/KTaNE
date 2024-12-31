@@ -196,6 +196,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         case ES_ENTRY:
             digitalWrite(STRIKE1_PIN,LOW);
             digitalWrite(STRIKE2_PIN,LOW);
+            digitalWrite(CONSEQUENCE_PIN,LOW);  
             StartPseudoTimer(0, 200);
             ScanForModules(); // Detects new modules
             GetStatusAllModules(); // Detects disconnected modules
@@ -350,6 +351,7 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         case ES_ENTRY:
             digitalWrite(STRIKE1_PIN,HIGH);
             digitalWrite(STRIKE2_PIN,HIGH);
+            digitalWrite(CONSEQUENCE_PIN,HIGH);  
             ThisEvent.EventType = ES_NO_EVENT;
             StopPseudoTimer(0);
             StopPseudoTimer(1);
@@ -413,28 +415,31 @@ void Module_PerformSelfTest()
     display.clear();
     digitalWrite(STRIKE1_PIN,LOW);  
     digitalWrite(STRIKE2_PIN,LOW); 
+    digitalWrite(CONSEQUENCE_PIN,0);
 
     for(uint8_t pos = 0; pos < 4; pos++)
     {
         for(uint8_t i = 0; i < 10; i++)
         {
             display.showNumberDec(i, 0, 1, pos);
-            delay(100);
+            delay(50);
         }
     }
 
     showTime(754000); // 1234
     
-    digitalWrite(STRIKE1_PIN,HIGH);     
+    digitalWrite(STRIKE1_PIN,HIGH);   
+    digitalWrite(CONSEQUENCE_PIN,HIGH);    
     delay(500);
     digitalWrite(STRIKE1_PIN,LOW);  
 
     digitalWrite(STRIKE2_PIN,HIGH);     
     delay(500);
     digitalWrite(STRIKE2_PIN,LOW);  
+    digitalWrite(CONSEQUENCE_PIN,LOW);  
 
-    // TODO: Buzzer
-    // TODO: Consequence Relay
+    beep_blocking();
+       
 
     Serial.println(F("Self test performed."));
 

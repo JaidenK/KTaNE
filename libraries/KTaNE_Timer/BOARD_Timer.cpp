@@ -37,37 +37,14 @@ void BOARD_Init()
     Serial.begin(SERIAL_BAUD_RATE); // The baudrate of Serial monitor is set in 9600
     
     pinMode(SPEAKER_PIN,OUTPUT);
-    //pinMode(START_BTN,INPUT_PULLUP);
-    //pinMode(LIGHT_PIN,INPUT);
     pinMode(STRIKE1_PIN,OUTPUT);
     pinMode(STRIKE2_PIN,OUTPUT);
+    pinMode(CONSEQUENCE_PIN,OUTPUT);
     digitalWrite(SPEAKER_PIN,0);
     digitalWrite(STRIKE1_PIN,0);
     digitalWrite(STRIKE2_PIN,0);
+    digitalWrite(CONSEQUENCE_PIN,0);
 
     ClearClock();
     showTime(0);
-}
-
-/**
- * @function BOARD_End(void)
- * @param None
- * @return None
- * @brief Shuts down all peripherals except for serial and A/D. Turns all pins into input
- * @author Max Dunne, 2013.09.20  */
-void BOARD_End()
-{
-
-}
-
-/**
- * @function BOARD_GetPBClock(void)
- * @param None
- * @return PB_CLOCK - Speed the peripheral clock is running in hertz
- * @brief Returns the speed of the peripheral clock.  Nominally at 40Mhz
- * @author Max Dunne, 2013.09.01  */
-unsigned int BOARD_GetPBClock()
-{
-    //return PB_CLOCK;
-    return 0;
 }

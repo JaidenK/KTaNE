@@ -46,6 +46,8 @@
 #define STRIKE1_PIN 12
 #define STRIKE2_PIN 13
 
+#define CONSEQUENCE_PIN 4
+
 
 /**
  * @function BOARD_Init(void)
@@ -55,23 +57,6 @@
  *        subsystem for battery monitoring
  * @author Max Dunne, 2013.09.15  */
 void BOARD_Init();
-
-
-/**
- * @function BOARD_End(void)
- * @param None
- * @return None
- * @brief Shuts down all peripherals except for serial and A/D. Turns all pins into input
- * @author Max Dunne, 2013.09.20  */
-void BOARD_End();
-
-/**
- * @function BOARD_GetPBClock(void)
- * @param None
- * @return PB_CLOCK - Speed the peripheral clock is running in hertz
- * @brief Returns the speed of the peripheral clock.  Nominally at 40Mhz
- * @author Max Dunne, 2013.09.01  */
-unsigned int BOARD_GetPBClock();
 
 #endif	/* BOARD_H */
 
