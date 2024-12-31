@@ -81,9 +81,78 @@ FSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
 static uint8_t MyPriority;
 
 
-void calculateRule()
+#define WIRE_IS_RED 0b00010000000
+
+uint8_t calculateRule()
 {
+    // Refer to the truth table available here:
+    // https://docs.google.com/spreadsheets/d/1A45_IfDyaQUIMZf9_n4Ueu2QJsHTjETd2lycnWZJMxM/edit?usp=sharing
+
+    // Inputs
+    uint8_t isWireRed = 0;
+    uint8_t isWireBlue = 0;
+    uint8_t hasStar = 0;
+    uint8_t isLEDOn = 0;
+    uint8_t isDigitEven = 0;
+    uint8_t hasParallelPort = 0;
+    uint8_t has2Batteries = 0;
     
+    uint8_t letter_bitfield = (isWireRed  << 3) 
+                            | (isWireBlue << 2)
+                            | (hasStar    << 1)
+                            | (isLEDOn    << 0);
+                            
+    // Outputs
+    uint8_t cut = 0;    
+    uint8_t letter = 'X'; // X is an invalid letter
+
+    // See truth table
+    switch (letter_bitfield)
+    {
+    case 0b0011:
+    case 0b1001:
+    case 0b1010:
+    case 0b1011:
+        letter = 'B';
+        break;
+    case 0b0000:
+    case 0b0010:
+        letter = 'C';
+        break;
+    case 0b0001:
+    case 0b0110:
+    case 0b1111:
+        letter = 'D';
+        break;
+    case 0b0101:
+    case 0b0111:
+    case 0b1110:
+        letter = 'P';
+        break;
+    case 0b0100:
+    case 0b1000:
+    case 0b1100:
+    case 0b1101:
+        letter = 'S';
+        break;
+    default:
+        letter = 'Y'; // Set to a different invalid character to know a case was missed. That shouldn't be possible.
+        break;
+    }
+
+    switch (letter)
+    {
+    case 'C': cut = 1; break;
+    case 'D': cut = 0; break;
+    case 'S': cut = isDigitEven; break;
+    case 'P': cut = hasParallelPort; break;
+    case 'B': cut = has2Batteries; break;
+    default:
+        letter = 'Z'; // Set to a different invalid character to know a case was missed. That shouldn't be possible.
+        break;
+    }
+
+    return cut;
 }
 
 /*******************************************************************************
