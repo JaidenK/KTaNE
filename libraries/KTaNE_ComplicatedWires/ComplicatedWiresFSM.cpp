@@ -81,30 +81,75 @@ FSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
 static uint8_t MyPriority;
 
 
-#define WIRE_IS_RED 0b00010000000
+uint8_t get_isDigitEven()
+{
+    uint8_t lastChar = 0;
+    uint8_t lastDigit = 0;
+
+    for(uint8_t i = 0; i < SERIAL_NO_MAX_LENGTH; i++)
+    {
+        lastChar = EEPROM[EEPROM_TIMER_BOMB_SERIAL_NO + i];
+        // Check if value is ASCII
+        if(lastChar < 48 || lastChar > 90) // '0' and 'Z'
+        {
+            if(lastChar < 58)
+            {
+                lastDigit = lastChar - 48;
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return (lastDigit & 1) == 0;
+}
+uint8_t get_hasParallelPort()
+{
+    // Syntax matches format of TheTimer.xaml.cs
+    return (EEPROM[EEPROM_TIMER_PORTS] & (1 << 1)) > 0;
+}
+uint8_t get_has2Batteries()
+{
+    return (EEPROM[EEPROM_TIMER_N_AA_BATTERIES] + EEPROM[EEPROM_TIMER_N_D_BATTERIES]) >= 2;
+}
 
 uint8_t calculateRule()
 {
     // Refer to the truth table available here:
     // https://docs.google.com/spreadsheets/d/1A45_IfDyaQUIMZf9_n4Ueu2QJsHTjETd2lycnWZJMxM/edit?usp=sharing
 
-    // Inputs
+    // Input Declaration
     uint8_t isWireRed = 0;
     uint8_t isWireBlue = 0;
     uint8_t hasStar = 0;
     uint8_t isLEDOn = 0;
     uint8_t isDigitEven = 0;
     uint8_t hasParallelPort = 0;
-    uint8_t has2Batteries = 0;
-    
+    uint8_t has2Batteries = 0; 
+    // Outputs
+    uint8_t cut = 0;    
+    uint8_t letter = 'X'; // X is an invalid letter
+
+    // Wire Selector
+    uint8_t whichWire = 0;
+    uint8_t mask = 1 << whichWire;
+
+    // Input definition
+    isWireRed =  (EEPROM[EEPROM_REDWIRES]  & mask) > 0;
+    isWireBlue = (EEPROM[EEPROM_BLUEWIRES] & mask) > 0;
+    hasStar =    (EEPROM[EEPROM_STARS]     & mask) > 0;
+    isLEDOn =    (EEPROM[EEPROM_LEDS]      & mask) > 0;
+    isDigitEven = get_isDigitEven();
+    hasParallelPort = get_hasParallelPort();
+    has2Batteries = get_has2Batteries();
+
     uint8_t letter_bitfield = (isWireRed  << 3) 
                             | (isWireBlue << 2)
                             | (hasStar    << 1)
                             | (isLEDOn    << 0);
                             
-    // Outputs
-    uint8_t cut = 0;    
-    uint8_t letter = 'X'; // X is an invalid letter
 
     // See truth table
     switch (letter_bitfield)

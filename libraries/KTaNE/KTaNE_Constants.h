@@ -19,5 +19,6 @@ Constants used between all modules for KTaNE.
 #define N_SYNC_BYTES 8
 #define SERIAL_BAUD_RATE 9600
 #define STRIKE_LED_PULSE_DURATION_MS 1000
+#define SERIAL_NO_MAX_LENGTH 16
 
 #endif /* _KTANE_CONSTANTS_H_ */
