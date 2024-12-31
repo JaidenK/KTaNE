@@ -37,8 +37,8 @@ typedef enum
     // These are sent from the GUI to the Timer, 
     // then the Timer broadcasts them to the modules
     FLASH_LED = 0x50,           // Make the module flash its LED to signal which module is being controlled
-    SET_EEPROM,
-    GET_EEPROM,
+    //SET_EEPROM,
+    //GET_EEPROM,
     SET_SERIAL_NO,              // Inform a module what the serial number is ()
     SET_N_BATTERIES,            // Inform a module how many batteries are on the bomb
     SET_INDICATOR,              // Inform a module of an indicator that is installed, and its state. State of -1 means clear list.

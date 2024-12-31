@@ -41,4 +41,8 @@ extern volatile uint8_t TEST_RESULTS;
 // reserved for module-specific result
 // codes
 
+// Command IDs
+#define SET_EEPROM 0x51
+#define GET_EEPROM 0x52
+
 #endif

@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 #include "KTaNE.h"
+#include "KTaNE_CommandIDs.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"
