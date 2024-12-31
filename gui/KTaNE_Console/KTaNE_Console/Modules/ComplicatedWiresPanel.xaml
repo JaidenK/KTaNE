@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="KTaNE_Console.Modules.ComplicatedWiresPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:KTaNE_Console.Modules"
+             mc:Ignorable="d" 
+             d:DesignWidth="300">
+    <Grid>
+        <ItemsControl Height="200" ItemsSource="{Binding Path=Wires}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderThickness="0.5" Margin="2" BorderBrush="Black">
+                        <StackPanel Margin="2">
+                            <TextBlock Text="LED:"/>
+                            <CheckBox IsChecked="{Binding Path=LED}"/>
+                            <TextBlock Text="Red?"/>
+                            <CheckBox IsChecked="{Binding Path=IsRed}"/>
+                            <TextBlock Text="Blue?"/>
+                            <CheckBox IsChecked="{Binding Path=IsBlue}"/>
+                            <TextBlock Text="Star?"/>
+                            <CheckBox IsChecked="{Binding Path=HasStar}"/>
+                        </StackPanel>
+                    </Border>
+
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</UserControl>

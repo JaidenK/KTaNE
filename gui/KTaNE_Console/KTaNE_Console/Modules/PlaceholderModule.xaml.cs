@@ -134,6 +134,9 @@ namespace KTaNE_Console.Modules
                     case "SKETCHPAD":
                         ModulePanel = new SketchpadModulePanel();
                         break;
+                    case "COMP. WIRES":
+                        ModulePanel = new ComplicatedWiresPanel(this);
+                        break;
                     default:
                         ModulePanel = new UnrecognizedModulePanel();
                         break;

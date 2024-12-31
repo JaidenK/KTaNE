@@ -65,6 +65,9 @@
     <Compile Include="Modules\ButtonModulePanel.xaml.cs">
       <DependentUpon>ButtonModulePanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Modules\ComplicatedWiresPanel.xaml.cs">
+      <DependentUpon>ComplicatedWiresPanel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Modules\IModule.cs" />
     <Compile Include="Model\UartPacket.cs" />
     <Compile Include="Modules\IModulePanel.cs" />
@@ -87,6 +90,10 @@
     <Compile Include="ViewModel\IConsoleWriter.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Page Include="Modules\ButtonModulePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Modules\ComplicatedWiresPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
