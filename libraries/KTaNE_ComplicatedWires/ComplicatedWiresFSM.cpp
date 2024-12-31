@@ -92,6 +92,7 @@ uint8_t get_isDigitEven()
         // Check if value is ASCII
         if(lastChar < 48 || lastChar > 90) // '0' and 'Z'
         {
+            // If it's a digit, convert to decimal
             if(lastChar < 58)
             {
                 lastDigit = lastChar - 48;
@@ -185,6 +186,8 @@ uint8_t calculateRule()
         break;
     }
 
+    EEPROM[EEPROM_LETTER] = letter;
+
     switch (letter)
     {
     case 'C': cut = 1; break;
@@ -255,6 +258,23 @@ void StartupFlash()
       
 }
 
+void turnOnConfiguredLEDs()
+{
+    uint8_t leds = EEPROM[EEPROM_LEDS];
+    uint8_t pinsAsArray[6] = 
+    {
+        LED1_PIN,
+        LED2_PIN,
+        LED3_PIN,
+        LED4_PIN,
+        LED5_PIN,
+        LED6_PIN
+    };
+    for(uint8_t i = 0; i < 6; i++)
+    {
+        digitalWrite(pinsAsArray[i],(leds & (1 << i)) > 0);
+    }
+}
 
 void ResetAllOutputs()
 {
@@ -322,21 +342,15 @@ ES_Event RunComplicatedWiresFSM(ES_Event ThisEvent)
             nextState = Running;
             makeTransition = TRUE;
         }
-        //if(ThisEvent.EventType == DIGITAL_INPUT_EVENT)
-        //{
-        //    digitalWrite(LED1_PIN,ThisEvent.EventParam & 0x01);
-        //    digitalWrite(LED2_PIN,ThisEvent.EventParam & 0x02);
-        //    digitalWrite(LED3_PIN,ThisEvent.EventParam & 0x04);
-        //    digitalWrite(LED4_PIN,ThisEvent.EventParam & 0x08);
-        //    digitalWrite(LED5_PIN,ThisEvent.EventParam & 0x10);
-        //    digitalWrite(LED6_PIN,ThisEvent.EventParam & 0x20);
-        //}
+        // TODO: A way to test leds if they mess with 
+        // wires while Idle
         break;
     case Running:
         switch(ThisEvent.EventType)
         {
             case ES_ENTRY:
                 ResetAllOutputs(); 
+                turnOnConfiguredLEDs();
                 calculateRule();
                 STATUS |= _BV(STS_RUNNING);
                 break;

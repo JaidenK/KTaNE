@@ -49,6 +49,9 @@
 // EEPROM_TIMER_N_AA_BATTERIES
 // EEPROM_TIMER_N_D_BATTERIES
 
+// Comment this out for production:
+#define EEPROM_LETTER 0x100
+
 /**
  * @function BOARD_Init(void)
  * @param None
