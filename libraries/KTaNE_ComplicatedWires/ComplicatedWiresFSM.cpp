@@ -279,12 +279,12 @@ ES_Event RunComplicatedWiresFSM(ES_Event ThisEvent)
     return ThisEvent;
 }
 
-void ToggleStrikeLED()
+void Module_ToggleStrikeLED()
 {
     digitalWrite(STRIKE_PIN,!digitalRead(STRIKE_PIN));
 }
 
-void ToggleSolveLED()
+void Module_ToggleSolveLED()
 {
     digitalWrite(DISARM_PIN,!digitalRead(DISARM_PIN));
 }
@@ -297,7 +297,7 @@ void Module_Detonate()
 void Module_PerformSelfTest()
 {
     StartupFlash();
-    
+
     TEST_RESULTS = SELFTEST_SUCCESS;
     STATUS |= _BV(STS_RESULT_READY);
 }

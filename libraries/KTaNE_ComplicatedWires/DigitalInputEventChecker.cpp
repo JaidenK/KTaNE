@@ -1,6 +1,6 @@
-#include "KeypadsEventChecker.h"
+#include "DigitalInputEventChecker.h"
 #include "ES_Framework.h"
-#include "BOARD_Keypads.h"
+#include "BOARD_ComplicatedWires.h"
 #include "Arduino.h"
 
 // This monitors the button for a press/release using 
@@ -10,7 +10,7 @@
 // Posts: BUTTON_EVENT
 //
 
-#define N_INPUTS 4
+#define N_INPUTS 6
 
 uint8_t ButtonEstimatedState[N_INPUTS] = { 0 }; // Active low
 uint8_t BtnStateRegister[N_INPUTS] = { 0 }; // Shift register
@@ -32,16 +32,18 @@ uint8_t CheckDigitalInputs(void)
 
     // Perform sample.
     // Shift in current button state.
-    BtnStateRegister[0] = (BtnStateRegister[0] << 1) + digitalRead(BTN1_PIN);
-    BtnStateRegister[1] = (BtnStateRegister[1] << 1) + digitalRead(BTN2_PIN);
-    BtnStateRegister[2] = (BtnStateRegister[2] << 1) + digitalRead(BTN3_PIN);
-    BtnStateRegister[3] = (BtnStateRegister[3] << 1) + digitalRead(BTN4_PIN);
+    BtnStateRegister[0] = (BtnStateRegister[0] << 1) + digitalRead(WIRE1_PIN);
+    BtnStateRegister[1] = (BtnStateRegister[1] << 1) + digitalRead(WIRE2_PIN);
+    BtnStateRegister[2] = (BtnStateRegister[2] << 1) + digitalRead(WIRE3_PIN);
+    BtnStateRegister[3] = (BtnStateRegister[3] << 1) + digitalRead(WIRE4_PIN);
+    BtnStateRegister[4] = (BtnStateRegister[4] << 1) + digitalRead(WIRE5_PIN);
+    BtnStateRegister[5] = (BtnStateRegister[5] << 1) + digitalRead(WIRE6_PIN);
 
     uint8_t hasEventOccurred = 0;
     uint16_t eventParam = 0;
 
     // Check for a change
-    for(uint8_t i = 0; i < N_BUTTONS; i++)
+    for(uint8_t i = 0; i < N_INPUTS; i++)
     {
         if(ButtonEstimatedState[i])
         {
@@ -76,7 +78,7 @@ uint8_t CheckDigitalInputs(void)
     {
         // Event param has "which button" in bits    0b0000111100000000
         // and the pin's current logic level in bits 0b0000000000001111
-        ES_PostAll((ES_Event){BUTTON_EVENT,eventParam});
+        ES_PostAll((ES_Event){DIGITAL_INPUT_EVENT,eventParam});
     }
 
     return (hasEventOccurred);

@@ -4,7 +4,7 @@
 #include "ES_Framework.h"
 #include "BOARD_ComplicatedWires.h"
 
-void ServiceI2CRequest(I2C_CommandPacket *pkt)
+void Module_ServiceI2CRequest(I2C_CommandPacket *pkt)
 {
     switch (pkt->CommandID)
     {
@@ -13,7 +13,7 @@ void ServiceI2CRequest(I2C_CommandPacket *pkt)
     }
 }
 
-void ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length)
+void Module_ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length)
 {
     switch (pkt->CommandID)
     {
