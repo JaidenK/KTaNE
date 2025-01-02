@@ -56,6 +56,10 @@ static uint32_t currentElapsedTime = 0;
 static int32_t previousTimeRemaining = 0;
 static uint8_t isClockRunning = FALSE;
 int32_t timeRemaining = 0;
+uint8_t isClockSpinning = FALSE;
+
+uint8_t spinCounter = 0;
+uint32_t tNextSpinStep = 0;
 
 static uint8_t whichTone = 0;
 static uint32_t nextToneAtElapsedTime = 0;
@@ -137,6 +141,20 @@ uint8_t CheckClock(void) {
       }
       previousTimeRemaining = timeRemaining;
     }
+    else if(isClockSpinning)
+    {
+      if(millis() >= tNextSpinStep)
+      {
+        tNextSpinStep += 100;
+        uint8_t segments = 1 << spinCounter;
+        uint8_t allSegments[] = {segments, segments, segments, segments};
+        //display.clear();
+        display.setSegments(allSegments);
+        spinCounter++;            
+        if(spinCounter >= 6)
+          spinCounter = 0;
+      }      
+    }
 
     // Set 7-seg display
     // beep the buzzer
@@ -151,10 +169,24 @@ void SetTimeLimit(uint32_t newLimit_s)
     showTime(timeLimit_ms);
   }
 }
+
+void SpinClock(void)
+{
+  StopClock();
+  isClockSpinning = TRUE;
+  spinCounter = 0;
+  tNextSpinStep = millis();
+}
+void StopSpinClock(void)
+{
+  isClockSpinning = FALSE;
+}
+
 void StartClock(void)
 {
   startTime = millis();
   isClockRunning = TRUE;
+  isClockSpinning = FALSE;
   whichTone = 3; // Setting to 3 makes the first beep a 1
   nextToneAtElapsedTime = 0;
   nextDisplayUpdateAtElapsedTime = 0;
@@ -173,7 +205,7 @@ void StopClock(void)
 {
   isClockRunning = FALSE;
   finishTime = millis();
-  noTone(SPEAKER_PIN);
+  //noTone(SPEAKER_PIN);
 }
 void OffsetLimit(uint8_t deltaSeconds)
 {

@@ -16,6 +16,7 @@
 //#define EEPROM_INDICATORS 0x80 // uint8_t array of N_MAX_INDICATORS elements
 
 uint32_t timeLimit = 0;
+#define DEFAULT_TIME_LIMIT_S ((uint16_t)(60*15))
 
 void LoadAllEepromConfigInfo()
 {
@@ -28,6 +29,11 @@ void LoadAllEepromConfigInfo()
         EEPROM.update(EEPROM_REAL_MODULE_SERIAL+i,serialNo[i]); 
         EEPROM.update(EEPROM_BUILD_DATE+i,buildDate[i]); 
     }        
+    if(getTimeLimist_s() == 0xFFFF)
+    {
+        EEPROM.update(EEPROM_TIMER_TIME_LIMIT_SECONDS, DEFAULT_TIME_LIMIT_S & 0xFF);
+        EEPROM.update(EEPROM_TIMER_TIME_LIMIT_SECONDS+1, DEFAULT_TIME_LIMIT_S >> 8);
+    }
 }
 
 uint16_t getTimeLimist_s()

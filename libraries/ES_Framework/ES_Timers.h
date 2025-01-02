@@ -96,6 +96,7 @@ uint32_t         ES_Timer_GetTime(void);
 uint8_t checkPseudoTimers(void);
 
 void StartPseudoTimer(uint8_t whichTimer, uint16_t duration);
+void StopAllPseudoTimers(void);
 void StopPseudoTimer(uint8_t whichTimer);
 
 #endif   /* ES_Timers_H */

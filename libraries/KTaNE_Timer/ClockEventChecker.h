@@ -55,6 +55,8 @@ void OffsetLimit(uint8_t deltaSeconds);
 void ClearClock(void);
 uint16_t showTime(int32_t t);
 uint16_t getDisplayedDigits();
+void SpinClock(void);
+void StopSpinClock(void);
 
 
 

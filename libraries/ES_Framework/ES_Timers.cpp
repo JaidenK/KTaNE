@@ -77,6 +77,12 @@ void StartPseudoTimer(uint8_t whichTimer, uint16_t duration)
   }
 }
 
+void StopAllPseudoTimers()
+{
+  is0TimerRunning = 0;
+  is1TimerRunning = 0;
+}
+
 void StopPseudoTimer(uint8_t whichTimer)
 {
   if(whichTimer == 0)

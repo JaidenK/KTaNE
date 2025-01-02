@@ -15,7 +15,8 @@
 #define OFFSET_ADDRESS 10
 #define OFFSET_CMD_START 11
 
-static uint8_t responseBuf[32];
+static uint8_t responseBuf[32] = {0};
+uint8_t hasFirstPacketBeenReceived = 0;
 
 void SetEEPROMCmd(uint8_t *command)
 {
@@ -96,6 +97,12 @@ void ProcessSerialCommand(uint8_t *buf)
     uint8_t *command = &buf[OFFSET_CMD_START];
     uint8_t length = buf[OFFSET_LENGTH] - OFFSET_CMD_START - 2; // extra -1 for CRC
     uint8_t nResponseBytes = buf[OFFSET_RESPONSE_LENGTH];
+
+    if(!hasFirstPacketBeenReceived)
+    {
+        hasFirstPacketBeenReceived = 1;
+        ES_PostAll((ES_Event){PC_CONNECTION_CHANGED,1});
+    }
 
     // A command has been received from the PC. If it's addressed to
     // us, the Timer, then service it locally. If it's not for us,

@@ -43,6 +43,7 @@
 #include "KTaNE.h"
 #include "ClockEventChecker.h"
 #include "SerialManager.h"
+#include "Speaker.h"
 //#include "pitches.h"
 
 #include "frequencies.h"
@@ -52,9 +53,6 @@
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
 
-
-#define NOTE_C7  2093
-#define NOTE_AS6 1865
 
 #define STRIKE_LIMIT 3
 
@@ -76,19 +74,23 @@ void initModules(void);
 
 typedef enum {
     InitPState,
+    Booting,
     Idle,
     Setup,
     Running,
     Exploding,
+    Solved,
     N_STATES,
 } FSMState_t;
 
 static const char *StateNames[] = {
     "InitPState",
+    "Booting",
     "Idle",
     "Setup",
     "Running",
     "Exploding",
+    "Solved",
     "N_STATES",
 };
 
@@ -104,15 +106,7 @@ static uint8_t moduleI2Crequest = 0;
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
 
-void beep_blocking()
-{    
-    Serial.println(NOTE_C7);
-    tone(SPEAKER_PIN, NOTE_C7, 150);
-    delay(300);
-    Serial.println(NOTE_AS6);
-    tone(SPEAKER_PIN, NOTE_AS6, 50);
-    delay(700);
-}
+
 
 void SendModuleListToPC()
 {  
@@ -172,10 +166,10 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             display.setBrightness(5);
             display.clear();
             
-            tone(SPEAKER_PIN, NOTE_C7, 100);
+            Speaker_Tone(NOTE_C7, 100);
 
             // now put the machine into the actual initial state
-            nextState = Idle;
+            nextState = Booting;
             makeTransition = TRUE;
             ThisEvent.EventType = ES_NO_EVENT;
         }
@@ -184,24 +178,57 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
             ThisEvent.EventType = ES_NO_EVENT;
         }
         break;
-    case Idle:
+    case Booting:
         switch (ThisEvent.EventType)
         {
-        case EVENT_START:
+        case ES_ENTRY:
+            StopAllPseudoTimers();
+            StartPseudoTimer(0, 5000);
+            SpinClock();
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        case PC_CONNECTION_CHANGED:
+            if(ThisEvent.EventParam == 1)
+            {
+                // Computer connection detected. Go to idle state.
+                nextState = Idle;
+                makeTransition = TRUE;
+                ThisEvent.EventType = ES_NO_EVENT;
+            }
+            break;
+        case ES_TIMEOUT:
+            // No response from computer. Start game.
             nextState = Setup;
             makeTransition = TRUE;
             ThisEvent.EventType = ES_NO_EVENT;
             break;
+        case ES_EXIT:
+            StopSpinClock();
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        default:
+            break;
+        }
+        break;
+    case Idle:
+        switch (ThisEvent.EventType)
+        {
         case ES_TIMEOUT:
         case ES_ENTRY:
             digitalWrite(STRIKE1_PIN,LOW);
             digitalWrite(STRIKE2_PIN,LOW);
-            digitalWrite(CONSEQUENCE_PIN,LOW);  
+            digitalWrite(CONSEQUENCE_PIN,LOW); 
+            StopAllPseudoTimers(); 
             StartPseudoTimer(0, 200);
             ScanForModules(); // Detects new modules
             GetStatusAllModules(); // Detects disconnected modules
             SendModuleListToPC();
             showTime(((uint32_t)getTimeLimist_s()) * 1000);
+            ThisEvent.EventType = ES_NO_EVENT;
+            break;
+        case EVENT_START:
+            nextState = Setup;
+            makeTransition = TRUE;
             ThisEvent.EventType = ES_NO_EVENT;
             break;
         case MODULE_CONNECTED:
@@ -438,7 +465,7 @@ void Module_PerformSelfTest()
     digitalWrite(STRIKE2_PIN,LOW);  
     digitalWrite(CONSEQUENCE_PIN,LOW);  
 
-    beep_blocking();
+    Speaker_BeepBlocking();
        
 
     Serial.println(F("Self test performed."));
