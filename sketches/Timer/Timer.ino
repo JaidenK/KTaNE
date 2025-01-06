@@ -21,7 +21,7 @@ void setup()
 {
     ES_Return_t ErrorType;
 
-    BOARD_Init();
+    BOARD_Init(); // TODO This could be in the state machine init function or something and then this .ino file would be the same for all modules
   
     Serial.println("Board initialized.");
 

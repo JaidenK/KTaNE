@@ -100,7 +100,8 @@ static uint8_t nStrikes = 0;
 
 
 
-
+// Minimize actions performed in the initializer because we don't know 
+// what other initialization has/hasn't taken place yet
 uint8_t InitTimerFSM(uint8_t Priority)
 {
     MyPriority = Priority;
@@ -221,6 +222,7 @@ void RunState_InitialPseudoState(ES_Event *ThisEvent, FSMState_t *nextState, uin
         TimerEEPROM_Initialize();
         TimerUART_SendCommandByte(i2c_address,RESET);
         
+        // TODO If we make a speaker Service then this can definitely go away
         Speaker_Tone(NOTE_C7, 100);
 
         // now put the machine into the actual initial state
@@ -451,7 +453,7 @@ void RunState_Running(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeT
         ThisEvent->EventType = ES_NO_EVENT;
         break;
     case ES_EXIT:
-        TimerI2C_ResetAllModules();
+        TimerI2C_ResetAllModules(); // ? Should this reset be here?
         ThisEvent->EventType = ES_NO_EVENT;
         break;
     default:
