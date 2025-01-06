@@ -47,53 +47,55 @@ typedef enum {
     /* KTaNE Common Events */
     EVENT_START,
     EVENT_RESET,
+    EVENT_DETONATE, // ? Should this be a KTaNE Common Event?
     /* Module custom events */
     MODULE_CONNECTED,
     MODULE_DISCONNECTED,
-    CONFIGURATION_COMPLETE,
-    START_CLOCK,
-    CLOCK_EXPIRED,
     MODULE_DISARMED,
     MODULE_STRIKE,
-    LIGHT_LEVEL_CHANGED,
-    START_REQUESTED,
-    I2C_CMD_RECEIVED,
-    FLASH_REQUESTED,
+    ALL_MODULES_SOLVED,
+    I2C_BUS_SCAN_COMPLETE,
+    CLOCK_EXPIRED,
     PC_CONNECTION_CHANGED,
     NUMBEROFEVENTS,
 } ES_EventTyp_t;
 
-/*static const char *EventNames[] = {
-    "ES_NO_EVENT",
-    "ES_ERROR",
-    "ES_INIT",
-    "ES_ENTRY",
-    "ES_EXIT",
-    "ES_KEYINPUT",
-    "ES_LISTEVENTS",
-    "ES_TIMEOUT",
-    "ES_TIMERACTIVE",
-    "ES_TIMERSTOPPED",
-    "CONFIGURATION_COMPLETE",
-    "START_CLOCK",
-    "CLOCK_EXPIRED",
+static const char *EventNames[] = {
+    "ES_NO_EVENT", "ES_ERROR", /* used to indicate an error from the service */
+    "ES_INIT", /* used to transition from initial pseudo-state */
+    "ES_ENTRY", /* used to enter a state*/
+    "ES_EXIT", /* used to exit a state*/
+    "ES_KEYINPUT", /* used to signify a key has been pressed*/
+    "ES_LISTEVENTS", /* used to list events in keyboard input, does not get posted to fsm*/
+    "ES_TIMEOUT", /* signals that the timer has expired */
+    "ES_TIMERACTIVE", /* signals that a timer has become active */
+    "ES_TIMERSTOPPED", /* signals that a timer has stopped*/
+    /* KTaNE Common Events */
+    "EVENT_START",
+    "EVENT_RESET",
+    "EVENT_DETONATE", // ? Should this be a KTaNE Common Event?
+    /* Module custom events */
+    "MODULE_CONNECTED",
+    "MODULE_DISCONNECTED",
     "MODULE_DISARMED",
     "MODULE_STRIKE",
-    "LIGHT_LEVEL_CHANGED",
-    "START_REQUESTED",
+    "ALL_MODULES_SOLVED",
+    "I2C_BUS_SCAN_COMPLETE",
+    "CLOCK_EXPIRED",
+    "PC_CONNECTION_CHANGED",
     "NUMBEROFEVENTS",
-};*/
+};
 
 
 
 
 /****************************************************************************/
 // This are the name of the Event checking function header file.
-#define EVENT_CHECK_HEADER "KeyboardEventChecker.h"
+#define EVENT_CHECK_HEADER "ES_EventCheckHeader.h"
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST CheckKeyboard, CheckClock, CheckSerial
+#define EVENT_CHECK_LIST TimerI2C_CheckEvents, TimerUART_CheckEvents, Clock_CheckEvents
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the

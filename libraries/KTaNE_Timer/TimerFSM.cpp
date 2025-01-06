@@ -1,26 +1,19 @@
-/*
- * File: TemplateFSM.c
- * Author: J. Edward Carryer
- * Modified: Gabriel H Elkaim
- *
- * Template file to set up a Flat State Machine to work with the Events and Services
- * Frameword (ES_Framework) on the Uno32 for the CMPE-118/L class. Note that this file
- * will need to be modified to fit your exact needs, and most of the names will have
- * to be changed to match your code.
- *
- * This is provided as an example and a good place to start.
- *
- *Generally you will just be modifying the statenames and the run function
- *However make sure you do a find and replace to convert every instance of
- *  "Template" to your current state machine's name
- * History
- * When           Who     What/Why
- * -------------- ---     --------
- * 09/13/13 15:17 ghe      added tattletail functionality and recursive calls
- * 01/15/12 11:12 jec      revisions for Gen2 framework
- * 11/07/11 11:26 jec      made the queue static
- * 10/30/11 17:59 jec      fixed references to CurrentEvent in RunTemplateSM()
- * 10/23/11 18:20 jec      began conversion from SMTemplate.c (02/20/07 rev)
+/**
+ * @file TimerFSM.cpp
+ * @author Jaiden King
+ * @date 1/4/2025
+ * 
+ * Game Behavior Finite State Machine
+ * 
+ * Device boots up and looks for a PC connection. If it finds a connection, 
+ * then it waits Idle until the player starts the game. It's presumed that the
+ * player will be using the PC to send packets to the other modules during this
+ * time. 
+ * If there's no PC connection found at startup, the game will automatically 
+ * start. The clock will start counting down until all modules are solved, the
+ * time runs out, or 3 strikes occur. 
+ * Before starting the game, the game configuration info will be sent to all
+ * connected modules.
  */
 
 
@@ -29,11 +22,9 @@
  ******************************************************************************/
 
 #include <Arduino.h>
-#include <EEPROM.h>
-#include <Wire.h>
 
 #include "BOARD_Timer.h"
-#include "Timer_Configure.h"
+#include "Timer_EEPROM.h"
 #include "ModulesInteraction.h"
 
 #include "ES_Configure.h"
@@ -41,38 +32,23 @@
 
 #include "TimerFSM.h"
 #include "KTaNE.h"
-#include "ClockEventChecker.h"
-#include "SerialManager.h"
+#include "Timer_UART.h"
+#include "Timer_I2C.h"
 #include "Speaker.h"
-//#include "pitches.h"
-
-#include "frequencies.h"
-
+#include "Clock.h"
+#include "Utilities.h"
+#include "Consequences.h"
 
 /*******************************************************************************
  * MODULE #DEFINES                                                             *
  ******************************************************************************/
 
+// *Idea: Nuget package to talk to my device?
 
 #define STRIKE_LIMIT 3
 
-
-/*******************************************************************************
- * PRIVATE FUNCTION PROTOTYPES                                                 *
- ******************************************************************************/
-/* Prototypes for private functions for this machine. They should be functions
-   relevant to the behavior of this state machine.*/
-void initModules(void);
-
-/*******************************************************************************
- * PRIVATE MODULE VARIABLES                                                    *
- ******************************************************************************/
-
-
-/* You will need MyPriority and the state variable; you may need others as well.
- * The type of state variable should match that of enum in header file. */
-
-typedef enum {
+typedef enum 
+{
     InitPState,
     Booting,
     Idle,
@@ -81,9 +57,11 @@ typedef enum {
     Exploding,
     Solved,
     N_STATES,
-} FSMState_t;
+}
+FSMState_t;
 
-static const char *StateNames[] = {
+static const char *StateNames[] = 
+{
     "InitPState",
     "Booting",
     "Idle",
@@ -94,13 +72,27 @@ static const char *StateNames[] = {
     "N_STATES",
 };
 
-FSMState_t CurrentState = InitPState; // <- change enum name to match ENUM
-static uint8_t MyPriority;
+FSMState_t CurrentState = InitPState;
+static uint8_t MyPriority; // For ES Framework. Not important.
 
+/*******************************************************************************
+ * PRIVATE FUNCTION PROTOTYPES                                                 *
+ ******************************************************************************/
+// State functions. 
+// These functions exist only to clean up RunFSM function and do not get called
+// elsewhere, therefore they're all inline.
+inline void RunState_InitialPseudoState(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition) __attribute__((always_inline));
+inline void RunState_Booting(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition) __attribute__((always_inline));
+inline void RunState_Idle(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition) __attribute__((always_inline));
+inline void RunState_Setup(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition) __attribute__((always_inline));
+inline void RunState_Running(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition) __attribute__((always_inline));
+inline void RunState_Exploding(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition) __attribute__((always_inline));
+inline void RunState_Solved(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition) __attribute__((always_inline));
+
+/*******************************************************************************
+ * PRIVATE MODULE VARIABLES                                                    *
+ ******************************************************************************/
 static uint8_t nStrikes = 0;
-static uint8_t allModulesDisarmed = 0;
-
-static uint8_t moduleI2Crequest = 0; 
 
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
@@ -108,24 +100,6 @@ static uint8_t moduleI2Crequest = 0;
 
 
 
-void SendModuleListToPC()
-{  
-
-    uint8_t bytes[N_MAX_MODULES + 1] = {0};
-    bytes[0] = LIST_MODULES;
-    uint8_t nModules = 0;
-    for(uint8_t i = 0; i < N_MAX_MODULES; i++)
-    {
-        if(ModList[i].i2c_address > 0)
-        {
-            bytes[1+(2*nModules)] = ModList[i].i2c_address;
-            bytes[1+(2*nModules)+1] = ModList[i].Status;
-            nModules++;
-        }
-    }
-
-    SendUARTCommand(i2c_address, bytes, 2*nModules+1);
-}
 
 uint8_t InitTimerFSM(uint8_t Priority)
 {
@@ -148,7 +122,7 @@ uint8_t PostTimerFSM(ES_Event ThisEvent)
 ES_Event RunTimerFSM(ES_Event ThisEvent)
 {
     uint8_t makeTransition = FALSE; // use to flag transition
-    FSMState_t nextState; // <- need to change enum type here
+    FSMState_t nextState = InitPState;
 
     if(ThisEvent.EventType == ES_ENTRY)
     {
@@ -156,252 +130,44 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         Serial.println(StateNames[CurrentState]);
     }
 
+    // TODO Replace switch statement with function table
     switch (CurrentState) {
     case InitPState: // If current state is initial Psedudo State
-        if (ThisEvent.EventType == ES_ENTRY || 
-            ThisEvent.EventType == ES_INIT)// only respond to ES_Init
-        {            
-            LoadAllEepromConfigInfo();
-            SendUARTCommandByte(i2c_address,RESET);
-            display.setBrightness(5);
-            display.clear();
-            
-            Speaker_Tone(NOTE_C7, 100);
-
-            // now put the machine into the actual initial state
-            nextState = Booting;
-            makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
-        }
-        if(ThisEvent.EventType == ES_EXIT)
-        {
-            ThisEvent.EventType = ES_NO_EVENT;
-        }
+        RunState_InitialPseudoState(&ThisEvent,&nextState,&makeTransition);
         break;
     case Booting:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            StopAllPseudoTimers();
-            StartPseudoTimer(0, 5000);
-            SpinClock();
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case PC_CONNECTION_CHANGED:
-            if(ThisEvent.EventParam == 1)
-            {
-                // Computer connection detected. Go to idle state.
-                nextState = Idle;
-                makeTransition = TRUE;
-                ThisEvent.EventType = ES_NO_EVENT;
-            }
-            break;
-        case ES_TIMEOUT:
-            // No response from computer. Start game.
-            nextState = Setup;
-            makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case ES_EXIT:
-            StopSpinClock();
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        default:
-            break;
-        }
+        RunState_Booting(&ThisEvent,&nextState,&makeTransition);
         break;
     case Idle:
-        switch (ThisEvent.EventType)
-        {
-        case ES_TIMEOUT:
-        case ES_ENTRY:
-            digitalWrite(STRIKE1_PIN,LOW);
-            digitalWrite(STRIKE2_PIN,LOW);
-            digitalWrite(CONSEQUENCE_PIN,LOW); 
-            StopAllPseudoTimers(); 
-            StartPseudoTimer(0, 200);
-            ScanForModules(); // Detects new modules
-            GetStatusAllModules(); // Detects disconnected modules
-            SendModuleListToPC();
-            showTime(((uint32_t)getTimeLimist_s()) * 1000);
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case EVENT_START:
-            nextState = Setup;
-            makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case MODULE_CONNECTED:
-            Serial.print(F("Module connected at address: "));
-            Serial.println(ThisEvent.EventParam);
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case MODULE_DISCONNECTED:
-            Serial.print(F("Module disconnected at address: "));
-            Serial.println(ThisEvent.EventParam);
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case ES_EXIT:
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        default:
-            break;
-        }
+        RunState_Idle(&ThisEvent,&nextState,&makeTransition);        
         break;
-    case Setup:        
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            nStrikes = 0;
-            SetTimeLimit(getTimeLimist_s());
-            StartPseudoTimer(0, 100);  // Polling rate
-            StartPseudoTimer(1, 2000); // Safety timeout
-            ThisEvent.EventType = ES_NO_EVENT;
-            ReplicateConfigInfo();
-            resetAllModules();
-            break;
-        case ES_TIMEOUT:
-            if(ThisEvent.EventParam == 1)
-            {
-                nextState = Idle;
-                makeTransition = TRUE;
-                ThisEvent.EventType = ES_NO_EVENT;
-            }
-            else
-            {
-                ThisEvent.EventType = ES_NO_EVENT;
-                if(checkAllModulesReady())
-                {
-                    nextState = Running;
-                    makeTransition = TRUE;
-                }     
-                else
-                {
-                    StartPseudoTimer(0, 100);
-                }   
-            }
-            break;
-        case ES_EXIT:
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        default:
-            break;
-        }
+    case Setup:     
+        RunState_Setup(&ThisEvent,&nextState,&makeTransition);              
         break;
     case Running:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            nStrikes = 0;            
-            broadcastAllModules(REG_CTRL, _BV(CTRL_START));
-            StartPseudoTimer(0, 50); // Polling rate
-            StopPseudoTimer(1);
-            StartClock();
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case ES_TIMEOUT:
-            if(ThisEvent.EventParam == 1)
-            {
-                nextState = Idle;
-                makeTransition = TRUE;
-            }
-            else
-            {
-                StartPseudoTimer(0, 50);
-                GetStatusAllModules();
-                SendModuleListToPC();
-                uint8_t allSolved = 1;
-                for(uint8_t i = 0; i < N_MAX_MODULES; i++)
-                {
-                    if(ModList[i].i2c_address > 0)
-                    {
-                        if(!(ModList[i].Status & _BV(STS_SOLVED)))
-                        {
-                            allSolved = 0;
-                        }
-                        if(ModList[i].Status & _BV(STS_STRIKE))
-                        {
-                            Serial.println(F("Strike!"));
-                            nStrikes++;
-                            if(nStrikes == 1)
-                            {
-                                digitalWrite(STRIKE1_PIN,HIGH);
-                            }     
-                            else if(nStrikes == 2)
-                            {
-                                digitalWrite(STRIKE1_PIN,HIGH);
-                                digitalWrite(STRIKE2_PIN,HIGH);
-                            }                       
-                            else if(nStrikes >= STRIKE_LIMIT)
-                            {
-                                nextState = Exploding;
-                                makeTransition = TRUE;
-                                ThisEvent.EventType = ES_NO_EVENT;
-                            }
-                        }
-                        if(ModList[i].Status & _BV(STS_REQUEST))
-                        {
-                            ServiceRequest(ModList[i].i2c_address);
-                        }
-                        if(!(ModList[i].Status & _BV(STS_RUNNING)))
-                        {
-                            Serial.println(F("Not running?"));
-                        }
-                    }
-                }
-                if(allSolved)
-                {
-                    Serial.println(F("All modules solved!"));
-                    nextState = Idle;
-                    makeTransition = TRUE;
-                }
-            }
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case CLOCK_EXPIRED:
-            nextState = Exploding;
-            makeTransition = TRUE;
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        case ES_EXIT:
-            StopClock();
-            resetAllModules();
-            ThisEvent.EventType = ES_NO_EVENT;
-            break;
-        default:
-            break;
-        }        
+        RunState_Running(&ThisEvent,&nextState,&makeTransition);               
         break;
     case Exploding:
-        switch (ThisEvent.EventType)
-        {
-        case ES_ENTRY:
-            digitalWrite(STRIKE1_PIN,HIGH);
-            digitalWrite(STRIKE2_PIN,HIGH);
-            digitalWrite(CONSEQUENCE_PIN,HIGH);  
-            ThisEvent.EventType = ES_NO_EVENT;
-            StopPseudoTimer(0);
-            StopPseudoTimer(1);
-            StartPseudoTimer(0, 3000);
-            break;        
-        case ES_TIMEOUT:
-            nextState = Idle;
-            makeTransition = TRUE;
-            break;
-        default:
-            break;
-        }
+        RunState_Exploding(&ThisEvent,&nextState,&makeTransition);   
+        break;
+    case Solved:
+        RunState_Solved(&ThisEvent,&nextState,&makeTransition);   
         break;
     default: // all unhandled states fall into here
         break;
     } // end switch on Current State
 
-    ServiceSerial();
-
-    if(ThisEvent.EventType != ES_NO_EVENT)
+    if((ThisEvent.EventType != ES_NO_EVENT)
+        && (ThisEvent.EventType != ES_ENTRY)
+        && (ThisEvent.EventType != ES_EXIT))
     {
+        // TODO Silence Entry/Exit events
         Serial.print(F("Unhandled event: "));
         print2digithex(ThisEvent.EventType);
+        Serial.print(F("("));
+        Serial.print(EventNames[ThisEvent.EventType]);
+        Serial.print(F("):"));        
+        Serial.print(ThisEvent.EventParam);
         Serial.println();
     }
 
@@ -411,7 +177,6 @@ ES_Event RunTimerFSM(ES_Event ThisEvent)
         CurrentState = nextState;
         RunTimerFSM(ENTRY_EVENT);
     }
-    //ES_Tail(); // trace call stack end
     return ThisEvent;
 }
 
@@ -431,46 +196,331 @@ void Module_ToggleSolveLED()
 }
 
 void Module_Detonate()
-{
+{    
     digitalWrite(STRIKE1_PIN,HIGH);
     digitalWrite(STRIKE2_PIN,HIGH);
+    Consequences_Fire();
 }
 
-void Module_PerformSelfTest()
+void ClearStrikeLEDs()
 {
-    display.setBrightness(5);
-    display.clear();
-    digitalWrite(STRIKE1_PIN,LOW);  
-    digitalWrite(STRIKE2_PIN,LOW); 
-    digitalWrite(CONSEQUENCE_PIN,0);
-
-    for(uint8_t pos = 0; pos < 4; pos++)
-    {
-        for(uint8_t i = 0; i < 10; i++)
-        {
-            display.showNumberDec(i, 0, 1, pos);
-            delay(50);
-        }
-    }
-
-    showTime(754000); // 1234
-    
-    digitalWrite(STRIKE1_PIN,HIGH);   
-    digitalWrite(CONSEQUENCE_PIN,HIGH);    
-    delay(500);
-    digitalWrite(STRIKE1_PIN,LOW);  
-
-    digitalWrite(STRIKE2_PIN,HIGH);     
-    delay(500);
-    digitalWrite(STRIKE2_PIN,LOW);  
-    digitalWrite(CONSEQUENCE_PIN,LOW);  
-
-    Speaker_BeepBlocking();
-       
-
-    Serial.println(F("Self test performed."));
-
-    TEST_RESULTS = SELFTEST_SUCCESS;
-    STATUS |= _BV(STS_RESULT_READY);
+    digitalWrite(STRIKE1_PIN,LOW);
+    digitalWrite(STRIKE2_PIN,LOW);
 }
 
+// State functions
+
+/**
+ * @brief Initializes the state machine and puts us into the Booting state.
+ */
+void RunState_InitialPseudoState(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition)
+{
+    if (ThisEvent->EventType == ES_ENTRY
+     || ThisEvent->EventType == ES_INIT)
+    {            
+        TimerEEPROM_Initialize();
+        TimerUART_SendCommandByte(i2c_address,RESET);
+        
+        Speaker_Tone(NOTE_C7, 100);
+
+        // now put the machine into the actual initial state
+        *nextState = Booting;
+        *makeTransition = TRUE;
+        ThisEvent->EventType = ES_NO_EVENT;
+    }
+}
+
+/**
+ * @brief Waits for the PC to connect. Otherwise, starts the game.
+ */
+void RunState_Booting(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition)
+{    
+    switch (ThisEvent->EventType)
+    {
+    case ES_ENTRY:
+        Consequences_Safe();
+        StopAllPseudoTimers();
+        StartPseudoTimer(0, 5000); // 5 seconds to allow PC to connect
+        Clock_Reset(); // unnecessary call?
+        Clock_Spin();
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    case PC_CONNECTION_CHANGED:
+        if(ThisEvent->EventParam == 1)
+        {
+            // Computer connection detected. Go to idle state.
+            *nextState = Idle;
+            *makeTransition = TRUE;
+            ThisEvent->EventType = ES_NO_EVENT;
+        }
+        break;
+    case ES_TIMEOUT:
+        // No response from computer. Start game.
+        *nextState = Setup;
+        *makeTransition = TRUE;
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    case ES_EXIT:
+        Clock_Reset(); // Stop the clock spinning
+        break;
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Waits for the start command.
+ */
+void RunState_Idle(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition)
+{
+    switch (ThisEvent->EventType)
+    {
+    case ES_TIMEOUT:
+    case ES_ENTRY:
+        TimerUART_EnableStatusTransmissions();
+        TimerI2C_EnableBusScanning();
+        TimerI2C_EnableStatusMonitoring();
+        ClearStrikeLEDs();
+        Consequences_Safe();
+        Clock_Reset();
+        Clock_SetTimeLimit_s(TimerEEPROM_GetTimeLimit_s());
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    case EVENT_START:
+        *nextState = Setup;
+        *makeTransition = TRUE;
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    // The "game" doesn't care if you're connecting and disconnecting
+    // modules right now. If anything needs to happen in response to that,
+    // it'll be handled by I2C and Uart layers. This might be helpful for
+    // debuging, but should be moved.
+    //case MODULE_CONNECTED:
+    //    Serial.print(F("Module connected at address: "));
+    //    Serial.println(ThisEvent->EventParam);
+    //    ThisEvent->EventType = ES_NO_EVENT;
+    //    break;
+    //case MODULE_DISCONNECTED:
+    //    Serial.print(F("Module disconnected at address: "));
+    //    Serial.println(ThisEvent->EventParam);
+    //    ThisEvent->EventType = ES_NO_EVENT;
+    //    break;
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Checks with each module to confirm that it's ready to start, then 
+ *        starts the game.
+ * 
+ * If the modules don't all ready up within the timeout we'll go back to the
+ * Idle state.
+ * 
+ * *Idea: We could display an error here
+ * "Error: Module not ready at address xx"
+ */
+void RunState_Setup(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition)
+{
+    static uint8_t isFirstScan = 0;
+
+    switch (ThisEvent->EventType)
+    {
+    case ES_ENTRY:
+        nStrikes = 0; //* Idea: Strike Counter HAL?
+        isFirstScan = 1;
+        StopAllPseudoTimers();
+        // Safety timeout. It shouldn't take this long to scan the 
+        // bus and configure the modules.
+        StartPseudoTimer(1, 2000); 
+        TimerI2C_StartBusScan();
+        TimerI2C_EnableStatusMonitoring();
+        TimerUART_EnableStatusTransmissions();
+        Clock_SetTimeLimit_s(TimerEEPROM_GetTimeLimit_s());
+        ThisEvent->EventType = ES_NO_EVENT;        
+        break;
+    case I2C_BUS_SCAN_COMPLETE:    
+        if(isFirstScan)
+        {
+            isFirstScan = 0;
+            // This is a kind of long/blocking function call. 
+            // Consider refactoring it to take advantage of the event checker?
+            TimerI2C_BroadcastGameConfigInfo(); 
+            TimerI2C_ResetAllModules();
+            TimerI2C_StartBusScan();
+        }
+        else
+        {
+            // Make sure this doesn't run on the first scan because 
+            // then it might look like everything is ready due to missing
+            // modules
+            if(TimerI2C_AreAllModulesRead())
+            {
+                *nextState = Running;
+                *makeTransition = TRUE;
+            }
+            else
+            {
+                Serial.println(F("Modules not ready."));
+                // The modules weren't ready. Scan the bus again.
+                // (This doesn't actually _cause_ them to ready up, it just
+                // is a way to buy some time and get another BUS_SCAN_COMPLETE
+                // event posted.) Also, the ready status update isn't 
+                // guaranteed to be synced with the bus scan.
+                // Important that status monitoring is enabled.
+                TimerI2C_StartBusScan();
+            }
+        }
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    case ES_TIMEOUT:
+        if(ThisEvent->EventParam == 1)
+        {
+            Serial.println(F("Timeout: Modules not ready."));
+            *nextState = Idle;
+            *makeTransition = TRUE;
+            ThisEvent->EventType = ES_NO_EVENT;
+        }
+        break;
+    case ES_EXIT:
+        // ? Should we disable bus scanning here?
+        // ? We turned it on, so it would make sense to turn it off ?
+        // ? Same for status monitoring.
+        break;
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Waiting the modules to be solved or the Clock to expire.
+ * 
+ * Also keeps track of strikes.
+ * 
+ * * Idea: We should have it listening for MODULE_SOLVED events and then
+ * *       asking TimerI2C if the modules are all solved. Or listen for just
+ * *       the single ALL_MODULES_SOLVED event.
+ */
+void RunState_Running(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition)
+{
+    switch (ThisEvent->EventType)
+    {
+    case ES_ENTRY:
+        nStrikes = 0; // Consider a strike counter HAL
+        StopAllPseudoTimers();
+        TimerI2C_DisableBusScanning();
+        TimerI2C_EnableStatusMonitoring();
+        TimerI2C_StartAllModules();        
+        TimerUART_EnableStatusTransmissions();
+        Clock_Reset();
+        Clock_Start();
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    case ALL_MODULES_SOLVED: 
+        Serial.println(F("All modules solved!"));
+        *nextState = Solved;
+        *makeTransition = TRUE;
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    case MODULE_STRIKE:        
+        Serial.println(F("Strike!"));
+        // Consider a Strike Counter HAL
+        nStrikes++;
+        if(nStrikes == 1)
+        {
+            digitalWrite(STRIKE1_PIN,HIGH);
+        }     
+        else if(nStrikes == 2)
+        {
+            digitalWrite(STRIKE1_PIN,HIGH);
+            digitalWrite(STRIKE2_PIN,HIGH);
+        }                       
+        else if(nStrikes >= STRIKE_LIMIT)
+        {  
+            ES_PostAll((ES_Event){EVENT_DETONATE,1}); // param=1: Strikes
+            ThisEvent->EventType = ES_NO_EVENT;
+        }
+        break;
+    case CLOCK_EXPIRED:
+        ES_PostAll((ES_Event){EVENT_DETONATE,0}); // param=0: Clock
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    case EVENT_DETONATE:
+        *nextState = Exploding;
+        *makeTransition = TRUE;
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    case ES_EXIT:
+        TimerI2C_ResetAllModules();
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    default:
+        break;
+    }   
+}
+
+/**
+ * @brief Triggers the consequence then returns to Idle after a short time.
+ */
+void RunState_Exploding(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition)
+{
+    switch (ThisEvent->EventType)
+    {
+    case ES_ENTRY:
+        digitalWrite(STRIKE1_PIN,HIGH);
+        digitalWrite(STRIKE2_PIN,HIGH);
+        Consequences_Fire();
+        Clock_Stop(); // TODO Consider a way to stop the clock without it flashing
+        ThisEvent->EventType = ES_NO_EVENT;
+        StopPseudoTimer(0);
+        StopPseudoTimer(1);
+        StartPseudoTimer(0, 3000);
+        break;        
+    case ES_TIMEOUT:
+        *nextState = Idle;
+        *makeTransition = TRUE;
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Stops the clock and waits.
+ * 
+ * Transitions to Idle state after a pause if the PC is connected. Otherwise
+ * it just sits and waits for the user to cycle power.
+ */
+void RunState_Solved(ES_Event *ThisEvent, FSMState_t *nextState, uint8_t *makeTransition)
+{    
+    switch (ThisEvent->EventType)
+    {
+    case ES_ENTRY:
+        Consequences_Safe();
+        Clock_Stop();
+        Clock_StartFlashing();
+        StopAllPseudoTimers();
+        StartPseudoTimer(0, 5000);
+        ThisEvent->EventType = ES_NO_EVENT;
+        break;        
+    case ES_TIMEOUT:
+        if(TimerUART_IsPCConnected())
+        {
+            *nextState = Idle;
+            *makeTransition = TRUE;
+            ThisEvent->EventType = ES_NO_EVENT;
+        }
+        break;
+    case PC_CONNECTION_CHANGED:
+        if(ThisEvent->EventParam == 1)
+        {
+            *nextState = Idle;
+            *makeTransition = TRUE;
+            ThisEvent->EventType = ES_NO_EVENT;
+        }
+        break;
+    default:
+        break;
+    }
+}

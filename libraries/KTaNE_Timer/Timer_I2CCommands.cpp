@@ -3,20 +3,30 @@
 #include "KTaNE.h"
 #include "ES_Framework.h"
 
+// These are unused functions that require an implementation from 
+// the KTaNE library.
 
-//const char ModelID[N_MAX_MODULE_ID_CHARS] = "VALK_TIMER_000";
-//const char ModuleName[N_MAX_MODULE_NAME_CHARS] = "The Timer";
-
+// This is the function that's being called on the other module
+// when the Timer makes a request on the I2C bus.
 void Module_ServiceI2CRequest(I2C_CommandPacket *pkt)
 {
+    (void)pkt; // Acknowledge unused parameter
 }
 
+// This is called when the timer is sent a message on the I2C bus from
+// another I2C master. This should never happen.
+//* Idea: this could be where we display and error on the display?
+//*       "Error another I2C bus master has been found. Continue? Y/N"
+//*       Useful for people who want to make their own modules?
+//* Idea: Write abstraction layer for providing user feedback. We could
+//*       have a DisplayError() function that enapsulates interacting
+//*       with the Clock, and facilitate expanding to more sophisticated
+//*       logging in the future.
 void Module_ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length)
 {
+    (void)length; // Acknowledge unused parameter
+    
+    // This function should be dead code.
     Serial.print(F("I2C: "));
     Serial.println(pkt->CommandID,HEX);
-    // Adding address and command ID to the event param is more thread-safe than
-    // using the global LastCommand. And less coupled to globals.
-    //ES_PostAll((ES_Event){I2C_CMD_RECEIVED,(uint16_t)((pkt->SenderAddress << 8) + pkt->CommandID)});
-    ES_PostAll((ES_Event){I2C_CMD_RECEIVED,(uint16_t)(pkt->CommandID)});
 } 

@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "SerialCommandProcessor.h"
-#include "SerialManager.h"
+#include "Timer_UART.h"
 #include "KTaNE.h"
 #include "ES_Framework.h"
-#include "Timer_Configure.h"
+#include "Timer_EEPROM.h"
 #include <string.h>
 #include "EEPROM.h"
 
@@ -53,7 +53,7 @@ void TestEEPROMDump(uint8_t *command)
     {
         EEPROM.get(eeprom_addr+i,bytes[i+4]);
     }
-    SendUARTResponse(i2c_address, bytes, 4+length);
+    TimerUART_SendResponse(i2c_address, bytes, 4+length);
 }
 
 uint8_t ServiceCommandLocally(uint8_t *buf)
@@ -65,10 +65,7 @@ uint8_t ServiceCommandLocally(uint8_t *buf)
     uint8_t response[32];
 
     switch (command[0])
-    {
-    case FLASH_LED:
-        ES_PostAll((ES_Event){FLASH_REQUESTED,0});
-        break;    
+    {   
     case GET_EEPROM:
         TestEEPROMDump(command);
         break;
@@ -121,6 +118,8 @@ void ProcessSerialCommand(uint8_t *buf)
     }
     else
     {
+        // TODO Refactor. This is hard to follow.
+        
         KTaNE_I2C_SendPacketEx(address,command,length);
 
         if(nResponseBytes > 0)
@@ -134,7 +133,7 @@ void ProcessSerialCommand(uint8_t *buf)
             }
             while(Wire.available()) Wire.read(); // Consume extra characters if any where sent
 
-            SendUARTResponse(address, responseBuf, nResponseBytes);
+            TimerUART_SendResponse(address, responseBuf, nResponseBytes);
         }
     }
 }
