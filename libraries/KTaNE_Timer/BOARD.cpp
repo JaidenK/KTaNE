@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "BOARD_Timer.h"
+#include "BOARD.h"
 #include "KTaNE.h"
 #include "TM1637Display.h"
 #include "Clock.h"

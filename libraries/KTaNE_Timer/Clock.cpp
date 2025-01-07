@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "BOARD_Timer.h"
+#include "BOARD.h"
 #include "ES_Framework.h"
 #include "Clock.h"
 #include "Speaker.h"

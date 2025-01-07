@@ -1,6 +1,6 @@
 #include "Consequences.h"
 #include <Arduino.h>
-#include "BOARD_Timer.h"
+#include "BOARD.h"
 
 void Consequences_Arm(void)
 {

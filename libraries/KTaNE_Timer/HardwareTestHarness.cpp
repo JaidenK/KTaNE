@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "KTaNE.h"
-#include "BOARD_Timer.h"
+#include "BOARD.h"
 #include "Speaker.h"
 #include "Clock.h"
 #include "HardwareTestHarness.h"

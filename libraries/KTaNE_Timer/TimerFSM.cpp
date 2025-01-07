@@ -23,7 +23,7 @@
 
 #include <Arduino.h>
 
-#include "BOARD_Timer.h"
+#include "BOARD.h" // TODO Should the Timer FSM know about the board at all?
 #include "Timer_EEPROM.h"
 
 #include "ES_Configure.h"
