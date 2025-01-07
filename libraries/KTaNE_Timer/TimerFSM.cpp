@@ -25,7 +25,6 @@
 
 #include "BOARD_Timer.h"
 #include "Timer_EEPROM.h"
-#include "ModulesInteraction.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"

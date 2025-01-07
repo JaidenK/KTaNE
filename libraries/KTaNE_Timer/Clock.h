@@ -71,30 +71,35 @@ void Clock_ShowTime_ms(int32_t time_ms);
 void Clock_Start(void);
 
 /**
- * @brief Stops the countdown timer.
+ * @brief Stops the countdown timer. 
  * 
- * This will also cause it to flash the value
- * last shown on the display.
- * 
- * This should be used when the game is over, 
- * either solved or detonated. Not for pausing the timer.
+ * This should not be used for "temporarily pausing" the timer. If 
+ * we want that functionality then we should add a new function.
  */
 void Clock_Stop(void);
 
 /**
  * @brief Stops the countdown timer and shows the time limit.
  * 
- * Also stops it from flashing if it was.
+ * Also stops it from flashing or spinning if it was.
  */
 void Clock_Reset(void);
 
 /**
- * @brief Clears the display until the next time is shown.
+ * @brief Clears the display.
  * 
- * TODO This has not been tested.
+ * The display will automatically turn on again when a time is shown. 
+ * Attempting to clear the display while the clock is running will have 
+ * little effect (at most it will cause a brief visual glitch).
  */
 void Clock_Clear(void);
 
+/**
+ * @brief Causes the segments to spin around in a circle. Used to indicate 
+ *        loading.
+ * 
+ * Spinning will continue until a call to Clock_ShowTime_ms() or Clock_Reset()
+ */
 void Clock_Spin(void);
 
 /**
@@ -108,11 +113,20 @@ void Clock_Spin(void);
  */
 uint16_t Clock_GetDisplayedDigits(void);
 
-//* Idea:
+/**
+ * @brief Causes to the display to begin blinking on and off. 
+ * 
+ * Flashing will continue until the display state is changed with a 
+ * call to Clock_Spin(), Clock_Start(), or Clock_Reset(). 
+ * 
+ * This will not stop the countdown. You must first call Clock_Stop() if you
+ * wish to hold the current time.
+ */
+void Clock_StartFlashing(void);
+
+//* Idea: Display error
 // Flashes the clock between "ERR" and the given parameter. 
 // Implement this once we actually have an error worth showing.
 //Clock_ShowError(uint8_t error)
-
-void Clock_StartFlashing(void);
 
 #endif /* _CLOCK_H_ */

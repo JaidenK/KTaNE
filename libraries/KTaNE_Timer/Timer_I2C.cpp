@@ -11,7 +11,6 @@
 #include "ES_Configure.h"
 #include "KTaNE.h"
 #include "KTaNE_Constants.h"
-#include "ModulesInteraction.h"
 #include "EEPROM.h"
 #include "Clock.h"
 #include "Speaker.h" // TODO: Get rid of this reference
@@ -159,7 +158,6 @@ uint8_t TimerI2C_ReadRegister(uint8_t module_i2c_address, uint8_t register_addre
     *out = Wire.read();
     return retval;
 }
-
 
 void TimerI2C_StartBusScan(void)
 {

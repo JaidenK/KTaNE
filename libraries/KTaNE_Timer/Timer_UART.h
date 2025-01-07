@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /**
- * @brief Receives serial data.
+ * @brief Receives and transmits serial data between the PC and Timer.
  * 
  * Abstraction layer for the Serial communication protocol. All functions are
  * blocking (no FIFO in use). Listed in EVENT_CHECK_LIST in ES_Configure.h.
@@ -29,6 +29,9 @@ uint8_t TimerUART_CheckEvents(void);
 // TODO We need an Test Procedure for this
 // TODO We need unit tests for this
 // TODO Robust software architecture to enhance your play experience. Good for modders
+
+//* Idea: We could have a Service here to "passively" send all Events to the 
+//*       PC as packets.
 
 /**
  * @brief Sends data to the PC.

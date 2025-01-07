@@ -31,6 +31,7 @@ static int32_t previousTimeRemaining = 0;
 static uint32_t tStart_ms = 0;
 static uint32_t tFinish_ms = 0;
 static int32_t timeToShow = 0;
+static int32_t displayedTime_ms = 0;
 
 static uint32_t currentElapsedTime_ms = 0;
 static uint32_t tNextBeep = 0; // When to start the next beep. Compared to currentElapsedTime
@@ -106,6 +107,7 @@ void Clock_ShowTime_ms(int32_t time_ms)
 {
     // Ensure we're in a number-displaying mode
     isSpinning = 0;
+    displayedTime_ms = time_ms;
 
     // Compute numbers to show based on if there's more 
     // or less than 1 minute remaining.
@@ -153,7 +155,7 @@ void Clock_Start(void)
 
     
     isFlashing = 0; // Logically, should this be here?
-    Clock_ShowTime_ms(timeLimit_ms);
+    //Clock_ShowTime_ms(timeLimit_ms);
 }
 
 void Clock_Stop(void)
@@ -235,18 +237,17 @@ void UpdateSpinningDisplay(void)
 
 void UpdateFlashingDisplay(void)
 {
-    // TODO
-    // ! TODO This isn't working
     // Toggle between the display being off and showing a number.
-    // Maybe we can do this using the brightness?
     if(millis() >= flashing_tNextToggle)
     {
         flashing_tNextToggle += FLASHING_TOGGLE_PERIOD;
         flashing_isOn = !flashing_isOn;
         if(flashing_isOn)
         {
-            //Clock_ShowTime_ms(flashing_timeToFlash);
-            Clock_ShowTime_ms(timeToShow); // timeToShow set in UpdateRunningClock()
+            // displayedTime_ms is updated within Clock_ShowTime_ms, so this
+            // pattern will result in the display flashing whatever the last 
+            // time displayed was.
+            Clock_ShowTime_ms(displayedTime_ms); 
         }
         else
         {
@@ -266,6 +267,8 @@ uint8_t UpdateRunningClock(void)
     // Get current time
     currentElapsedTime_ms = millis() - tStart_ms;
     timeRemaining = timeLimit_ms - currentElapsedTime_ms;
+
+    // TODO How can we make the clock speed up when a strike occurs?
 
     // Check if we've run out of time
     if(timeRemaining <= 0)

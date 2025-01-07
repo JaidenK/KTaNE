@@ -23,7 +23,7 @@ void setup()
 
     BOARD_Init(); // TODO This could be in the state machine init function or something and then this .ino file would be the same for all modules
   
-    Serial.println("Board initialized.");
+    Serial.println(F("Board initialized."));
 
     // Initialize the framework
     ErrorType = ES_Initialize();
