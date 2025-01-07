@@ -16,8 +16,6 @@ I2CMode_t;
 typedef struct 
 {
     uint8_t i2c_address;
-    //char model_id[N_MAX_MODULE_ID_CHARS];    
-    //uint8_t isDisarmed;
     uint8_t Status; // Status register
 }
 ModuleInfo;
@@ -47,8 +45,6 @@ extern ModuleInfo ModList[N_MAX_MODULES];
  *                                       module is solved.
  * {MODULE_STRIKE,<i2c address>}       - When the status bit indicates a strike
  * 
- * ! Don't Commit
- * TODO Implement this
  */
 uint8_t TimerI2C_CheckEvents(void);
 

@@ -7,19 +7,19 @@
 #include <stdint.h>
 
 #include "KTaNE.h"
-#include "KTaNE_CommandIDs.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 
-#define N_SYNC_BYTES 8 // How many sync bytes to send
 
+// Registers declared in KTaNE_Regsiters.h
 volatile uint8_t STATUS = 0;
 volatile uint8_t CONTROL = 0;
 volatile uint8_t REQUEST = 0;
 volatile uint8_t TEST_RESULTS = 0;
 
 uint8_t i2c_address = 0;
+
 volatile I2C_CommandPacket LastCommand = 
 {
     .CommandID = 0,
@@ -28,6 +28,9 @@ volatile I2C_CommandPacket LastCommand =
 
 void I2C_request();
 void I2C_receive(int nBytes);
+
+
+void writeSyncBytes(uint8_t nBytes);
 
 // Generates a random number and its complement 
 // and writes them on the I2C bus. If multiple
@@ -44,13 +47,6 @@ void writeSyncBytes(uint8_t nBytePairs)
     }
 }
 
-void reassignI2C(uint8_t reserved[], uint8_t nReserved)
-{
-    i2c_address = (uint8_t)(random()&0b01111111);
-    EEPROM.write(EEPROM_I2C_ADDRESS,i2c_address);
-    Wire.begin(i2c_address);
-}
-
 // address = -1: Join as master
 // address = 0:  Get address from EEPROM
 // address > 0:  Use parameter value
@@ -63,6 +59,7 @@ void KTaNE_I2C_Init(int address)
     else if(address == 0)
     {        
         i2c_address = EEPROM.read(EEPROM_I2C_ADDRESS);
+        // TODO: Check what the valid I2C address are and if we want to comply
         if(i2c_address < 2)
             i2c_address = 2;
         else if(i2c_address > 127)
@@ -81,8 +78,6 @@ void KTaNE_I2C_Init(int address)
     Wire.onReceive(I2C_receive);
 }
 
-
-
 void ServiceI2C_GetEEPROM(I2C_CommandPacket *pkt)
 {
     Wire.write(pkt->CommandID); // GET_EEPROM
@@ -100,6 +95,7 @@ void ServiceI2C_GetEEPROM(I2C_CommandPacket *pkt)
 
 void KTaNE_InitEEPROM(char *moduleName, char *serialNo, char *buildDate)
 {    
+    // TODO This needs to be safer
     // TODO safety check the string lengths
     for(uint8_t i = 0; i < 16; i++)
     {
@@ -135,6 +131,7 @@ uint8_t ServiceI2CRequest_Common(I2C_CommandPacket *pkt)
             Wire.write(TEST_RESULTS);
             // Clear results ready flag when they read results
             STATUS &= ~_BV(STS_RESULT_READY);
+            break;
         default:
             // Module-specific or invalid command ID
             return 0;
@@ -266,7 +263,8 @@ uint8_t ReceiveI2CCommand_Common(I2C_CommandPacket *pkt, uint8_t length)
     return 1;
 }
 
-// This can be used if LastCommand is manually populated elsewhere
+// This can be used if LastCommand is manually populated elsewhere.
+// Used by the Timer.
 void KTaNE_I2C_receive_test(uint8_t length)
 {
     if(ReceiveI2CCommand_Common(&LastCommand,length)) return; // Don't do custom responses if it was a default packet
@@ -289,6 +287,7 @@ void I2C_receive(int nBytes)
     Module_ReceiveI2CCommand(pkt,i);
 }
 
+// TODO The timer should be using this function
 uint8_t KTaNE_I2C_SendPacket(uint8_t address, uint8_t command)
 {
     Wire.beginTransmission(address);
@@ -296,6 +295,7 @@ uint8_t KTaNE_I2C_SendPacket(uint8_t address, uint8_t command)
     return Wire.endTransmission();
 }
 
+// TODO The timer should be using this function
 uint8_t KTaNE_I2C_SendPacketEx(uint8_t address, uint8_t *command, uint8_t length)
 {
     Wire.beginTransmission(address);

@@ -219,7 +219,7 @@ void RunState_InitialPseudoState(ES_Event *ThisEvent, FSMState_t *nextState, uin
      || ThisEvent->EventType == ES_INIT)
     {            
         TimerEEPROM_Initialize();
-        TimerUART_SendCommandByte(i2c_address,RESET);
+        //TimerUART_SendCommandByte(i2c_address,RESET); // TODO Figure out what the point of this was, then delete
         
         // TODO If we make a speaker Service then this can definitely go away
         Speaker_Tone(NOTE_C7, 100);
