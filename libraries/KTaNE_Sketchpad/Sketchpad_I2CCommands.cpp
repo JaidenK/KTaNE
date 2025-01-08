@@ -3,29 +3,16 @@
 #include "KTaNE.h"
 #include "ES_Framework.h"
 
-
-const char ModelID[N_MAX_MODULE_ID_CHARS] = "VALK_SKETCH_000";
-const char ModuleName[N_MAX_MODULE_NAME_CHARS] = "Sketchpad";
-
-void ServiceI2CRequest(I2C_CommandPacket *pkt)
+void Module_ServiceI2CRequest(I2C_CommandPacket *pkt)
 {
     switch (pkt->CommandID)
     {
-    case REQUEST_ID:
-        Wire.write(ModelID);
-        break;
-    case REQUEST_NAME:
-        Wire.write(ModuleName);
-        break;   
-    case FLASH_LED:
-        ES_PostAll((ES_Event){FLASH_REQUESTED,0});
-        break;
     default:
         break;
     }
 }
 
-void ReceiveI2CCommand(I2C_CommandPacket *pkt)
+void Module_ReceiveI2CCommand(I2C_CommandPacket *pkt, uint8_t length)
 {
     // Serial.print(F("I2C: "));
     // for(uint8_t i =0;i < sizeof(pkt->data); i++)

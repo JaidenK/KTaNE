@@ -1,6 +1,6 @@
 #include "SketchpadEventChecker.h"
 #include "ES_Framework.h"
-#include "BOARD_Sketchpad.h"
+#include "BOARD.h"
 #include "Arduino.h"
 
 

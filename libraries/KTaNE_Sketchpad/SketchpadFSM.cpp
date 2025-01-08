@@ -32,7 +32,7 @@
 #include <EEPROM.h>
 #include <Wire.h>
 
-#include "BOARD_Sketchpad.h"
+#include "BOARD.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"
@@ -116,19 +116,6 @@ void FlashBlocking()
     
 }
 
-void InitializeEEPROM()
-{
-    char *moduleName =  "SKETCHPAD       ";
-    char *serialNo =    "SKC001          "; // This should be unique for every individual module. IDK how to ensure that right now.
-    char *buildDate =   "12/18/2024 15:30"; // Bless your heart if you actually remember to update this datetime each time the code changes.
-    for(uint8_t i=0; i<16; i++)
-    {
-        EEPROM.update(EEPROM_MODULE_NAME+i,moduleName[i]);
-        EEPROM.update(EEPROM_REAL_MODULE_SERIAL+i,serialNo[i]); 
-        EEPROM.update(EEPROM_BUILD_DATE+i,buildDate[i]); 
-    }
-}
-
 uint8_t PostSketchpadFSM(ES_Event ThisEvent)
 {
     return ES_PostToService(MyPriority, ThisEvent);
@@ -150,7 +137,10 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
         if (ThisEvent.EventType == ES_ENTRY || 
             ThisEvent.EventType == ES_INIT)// only respond to ES_Init
         {
-            InitializeEEPROM();
+            KTaNE_InitEEPROM("SKETCHPAD       ",
+                             "SKC001          ",
+                             "12/18/2024 15:30");  
+
             // now put the machine into the actual initial state
             nextState = Idle;
             makeTransition = TRUE;
@@ -259,14 +249,25 @@ ES_Event RunSketchpadFSM(ES_Event ThisEvent)
     return ThisEvent;
 }
 
-void ToggleStrikeLED()
+
+void Module_ToggleStrikeLED()
 {
     digitalWrite(STRIKE_PIN,!digitalRead(STRIKE_PIN));
 }
 
-void ToggleSolveLED()
+void Module_ToggleSolveLED()
 {
     digitalWrite(DISARM_PIN,!digitalRead(DISARM_PIN));
+}
+
+void Module_Detonate()
+{
+    // TODO
+}
+
+void Module_PerformSelfTest()
+{
+    // TODO
 }
 
 /*******************************************************************************
