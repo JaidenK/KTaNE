@@ -2,7 +2,7 @@
 #include <Wire.h>
 #include "KTaNE.h"
 #include "ES_Framework.h"
-#include "BOARD_ComplicatedWires.h"
+#include "BOARD.h"
 
 void Module_ServiceI2CRequest(I2C_CommandPacket *pkt)
 {

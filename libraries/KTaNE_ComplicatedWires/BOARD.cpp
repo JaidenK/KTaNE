@@ -9,7 +9,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "BOARD_ComplicatedWires.h"
+#include "BOARD.h"
 #include "KTaNE_Constants.h"
 #include "KTaNE_Common.h"
 

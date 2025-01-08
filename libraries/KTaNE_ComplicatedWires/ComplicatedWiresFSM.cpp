@@ -32,7 +32,7 @@
 #include <EEPROM.h>
 #include <Wire.h>
 
-#include "BOARD_ComplicatedWires.h"
+#include "BOARD.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"

@@ -42,7 +42,7 @@ typedef enum {
 
 /****************************************************************************/
 // This are the name of the Event checking function header file.
-#define EVENT_CHECK_HEADER "KeyboardEventChecker.h"
+#define EVENT_CHECK_HEADER "ES_EventCheckHeader.h"
 
 /****************************************************************************/
 // This is the list of event checking functions
