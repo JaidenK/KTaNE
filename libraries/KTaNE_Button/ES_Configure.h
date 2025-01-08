@@ -45,6 +45,7 @@ typedef enum {
     /* KTaNE Common Events */
     EVENT_START,
     EVENT_RESET,
+    EVENT_DETONATE, // ? Should this be a KTaNE Common Event?
     /* Module custom events */
     BUTTON_EVENT,
     SOLVED_EVENT,
@@ -55,7 +56,7 @@ typedef enum {
 
 /****************************************************************************/
 // This are the name of the Event checking function header file.
-#define EVENT_CHECK_HEADER "KeyboardEventChecker.h"
+#define EVENT_CHECK_HEADER "ES_EventCheckHeader.h"
 
 /****************************************************************************/
 // This is the list of event checking functions

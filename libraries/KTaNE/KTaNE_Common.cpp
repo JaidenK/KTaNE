@@ -1,5 +1,3 @@
-//#include <Wire.h>
-
 #include <Arduino.h>
 #include <Wire.h>
 #include <EEPROM.h>
@@ -11,6 +9,10 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 
+//* Idea: The configuration should totally be done via bluetooth webpage.
+//*       QR code to the web page found on back of the Timer module.
+//*       Webpage entirely in javascript, so anyone can host it locally
+//*       if they want.
 
 // Registers declared in KTaNE_Regsiters.h
 volatile uint8_t STATUS = 0;
@@ -273,8 +275,11 @@ void KTaNE_I2C_receive_test(uint8_t length)
 
 void I2C_receive(int nBytes) 
 {
+    (void)nBytes; // Unused
+
     // Get handle to where we'll store the packet
-    I2C_CommandPacket* pkt = &LastCommand;       
+    volatile I2C_CommandPacket* pkt = &LastCommand; // Not sure if we need volatile keyword here but the compiler doesn't like excluding it.
+
     // Clear existing contents of that packet     
     memset(pkt,0,sizeof(I2C_CommandPacket));
     // Read the packet

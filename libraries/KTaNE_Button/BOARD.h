@@ -15,15 +15,6 @@
  * PUBLIC #DEFINES                                                             *
  ******************************************************************************/
 
-//suppresses various warnings that we don't need to worry about for CMPE13
-#ifndef _SUPPRESS_PLIB_WARNING
-#define _SUPPRESS_PLIB_WARNING
-#endif
-
-#ifndef _DISABLE_OPENADC10_CONFIGPORT_WARNING
-#define _DISABLE_OPENADC10_CONFIGPORT_WARNING
-#endif
-
 /*****************************************************************************/
 // Boolean defines for TRUE, FALSE, SUCCESS and ERROR
 #ifndef FALSE
