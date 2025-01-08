@@ -9,7 +9,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "BOARD_Keypads.h"
+#include "BOARD.h"
 #include "KTaNE_Constants.h"
 #include "KTaNE_Common.h"
 
@@ -54,5 +54,5 @@ void BOARD_Init(void)
     Serial.begin(SERIAL_BAUD_RATE); // The baudrate of Serial monitor is set in 9600    
 
     // Join the bus
-    I2C_Init(0);
+    KTaNE_I2C_Init(0);
 }

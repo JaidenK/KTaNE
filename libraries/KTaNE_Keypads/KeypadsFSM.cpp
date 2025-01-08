@@ -32,7 +32,7 @@
 #include <EEPROM.h>
 #include <Wire.h>
 
-#include "BOARD_Keypads.h"
+#include "BOARD.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"
@@ -410,14 +410,24 @@ ES_Event RunKeypadsFSM(ES_Event ThisEvent)
     return ThisEvent;
 }
 
-void ToggleStrikeLED()
+void Module_ToggleStrikeLED()
 {
     digitalWrite(STRIKE_PIN,!digitalRead(STRIKE_PIN));
 }
 
-void ToggleSolveLED()
+void Module_ToggleSolveLED()
 {
     digitalWrite(DISARM_PIN,!digitalRead(DISARM_PIN));
+}
+
+void Module_Detonate()
+{
+    // TODO
+}
+
+void Module_PerformSelfTest()
+{
+    // TODO
 }
 
 /*******************************************************************************
