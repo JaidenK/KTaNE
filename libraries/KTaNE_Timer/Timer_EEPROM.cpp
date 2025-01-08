@@ -53,16 +53,10 @@ uint16_t TimerEEPROM_GetTimeLimit_s(void)
  */
 void TimerEEPROM_WriteROM(void)
 {
-    // Ensure that "read-only" data is correct
-    char *moduleName =  "THE TIMER       ";
-    char *serialNo =    "TIM001          "; // This should be unique for every individual module. IDK how to ensure that right now.
-    char *buildDate =   "12/17/2024 18:16"; // Bless your heart if you actually remember to update this datetime each time the code changes.
-    for(uint8_t i=0; i<16; i++)
-    {
-        EEPROM.update(EEPROM_MODULE_NAME+i,moduleName[i]);
-        EEPROM.update(EEPROM_REAL_MODULE_SERIAL+i,serialNo[i]); 
-        EEPROM.update(EEPROM_BUILD_DATE+i,buildDate[i]); 
-    } 
+    // Ensure that "read-only" data is correct    
+    KTaNE_InitEEPROM("THE TIMER       ",
+                     "TIM001          ",
+                     "01/08/2025 12:54");    
 }
 
 /**

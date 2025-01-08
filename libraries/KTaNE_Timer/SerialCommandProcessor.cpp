@@ -58,11 +58,11 @@ void TestEEPROMDump(uint8_t *command)
 
 uint8_t ServiceCommandLocally(uint8_t *buf)
 {   
-    uint8_t address = buf[OFFSET_ADDRESS];
+    //uint8_t address = buf[OFFSET_ADDRESS];
     uint8_t *command = &buf[OFFSET_CMD_START];
-    uint8_t length = buf[OFFSET_LENGTH] - OFFSET_CMD_START - 2; // extra -2 for CRC
-    uint8_t nResponseBytes = buf[OFFSET_RESPONSE_LENGTH];
-    uint8_t response[32];
+    //uint8_t length = buf[OFFSET_LENGTH] - OFFSET_CMD_START - 2; // extra -2 for CRC
+    //uint8_t nResponseBytes = buf[OFFSET_RESPONSE_LENGTH];
+    //uint8_t response[32];
 
     switch (command[0])
     {   

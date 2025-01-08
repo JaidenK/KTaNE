@@ -15,8 +15,6 @@
  */
 void BOARD_Init()
 {
-    //I2C_Init(TIMER_I2C_ADDRESS);
-    KTaNE_I2C_Init(-1);
     Serial.begin(SERIAL_BAUD_RATE); // The baudrate of Serial monitor is set in 9600
     
     pinMode(SPEAKER_PIN,OUTPUT);
@@ -29,4 +27,7 @@ void BOARD_Init()
     digitalWrite(CONSEQUENCE_PIN,0);
 
     Clock_Reset();
+    
+    //I2C_Init(TIMER_I2C_ADDRESS);
+    KTaNE_I2C_Init(-1);
 }
