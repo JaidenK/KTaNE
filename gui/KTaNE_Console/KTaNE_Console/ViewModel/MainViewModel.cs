@@ -1,6 +1,7 @@
 ﻿using KTaNE_Console.Core;
 using KTaNE_Console.Model;
 using KTaNE_Console.Modules;
+using KTaNE_Console.Properties;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -53,6 +54,7 @@ namespace KTaNE_Console.ViewModel
         #region Serial Commands
         public RelayCommand TestCmd { get; set; }
         public RelayCommand EEPROMDumpCmd { get; set; }
+        public RelayCommand ConnectCmd { get; set; }
         public RelayCommand StartCmd { get; set; }
         public RelayCommand SetEEPROMCmd { get; set; }
         public string TestCommandAddressString { get; set; }
@@ -93,31 +95,24 @@ namespace KTaNE_Console.ViewModel
                     int address = Convert.ToByte(TestCommandAddressString, 16);
                     var splitBytes = TestCommandBytesString.Split();
 
-
-
-                    byte[] bytes = new byte[13 + splitBytes.Length];
-                    bytes[0] = Serial.SYNC_BYTE;
-                    bytes[1] = Serial.SYNC_BYTE;
-                    bytes[2] = (byte)bytes.Length;
-                    bytes[3] = 1;
-                    bytes[4] = 2;
-                    bytes[9] = 30; // N_MAX_MODULE_NAME_CHARS
-                    bytes[10] = (byte)address;
+                    byte[] bytes = new byte[splitBytes.Length];
                     for (int i = 0; i < splitBytes.Length; i++)
                     {
-                        bytes[UartPacket.DATA_START + i] = Convert.ToByte(splitBytes[i], 16);
+                        bytes[i] = Convert.ToByte(splitBytes[i], 16);
                     }
 
-                    // Calculate CRC
-                    // ... 
-
-                    serial.Write(bytes);
+                    serial.SendCommand(30, (byte)address, bytes);
                     TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
                 }
                 catch (Exception ex)
                 {
                     ConsoleWrite(ex.Message + Environment.NewLine);
                 }
+            });
+
+            ConnectCmd = new RelayCommand((o) =>
+            {
+                Connect();
             });
 
             SetEEPROMCmd = new RelayCommand((o) =>
@@ -133,31 +128,15 @@ namespace KTaNE_Console.ViewModel
                     var eeprom_addr_bytes = BitConverter.GetBytes(eeprom_addr);
                     byte value = Convert.ToByte(SetEEPROMByteString, 16);
 
-                    //byte nEEPROMBytes = (byte)timeString.Length;
-                    byte nEEPROMBytes = 1;
+                    byte[] bytes = new byte[5];
+                    
+                    bytes[0] = (byte)CommandID.SET_EEPROM; // GET_EEPROM command ID
+                    bytes[1] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
+                    bytes[2] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
+                    bytes[3] = 1; // Number of bytes
+                    bytes[4] = value;
 
-                    byte[] bytes = new byte[13 + 4 + nEEPROMBytes];
-                    bytes[0] = Serial.SYNC_BYTE;
-                    bytes[1] = Serial.SYNC_BYTE;
-                    bytes[2] = (byte)bytes.Length;
-                    bytes[3] = 1;
-                    bytes[4] = 2;
-                    bytes[9] = 0; // No response
-                    bytes[10] = i2c_address;
-                    bytes[11] = (byte)CommandID.SET_EEPROM; // GET_EEPROM command ID
-                    bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
-                    bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
-                    bytes[14] = nEEPROMBytes; // Number of bytes
-                    //for(int i = 0; i < nEEPROMBytes; i++)
-                    //{
-                    //    bytes[15 + i] = (byte)timeString[i];
-                    //}
-                    bytes[15] = value;
-
-                    // Calculate CRC
-                    // ... 
-
-                    serial.Write(bytes);
+                    serial.SendCommand(0, i2c_address, bytes);
                     TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
                 }
                 catch (Exception ex)
@@ -170,35 +149,25 @@ namespace KTaNE_Console.ViewModel
             {
                 try
                 {
-                    for (int i = 0; i < 512 / 16; i++)
+                    byte chunk_size = 16; // do not change carelessly
+                    short eeprom_size = 512; // I don't think this is accurate
+                    for (int i = 0; i < eeprom_size / chunk_size; i++)
                     {
-                        //int i2c_address = 0x01; // Timer is always 0x01
                         byte i2c_address = Convert.ToByte(SetEEPROMI2CAddressString);
 
-                        var eeprom_addr_bytes = BitConverter.GetBytes((short)(0x10 * i));
+                        var eeprom_addr_bytes = BitConverter.GetBytes((short)(chunk_size * i));
 
-                        byte[] bytes = new byte[13 + 4];
-                        bytes[0] = Serial.SYNC_BYTE;
-                        bytes[1] = Serial.SYNC_BYTE;
-                        bytes[2] = (byte)bytes.Length;
-                        bytes[3] = 1;
-                        bytes[4] = 2;
-                        bytes[9] = 20; // 16 bytes + header
-                        bytes[10] = (byte)i2c_address;
-                        bytes[11] = (byte)CommandID.GET_EEPROM;
-                        bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
-                        bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
-                        bytes[14] = 16; // number of bytes
+                        byte[] bytes = new byte[4];
 
-                        // Calculate CRC
-                        // ... 
+                        bytes[0] = (byte)CommandID.GET_EEPROM;
+                        bytes[1] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
+                        bytes[2] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
+                        bytes[3] = chunk_size; // number of bytes
 
-                        //serial.Write(bytes);
-                        TxQueue.Enqueue(bytes);
+                        serial.SendCommand(20, i2c_address, bytes);
+
+                        //TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
                     }
-                    var bytes2 = TxQueue.Dequeue();
-                    serial.Write(bytes2);
-                    TxPacketsText += UartPacket.FromFullPacket(bytes2).ToString() + Environment.NewLine;
                 }
                 catch (Exception ex)
                 {
@@ -210,22 +179,9 @@ namespace KTaNE_Console.ViewModel
             {
                 try
                 {
-                    int i2c_address = 0x00; // Timer is always 0x00
-
-
-                    byte[] bytes = new byte[13 + 2];
-                    bytes[0] = Serial.SYNC_BYTE;
-                    bytes[1] = Serial.SYNC_BYTE;
-                    bytes[2] = (byte)bytes.Length;
-                    bytes[3] = 1; // Seq Count
-                    bytes[4] = 2; // Seq Count Echo
-                    bytes[9] = 0; // Response length: 0
-                    bytes[10] = (byte)i2c_address;
-                    bytes[11] = (byte)0x11;// CommandID.REG_CTRL;
-                    bytes[12] = 1; // CTRL_START
-
-                    serial.Write(bytes);
-                    TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
+                    byte i2c_address = 0x00; // Timer is always 0x00
+                    serial.SendCommand(0, i2c_address, 0x11, 1);// CommandID.REG_CTRL: CTRL_START
+                    //TxPacketsText += UartPacket.FromFullPacket(bytes).ToString() + Environment.NewLine;
                 }
                 catch (Exception ex)
                 {
@@ -233,6 +189,17 @@ namespace KTaNE_Console.ViewModel
                 }
             });
 
+            LoadSettings();
+
+        }
+
+        private void LoadSettings()
+        {
+            //if (Settings.Default.ConnectAutomatically)
+            //{
+            //    PortName = Settings.Default.ComPort;
+            //    Connect();
+            //}
         }
 
         internal void RefreshComList()
@@ -301,7 +268,7 @@ namespace KTaNE_Console.ViewModel
                         var addr = pkt.i2c_bytes[1 + 2 * i];
                         var status = pkt.i2c_bytes[1 + 2 * i + 1];
 
-                        var mod = ModuleList.SingleOrDefault(x => x.Address == addr);
+                        var mod = ModuleList.SingleOrDefault(x => x.BusAddress == addr);
                         if (mod != null)
                         {
                             mod.Status = status;
@@ -312,13 +279,6 @@ namespace KTaNE_Console.ViewModel
                         }
                     }
                 }), DispatcherPriority.DataBind);
-            }
-
-                if (TxQueue.Count > 0)
-            {
-                var bytes2 = TxQueue.Dequeue();
-                serial.Write(bytes2);
-                TxPacketsText += UartPacket.FromFullPacket(bytes2).ToString() + Environment.NewLine;
             }
         }
 
@@ -335,12 +295,20 @@ namespace KTaNE_Console.ViewModel
 
         public void Connect()
         {
+            if(String.IsNullOrEmpty(PortName))
+            {
+                ConsoleWrite("Cannot connect: Port NULL");
+                return; 
+            }
+
+            // User settings.
+            // Temporarily removed because file corrupted in power outage
+            //Settings.Default.ComPort = PortName;
+            //Settings.Default.Save();
+
             ConsoleWrite("Connecting..." + Environment.NewLine);
             serial.Connect(PortName, Baud);
-            //foreach (var Module in ModuleList)
-            //{
-            //    Module.SendConfigRequests();
-            //}
+
             Task.Run(() =>
             {
                 Thread.Sleep(500);

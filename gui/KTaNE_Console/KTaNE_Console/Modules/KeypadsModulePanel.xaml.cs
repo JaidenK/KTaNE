@@ -58,10 +58,10 @@ namespace KTaNE_Console.Modules
 
             var list = new List<byte[]>();
 
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM_KEY1, (byte)(Pad1+1)));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM_KEY2, (byte)(Pad2+1)));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM_KEY3, (byte)(Pad3+1)));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM_KEY4, (byte)(Pad4+1)));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM_KEY1, (byte)(Pad1+1)));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM_KEY2, (byte)(Pad2+1)));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM_KEY3, (byte)(Pad3+1)));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM_KEY4, (byte)(Pad4+1)));
 
             return list;
         }

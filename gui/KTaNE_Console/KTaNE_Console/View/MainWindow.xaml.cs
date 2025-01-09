@@ -52,7 +52,7 @@ namespace KTaNE_Console
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            vm.Connect();
+            //vm.Connect();
         }
 
         private void TextBox_ScrollToEnd(object sender, TextChangedEventArgs e)
@@ -70,7 +70,6 @@ namespace KTaNE_Console
 
         private void ComboBox_MouseEnter(object sender, MouseEventArgs e)
         {
-
             vm.RefreshComList();
         }
     }

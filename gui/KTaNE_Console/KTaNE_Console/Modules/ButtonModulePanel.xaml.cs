@@ -136,9 +136,9 @@ namespace KTaNE_Console.Modules
 
             var list = new List<byte[]>();
 
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM.BUTTON_LABEL, (byte)LabelInput));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM.BUTTON_BTN_COLOR, (byte)ButtonColorInput));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM.BUTTON_STRIP_COLOR, (byte)StripColorInput));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM.BUTTON_LABEL, (byte)LabelInput));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM.BUTTON_BTN_COLOR, (byte)ButtonColorInput));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM.BUTTON_STRIP_COLOR, (byte)StripColorInput));
 
             return list;
         }

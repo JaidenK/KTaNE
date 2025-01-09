@@ -98,10 +98,10 @@ namespace KTaNE_Console.Modules
                 leds  |= (byte)(w.LED ? (1 << i) : 0);
             }
 
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM_REDWIRES, reds));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM_BLUEWIRES, blues));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM_STARS, stars));
-            list.Add(TheTimer.buildSetEEPROMPacket(module.Address, EEPROM_LEDS, leds));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM_REDWIRES, reds));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM_BLUEWIRES, blues));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM_STARS, stars));
+            list.Add(TheTimer.buildSetEEPROMPacket(EEPROM_LEDS, leds));
 
             return list;
         }

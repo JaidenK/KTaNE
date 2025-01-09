@@ -8,8 +8,8 @@
 
     public interface IModule
     {
-        byte Address { get; }
-        string Name { get; }
+        byte BusAddress { get; }
+        string ModuleName { get; }
         string ModelID { get; }
         SolvedState State { get; }
         byte Status { get; set; }

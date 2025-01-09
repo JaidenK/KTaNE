@@ -29,9 +29,7 @@ namespace KTaNE_Console.Modules
     {
 
         public event PropertyChangedEventHandler PropertyChanged;
-        public byte Address { get; set; }
-
-        public string Name { get; set; }
+        public byte BusAddress { get; set; }
 
         public string ModelID { get; set; }
 
@@ -87,7 +85,7 @@ namespace KTaNE_Console.Modules
 
         public EEPROM Eeprom { get; set; } = new EEPROM();
 
-        public List<byte[]> BuildGetEEPROMPackets(byte i2c_address, ushort eeprom_address, UInt16 length)
+        public List<byte[]> BuildGetEEPROMPackets(ushort eeprom_address, UInt16 length)
         {
             int remainingLength = length;
             int i = 0;
@@ -100,18 +98,12 @@ namespace KTaNE_Console.Modules
                 byte currentLength = (byte)(remainingLength > 16 ? 16 : remainingLength);
                 remainingLength -= 16;
 
-                byte[] bytes = new byte[13 + 4];
-                bytes[0] = Serial.SYNC_BYTE;
-                bytes[1] = Serial.SYNC_BYTE;
-                bytes[2] = (byte)bytes.Length;
-                bytes[3] = 1;
-                bytes[4] = 2;
-                bytes[9] = 20; // 16 bytes + header
-                bytes[10] = (byte)i2c_address;
-                bytes[11] = (byte)CommandID.GET_EEPROM;
-                bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
-                bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
-                bytes[14] = currentLength; // number of bytes
+                byte[] bytes = new byte[4];
+                
+                bytes[0] = (byte)CommandID.GET_EEPROM;
+                bytes[1] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
+                bytes[2] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
+                bytes[3] = currentLength; // number of bytes
 
                 retval.Add(bytes);
             }
@@ -156,19 +148,17 @@ namespace KTaNE_Console.Modules
             this.DataContext = this;
             this.serial = serial;
             this.CW = ConsoleWriter;
-            this.Address = addr;
+            this.BusAddress = addr;
             serial.PacketReceived += Serial_PacketReceived;
 
             ReadEEPROMCmd = new RelayCommand((o) =>
             {
                 try
                 {
-                    BuildGetEEPROMPackets(Address, 0, 512).ForEach(x =>
+                    BuildGetEEPROMPackets(0, 512).ForEach(x =>
                     {
-                        TxQueue.Enqueue(x);
+                        serial.SendCommand(20, BusAddress, x); // Why 20??
                     });
-                    var bytes = TxQueue.Dequeue();
-                    serial.Write(bytes);
                 }
                 catch (Exception ex)
                 {
@@ -182,9 +172,9 @@ namespace KTaNE_Console.Modules
                 {
                     for(int i = 0; i < 3; i++)
                     {
-                        serial.SendCommand(0, Address, new byte[] { (byte)Registers.REG_CTRL, (byte)0x0C });
+                        serial.SendCommand(0, BusAddress, new byte[] { (byte)Registers.REG_CTRL, (byte)0x0C });
                         Thread.Sleep(100);
-                        serial.SendCommand(0, Address, new byte[] { (byte)Registers.REG_CTRL, (byte)0x0C });
+                        serial.SendCommand(0, BusAddress, new byte[] { (byte)Registers.REG_CTRL, (byte)0x0C });
                         Thread.Sleep(100);
                     }
                 });
@@ -194,16 +184,16 @@ namespace KTaNE_Console.Modules
             {
                 try
                 {
-                    Task.Run(() =>
+                    Task.Run((Action)(() =>
                     {
-                        CW.ConsoleWrite($"Configuring {ModuleName}..." + Environment.NewLine);
+                        CW.ConsoleWrite($"Configuring {this.ModuleName}..." + Environment.NewLine);
                         var pkts = ModulePanel.BuildSetEEPROMPackets();
-                        if(pkts  != null)
+                        if(pkts != null)
                         {
                             pkts.ForEach(x =>
                             {
-                                serial.Write(x);
-                                Task.Delay(200);
+                                serial.SendCommand(0, BusAddress, x);
+                                //Task.Delay(200); // Delay removed because reliability needs to be part of the Serial interface code
                             });
                             CW.ConsoleWrite("Done." + Environment.NewLine);
                         }
@@ -211,7 +201,7 @@ namespace KTaNE_Console.Modules
                         {
                             CW.ConsoleWrite("No configuration needed." + Environment.NewLine);
                         }
-                    });
+                    }));
                 }
                 catch (Exception ex)
                 {
@@ -227,12 +217,12 @@ namespace KTaNE_Console.Modules
         }
         private void Serial_PacketReceived(object sender, SerialPacketReceivedEventArgs e)
         {
-            if (TxQueue.Count > 0)
-                serial.Write(TxQueue.Dequeue());
+            //if (TxQueue.Count > 0)
+            //    serial.Write(TxQueue.Dequeue());
 
             var pkt = UartPacket.FromFullPacket(e.packet);
 
-            if (((byte)(pkt.address & 0b01111111)) != Address)
+            if (((byte)(pkt.address & 0b01111111)) != BusAddress)
                 return;
 
             switch (pkt.Command)

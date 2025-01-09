@@ -1,8 +1,10 @@
 ﻿using KTaNE_Console.Model;
 using System;
+using System.Collections.Generic;
 using System.IO.Ports;
 using System.Text;
 using System.Threading;
+using System.Windows.Documents;
 
 namespace KTaNE_Console.Core
 {
@@ -11,6 +13,7 @@ namespace KTaNE_Console.Core
         public static readonly byte SYNC_BYTE = 0xA5;
 
         private readonly object _lock = new object();
+        private readonly object _queuelock = new object();
         private SerialPort _port { get; set; }
         public string PortString => $"{_port?.PortName ?? "NULL"}@{_port?.BaudRate ?? 0}";
 
@@ -20,7 +23,12 @@ namespace KTaNE_Console.Core
         public event EventHandler<SerialPacketReceivedEventArgs> PacketReceived;
         public event EventHandler<SerialPacketSentEventArgs> PacketSent;
 
-        public void Write(string s)
+        byte rx_seqCnt = 0;
+        byte tx_seqCnt = 0;
+
+        Queue<byte[]> TxQueue = new Queue<byte[]>();
+
+        public void LogString(string s)
         {
             TextReceived?.Invoke(this, new SerialTextReceivedEventArgs(s));
         }
@@ -133,6 +141,8 @@ namespace KTaNE_Console.Core
                     if (((byte)iPacketBuf == packetLength) && (state == RxPacketState.AcquiringDataBytes))
                     {
                         state = RxPacketState.SearchingForSync1;
+
+                        rx_seqCnt = packetBuf[3];
                         // Check CRC
                         //crc.EvaluateCRC()
 
@@ -155,14 +165,25 @@ namespace KTaNE_Console.Core
                 }
                 if (sb.Length > 0)
                 {
-                    Write(sb.ToString());
+                    LogString(sb.ToString());
+                }
+
+                lock(_queuelock)
+                {
+                    if(TxQueue.Count > 0)
+                    {
+                        // TODO Check if the last sent packet has been ACK'd
+                        // Or just throttle the transmission rate...
+                        var bytes = TxQueue.Dequeue();
+                        Write(bytes);
+                    }
                 }
             }
         }
 
         private void _port_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
         {
-            Write($"Serial Error:\n" + e.EventType.ToString() + "\n");
+            LogString($"Serial Error:\n" + e.EventType.ToString() + "\n");
         }
 
         public void Connect(string PortName, int BaudRate)
@@ -177,7 +198,7 @@ namespace KTaNE_Console.Core
                 _port.Close();
                 _port.PortName = PortName;
                 _port.BaudRate = BaudRate;
-                Write($"Connecting to {PortString}... ");
+                LogString($"Connecting to {PortString}... ");
                 try
                 {
                     _port.Open();
@@ -185,14 +206,15 @@ namespace KTaNE_Console.Core
                 }
                 catch (Exception ex)
                 {
-                    Write($"\nFailed to open {PortString}:\n" + ex.ToString() + "\n");
+                    LogString($"\nFailed to open {PortString}:\n" + ex.ToString() + "\n");
                     return;
                 }
-                Write($"Connected!\n");
+                LogString($"Connected!\n");
             }
         }
 
-        public void Write(byte[] bytes)
+        // Making this private to force users into complying with the protocol
+        private void Write(byte[] bytes)
         {
             lock (_lock)
             {
@@ -219,8 +241,8 @@ namespace KTaNE_Console.Core
             bytes[0] = Serial.SYNC_BYTE;
             bytes[1] = Serial.SYNC_BYTE;
             bytes[2] = (byte)bytes.Length;
-            bytes[3] = 1;
-            bytes[4] = 2;
+            bytes[3] = tx_seqCnt;
+            bytes[4] = rx_seqCnt;
             bytes[9] = nResponseBytes;
             bytes[10] = (byte)address;
             for (int i = 0; i < i2c_bytes.Length; i++)
@@ -231,7 +253,12 @@ namespace KTaNE_Console.Core
             // Calculate CRC
             // ... 
 
-            Write(bytes);
+            //Write(bytes);
+            // Enqueued bytes will automatically begin sending in the serial thread
+            lock(_queuelock)
+            {
+                TxQueue.Enqueue(bytes);
+            }
 
             var args = new SerialPacketSentEventArgs
             {
@@ -240,8 +267,16 @@ namespace KTaNE_Console.Core
             Array.Copy(bytes, 0, args.packet, 0, bytes.Length);
 
             PacketSent?.Invoke(this, args);
+            
+            tx_seqCnt++;
 
             return bytes;
+        }
+
+        //TODO
+        public void SetRegister(byte i2c_address, byte register_address, byte value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -50,6 +50,9 @@ uint8_t isTransmittingStatus = 0;
 uint32_t tNextTransmission = 0;
 #define STATUS_TRANSMISSION_PERIOD_MS 200
 
+uint8_t rx_seqCnt = 0;
+uint8_t tx_seqCnt = 0;
+
 /*******************************************************************************
  * PUBLIC FUNCTIONS                                                            *
  ******************************************************************************/
@@ -74,8 +77,8 @@ void TimerUART_SendPacket(uint8_t address, uint8_t *bytes, uint8_t nBytes)
     // Length
     Serial.write(13 + nBytes);
     // Sequence Counts
-    Serial.write(0x00);
-    Serial.write(0x00);
+    Serial.write(tx_seqCnt);
+    Serial.write(rx_seqCnt);
     // Reserved
     Serial.write(0x01);
     Serial.write(0x02);
@@ -93,6 +96,8 @@ void TimerUART_SendPacket(uint8_t address, uint8_t *bytes, uint8_t nBytes)
     // CRC
     Serial.write(0x75);
     Serial.write(0x75);
+
+    tx_seqCnt++;
 }
 
 void TimerUART_SendCommandByte(uint8_t address, uint8_t byte)
@@ -186,6 +191,7 @@ uint8_t CheckRx(void)
         if(packetReceived)
         {
             tLastRxPacket = millis();
+            rx_seqCnt = buf[3]; // Where is a good spot to put this line?
             ProcessSerialCommand(buf);
         }
 

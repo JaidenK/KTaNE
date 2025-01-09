@@ -62,7 +62,7 @@ namespace KTaNE_Console.Modules
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public byte Address => UartPacket.TIMER_ADDRESS;
+        public byte BusAddress => UartPacket.TIMER_ADDRESS;
         public string ModelID => throw new NotImplementedException();
         public SolvedState State => throw new NotImplementedException();
 
@@ -162,7 +162,7 @@ namespace KTaNE_Console.Modules
 
         public EEPROM Eeprom { get; set; } = new EEPROM();
 
-        public List<byte[]> BuildGetEEPROMPackets(byte i2c_address, ushort eeprom_address, UInt16 length)
+        public List<byte[]> BuildGetEEPROMPackets(ushort eeprom_address, UInt16 length)
         {
             int remainingLength = length;
             int i = 0;
@@ -175,18 +175,11 @@ namespace KTaNE_Console.Modules
                 byte currentLength = (byte)(remainingLength > 16 ? 16 : remainingLength);
                 remainingLength -= 16;
 
-                byte[] bytes = new byte[13 + 4];
-                bytes[0] = Serial.SYNC_BYTE;
-                bytes[1] = Serial.SYNC_BYTE;
-                bytes[2] = (byte)bytes.Length;
-                bytes[3] = 1;
-                bytes[4] = 2;
-                bytes[9] = 20; // 16 bytes + header
-                bytes[10] = (byte)i2c_address;
-                bytes[11] = (byte)CommandID.GET_EEPROM;
-                bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
-                bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
-                bytes[14] = currentLength; // number of bytes
+                byte[] bytes = new byte[4];
+                bytes[0] = (byte)CommandID.GET_EEPROM;
+                bytes[1] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
+                bytes[2] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
+                bytes[3] = currentLength; // number of bytes
 
                 retval.Add(bytes);
             }
@@ -228,8 +221,7 @@ namespace KTaNE_Console.Modules
             {
                 try
                 {
-
-                    serial.SendCommand(0, Address, new byte[] { (byte)Registers.REG_CTRL, (byte)(1 << 5) });
+                    serial.SendCommand(0, BusAddress, new byte[] { (byte)Registers.REG_CTRL, (byte)(1 << 5) });
                 }
                 catch (Exception ex)
                 {
@@ -241,12 +233,10 @@ namespace KTaNE_Console.Modules
             {
                 try
                 {
-                    BuildGetEEPROMPackets(Address, 0, 512).ForEach(x =>
+                    BuildGetEEPROMPackets(0, 512).ForEach(x =>
                     {
-                        TxQueue.Enqueue(x);
+                        serial.SendCommand(20, BusAddress, x); // Why 20?
                     });
-                    var bytes = TxQueue.Dequeue();
-                    serial.Write(bytes);
                 }
                 catch (Exception ex)
                 {
@@ -264,8 +254,7 @@ namespace KTaNE_Console.Modules
                         var pkts = BuildSetEEPROMPackets();
                         pkts.ForEach(x =>
                         {
-                            serial.Write(x);
-                            Task.Delay(200);
+                            serial.SendCommand(0, BusAddress, x);
                         });
                         CW.ConsoleWrite("Done." + Environment.NewLine);
                     });
@@ -277,29 +266,25 @@ namespace KTaNE_Console.Modules
             });
         }
 
-        public static byte[] buildSetEEPROMPacket(byte i2c_address, ushort eeprom_addr, byte b)
+        public static byte[] buildSetEEPROMPacket(ushort eeprom_addr, byte b)
         {
-            return buildSetEEPROMPacket(i2c_address, eeprom_addr, new byte[] { b });
+            return buildSetEEPROMPacket(eeprom_addr, new byte[] { b });
         }
-        public static byte[] buildSetEEPROMPacket(byte i2c_address, ushort eeprom_addr, byte[] bytes_to_write)
+
+        // This is implementing code that must adhere to the ICD, and should therefore
+        // be moved out of this file.
+        public static byte[] buildSetEEPROMPacket(ushort eeprom_addr, byte[] bytes_to_write)
         {
             var eeprom_addr_bytes = BitConverter.GetBytes(eeprom_addr);
 
-            byte[] bytes = new byte[13 + 4 + bytes_to_write.Length];
-            bytes[0] = Serial.SYNC_BYTE;
-            bytes[1] = Serial.SYNC_BYTE;
-            bytes[2] = (byte)bytes.Length;
-            bytes[3] = 1;
-            bytes[4] = 2;
-            bytes[9] = 0; // No response
-            bytes[10] = i2c_address;
-            bytes[11] = (byte)CommandID.SET_EEPROM; // GET_EEPROM command ID
-            bytes[12] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
-            bytes[13] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
-            bytes[14] = (byte)bytes_to_write.Length; // Number of bytes
+            byte[] bytes = new byte[4 + bytes_to_write.Length];
+            bytes[0] = (byte)CommandID.SET_EEPROM; // GET_EEPROM command ID
+            bytes[1] = eeprom_addr_bytes[0]; // EEPROM Addresss lower byte
+            bytes[2] = eeprom_addr_bytes[1]; // EEPROM Addresss upper byte
+            bytes[3] = (byte)bytes_to_write.Length; // Number of bytes
             for (int i = 0; i < bytes_to_write.Length; i++)
             {
-                bytes[15 + i] = bytes_to_write[i];
+                bytes[4 + i] = bytes_to_write[i];
             }
 
             return bytes;
@@ -319,10 +304,10 @@ namespace KTaNE_Console.Modules
                 serial += ' ';
             }
 
-            list.Add(buildSetEEPROMPacket(Address, EEPROM.SERIAL_NO, Encoding.ASCII.GetBytes(serial)));
-            list.Add(buildSetEEPROMPacket(Address, EEPROM.TIME_LIMIT, BitConverter.GetBytes(ushort.Parse(TimeLimitInput))));
-            list.Add(buildSetEEPROMPacket(Address, EEPROM.AA_BATTERIES, byte.Parse(NumAABatteriesInput)));
-            list.Add(buildSetEEPROMPacket(Address, EEPROM.D_BATTERIES, byte.Parse(NumDBatteriesInput)));
+            list.Add(buildSetEEPROMPacket(EEPROM.SERIAL_NO, Encoding.ASCII.GetBytes(serial)));
+            list.Add(buildSetEEPROMPacket(EEPROM.TIME_LIMIT, BitConverter.GetBytes(ushort.Parse(TimeLimitInput))));
+            list.Add(buildSetEEPROMPacket(EEPROM.AA_BATTERIES, byte.Parse(NumAABatteriesInput)));
+            list.Add(buildSetEEPROMPacket(EEPROM.D_BATTERIES, byte.Parse(NumDBatteriesInput)));
 
             // Ports
             byte ports = 0;
@@ -336,7 +321,7 @@ namespace KTaNE_Console.Modules
             ports |= (byte)(Port_Spare1_Input ? (1 << 6) : 0);
             ports |= (byte)(Port_Spare2_Input ? (1 << 7) : 0);
 
-            list.Add(buildSetEEPROMPacket(Address, EEPROM.PORTS, ports));
+            list.Add(buildSetEEPROMPacket(EEPROM.PORTS, ports));
 
             // Indicators
             string indicators = IndicatorsInput ?? "";
@@ -353,7 +338,7 @@ namespace KTaNE_Console.Modules
                 {
                     indicators = "";
                 }
-                list.Add(buildSetEEPROMPacket(Address, (ushort)(EEPROM.INDICATORS + (i * 0x10)), Encoding.ASCII.GetBytes(sub)));
+                list.Add(buildSetEEPROMPacket((ushort)(EEPROM.INDICATORS + (i * 0x10)), Encoding.ASCII.GetBytes(sub)));
                 i++;
             }
 
@@ -362,12 +347,12 @@ namespace KTaNE_Console.Modules
 
         private void Serial_PacketReceived(object sender, SerialPacketReceivedEventArgs e)
         {
-            if (TxQueue.Count > 0)
-                serial.Write(TxQueue.Dequeue());
+            //if (TxQueue.Count > 0)
+            //    serial.Write(TxQueue.Dequeue());
 
             var pkt = UartPacket.FromFullPacket(e.packet);
 
-            if (((byte)(pkt.address & 0b01111111)) != Address)
+            if (((byte)(pkt.address & 0b01111111)) != BusAddress)
                 return;
 
             switch (pkt.Command)
@@ -409,13 +394,6 @@ namespace KTaNE_Console.Modules
             }
 
             //PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(""));
-        }
-
-        public void SendConfigRequests()
-        {
-            //serial.SendCommand(0, Address, new byte[] { (byte)CommandID.REQUEST_CONFIG, (byte)CommandID.SET_TIME_LIMIT });
-            //serial.SendCommand(0, Address, new byte[] { (byte)CommandID.REQUEST_CONFIG, (byte)CommandID.SET_N_BATTERIES });
-            //serial.SendCommand(0, Address, new byte[] { (byte)CommandID.REQUEST_CONFIG, (byte)CommandID.SET_SERIAL_NO });
         }
     }
 }
