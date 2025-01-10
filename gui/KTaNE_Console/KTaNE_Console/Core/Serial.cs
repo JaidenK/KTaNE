@@ -14,8 +14,10 @@ namespace KTaNE_Console.Core
         public static readonly byte SYNC_BYTE = 0xA5;
 
         Stopwatch rx_stopwatch = new Stopwatch();
+        Stopwatch tx_stopwatch = new Stopwatch();
         Stopwatch ack_stopwatch = new Stopwatch();
-        const int ACK_TIMEOUT_MS = 300;
+        const int ACK_TIMEOUT_MS = 300; // If we have not seen the command ID echo'd in this amount of time, the packet was lost
+        const int TX_KEEPALIVE_TIMEOUT_MS = 300; // We must send a packet this often to let the micro know we're still connected
 
         private readonly object _lock = new object();
         private readonly object _queuelock = new object();
@@ -186,6 +188,14 @@ namespace KTaNE_Console.Core
                     LogString(sb.ToString() + Environment.NewLine);
                 }
 
+                if(tx_stopwatch.ElapsedMilliseconds > TX_KEEPALIVE_TIMEOUT_MS)
+                {
+                    // TODO we should have a specific "heartbeat" command to let the 
+                    // micro know this is an intentional "do nothing" command rather 
+                    // than garbage
+                    SendCommand(0, 0,new byte[]{ 0 });
+                }
+
                 lock(_queuelock)
                 {
                     if(TxQueue.Count > 0)
@@ -197,6 +207,7 @@ namespace KTaNE_Console.Core
                             Write(bytes);
                             Console.WriteLine($"ACK: {ack_stopwatch.ElapsedMilliseconds}");
                             ack_stopwatch.Restart();
+                            tx_stopwatch.Restart();
                         }
                         else
                         {
@@ -209,6 +220,8 @@ namespace KTaNE_Console.Core
                         }
                     }
                 }
+
+
 
             }
         }

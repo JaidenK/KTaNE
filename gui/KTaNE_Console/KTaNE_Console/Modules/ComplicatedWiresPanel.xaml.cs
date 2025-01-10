@@ -74,6 +74,8 @@ namespace KTaNE_Console.Modules
             Wires.Add(new ComplicatedWire());
             this.DataContext = this;           
             InitializeComponent();
+
+            // TODO This doesn't display the EEPROM values. It _seems_ to set them.
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
