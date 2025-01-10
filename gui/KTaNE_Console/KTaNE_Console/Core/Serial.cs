@@ -1,6 +1,7 @@
 ﻿using KTaNE_Console.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Text;
 using System.Threading;
@@ -11,6 +12,10 @@ namespace KTaNE_Console.Core
     public class Serial
     {
         public static readonly byte SYNC_BYTE = 0xA5;
+
+        Stopwatch rx_stopwatch = new Stopwatch();
+        Stopwatch ack_stopwatch = new Stopwatch();
+        const int ACK_TIMEOUT_MS = 300;
 
         private readonly object _lock = new object();
         private readonly object _queuelock = new object();
@@ -25,6 +30,8 @@ namespace KTaNE_Console.Core
 
         byte rx_seqCnt = 0;
         byte tx_seqCnt = 0;
+        byte tx_seqCntEcho = 0;
+        int tx_seqCntEcho_WaitingForAck = -1;
 
         Queue<byte[]> TxQueue = new Queue<byte[]>();
 
@@ -75,8 +82,17 @@ namespace KTaNE_Console.Core
                     continue;
                 }
 
+                if (rx_stopwatch.ElapsedMilliseconds > 1000)
+                {
+                    LogString("RX Timeout: Connection lost!" + Environment.NewLine);                    
+                    // TODO: Log only once
+                    Thread.Sleep(1000);
+                    //continue;
+                }
+
                 if (_port.BytesToRead == 0)
                 {
+
                     Thread.Sleep(100);
                     continue;
                 }
@@ -143,6 +159,7 @@ namespace KTaNE_Console.Core
                         state = RxPacketState.SearchingForSync1;
 
                         rx_seqCnt = packetBuf[3];
+                        tx_seqCntEcho = packetBuf[4];
                         // Check CRC
                         //crc.EvaluateCRC()
 
@@ -154,6 +171,7 @@ namespace KTaNE_Console.Core
                         Array.Copy(packetBuf, 0, args.packet, 0, packetLength);
                         try
                         {
+                            rx_stopwatch.Restart();
                             PacketReceived?.Invoke(this, args);
                         }
                         catch (Exception ex)
@@ -165,19 +183,33 @@ namespace KTaNE_Console.Core
                 }
                 if (sb.Length > 0)
                 {
-                    LogString(sb.ToString());
+                    LogString(sb.ToString() + Environment.NewLine);
                 }
 
                 lock(_queuelock)
                 {
                     if(TxQueue.Count > 0)
                     {
-                        // TODO Check if the last sent packet has been ACK'd
-                        // Or just throttle the transmission rate...
-                        var bytes = TxQueue.Dequeue();
-                        Write(bytes);
+                        if((tx_seqCntEcho == tx_seqCntEcho_WaitingForAck) || (tx_seqCntEcho_WaitingForAck < 0))
+                        {
+                            var bytes = TxQueue.Dequeue();
+                            tx_seqCntEcho_WaitingForAck = bytes[3];
+                            Write(bytes);
+                            Console.WriteLine($"ACK: {ack_stopwatch.ElapsedMilliseconds}");
+                            ack_stopwatch.Restart();
+                        }
+                        else
+                        {
+                            if(ack_stopwatch.ElapsedMilliseconds > ACK_TIMEOUT_MS)
+                            {
+                                LogString($"ACK Timeout. {ack_stopwatch.ElapsedMilliseconds}" + Environment.NewLine);
+                                tx_seqCntEcho_WaitingForAck = -1;
+                                // TODO What should we do when ack timeout occurs?
+                            }
+                        }
                     }
                 }
+
             }
         }
 
@@ -186,6 +218,8 @@ namespace KTaNE_Console.Core
             LogString($"Serial Error:\n" + e.EventType.ToString() + "\n");
         }
 
+        // TODO: Remove baud rate parameter since it _must_ match the embedded code and isn't 
+        // optional.
         public void Connect(string PortName, int BaudRate)
         {
             if(PortName is null)
@@ -210,6 +244,7 @@ namespace KTaNE_Console.Core
                     return;
                 }
                 LogString($"Connected!\n");
+                rx_stopwatch.Restart();
             }
         }
 
